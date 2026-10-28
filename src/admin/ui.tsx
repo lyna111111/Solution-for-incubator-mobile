@@ -128,13 +128,14 @@ export function LigneListe({
   );
 }
 
-export function Compteurs({ valeurs }: { valeurs: { label: string; valeur: number | string }[] }) {
+/** Petites tuiles de chiffres ; `couleur` (facultative) teinte le liseré et la valeur. */
+export function Compteurs({ valeurs }: { valeurs: { label: string; valeur: number | string; couleur?: string }[] }) {
   const styles = useStyles(createStyles);
   return (
     <View style={styles.compteurs}>
       {valeurs.map((v) => (
-        <View key={v.label} style={styles.compteur}>
-          <Text style={styles.compteurValeur}>{v.valeur}</Text>
+        <View key={v.label} style={[styles.compteur, !!v.couleur && { borderTopWidth: 3, borderTopColor: v.couleur }]}>
+          <Text style={[styles.compteurValeur, !!v.couleur && { color: v.couleur }]}>{v.valeur}</Text>
           <Text style={styles.compteurLabel}>{v.label}</Text>
         </View>
       ))}

@@ -1,9 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { Alert, StyleSheet, View } from 'react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
+import { Alert, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { getErrorMessage } from '@/api/client';
 import { Button } from '@/components/ui';
-import { spacing } from '@/theme';
+import { radius, spacing, useColors } from '@/theme';
 import { aujourdhui, formaterDA, formatDate } from '@/utils/format';
 
 import { adminEnvoyer } from './api';
@@ -44,24 +45,55 @@ function useAction(rafraichir: () => void) {
   };
 }
 
+function CompteursIncubateurs({ compteurs }: { compteurs: any }) {
+  const colors = useColors();
+  return (
+    <Compteurs valeurs={[
+      { label: 'Total', valeur: compteurs.total, couleur: colors.primary },
+      { label: 'Actifs', valeur: compteurs.actifs, couleur: colors.success },
+      { label: 'Inactifs', valeur: compteurs.inactifs, couleur: colors.danger },
+      { label: 'En essai', valeur: compteurs.essai, couleur: colors.warning },
+    ]} />
+  );
+}
+
+const limite = (n: number) => (n < 0 ? '∞' : n);
+
+/** Pied d'une carte d'incubateur : chiffres clés à gauche, interrupteur actif / inactif à droite. */
 function ActionsIncubateur({ item, rafraichir }: { item: any; rafraichir: () => void }) {
   const agir = useAction(rafraichir);
+  const colors = useColors();
+  const actif = !!item.actif;
   return (
-    <View style={styles.actions}>
-      <Button
-        title={item.actif ? 'Désactiver' : 'Activer'}
-        variant={item.actif ? 'danger' : 'primary'}
-        style={{ flex: 1 }}
-        onPress={() => agir(
-          item.actif ? "Désactiver l'incubateur" : "Activer l'incubateur",
-          item.actif
-            ? `${item.nom} sera désactivé et son abonnement suspendu. Ses utilisateurs ne pourront plus se connecter.`
-            : `${item.nom} sera réactivé.`,
-          `incubateurs/${item.id}/statut/`,
-          item.actif ? 'Désactiver' : 'Activer',
-          item.actif,
-        )}
-      />
+    <View style={styles.pied}>
+      <View style={styles.chiffres}>
+        <View style={[styles.puce, { backgroundColor: colors.infoSoft }]}>
+          <FontAwesome5 name="users" size={11} color={colors.info} />
+          <Text style={[styles.puceTexte, { color: colors.info }]}>{item.nb_utilisateurs}/{limite(item.max_utilisateurs)}</Text>
+        </View>
+        <View style={[styles.puce, { backgroundColor: colors.primarySoft }]}>
+          <FontAwesome5 name="project-diagram" size={11} color={colors.primary} />
+          <Text style={[styles.puceTexte, { color: colors.primary }]}>{item.nb_projets}/{limite(item.max_projets)}</Text>
+        </View>
+      </View>
+      {/* Interrupteur contrôlé : il ne bascule qu'après confirmation puis rechargement de la liste. */}
+      <View style={styles.interrupteur}>
+        <Text style={[styles.actionTexte, { color: actif ? colors.success : colors.textMuted }]}>{actif ? 'Actif' : 'Inactif'}</Text>
+        <Switch
+          value={actif}
+          trackColor={{ false: colors.border, true: colors.primary }}
+          thumbColor="#fff"
+          onValueChange={() => agir(
+            actif ? "Désactiver l'incubateur" : "Activer l'incubateur",
+            actif
+              ? `${item.nom} sera désactivé et son abonnement suspendu. Ses utilisateurs ne pourront plus se connecter.`
+              : `${item.nom} sera réactivé.`,
+            `incubateurs/${item.id}/statut/`,
+            actif ? 'Désactiver' : 'Activer',
+            actif,
+          )}
+        />
+      </View>
     </View>
   );
 }
@@ -125,14 +157,9 @@ export const MODULES_SUPER: Record<string, ModuleDef> = {
         options: [{ value: '', label: 'Tous' }, { value: 'actif', label: 'Actifs' }, { value: 'inactif', label: 'Inactifs' }, { value: 'essai', label: "En essai" }],
       }],
       titre: (i) => i.nom,
-      sousTitre: (i) => `${i.plan_display} · ${i.nb_utilisateurs}/${i.max_utilisateurs < 0 ? '∞' : i.max_utilisateurs} utilisateurs · ${i.nb_projets}/${i.max_projets < 0 ? '∞' : i.max_projets} projets`,
+      sousTitre: (i) => `Plan ${i.plan_display}`,
       badge: (i) => (i.actif ? (i.essai ? 'Essai' : 'Actif') : 'Inactif'),
-      entete: (r) => (
-        <Compteurs valeurs={[
-          { label: 'Total', valeur: r.compteurs.total }, { label: 'Actifs', valeur: r.compteurs.actifs },
-          { label: 'Inactifs', valeur: r.compteurs.inactifs }, { label: 'En essai', valeur: r.compteurs.essai },
-        ]} />
-      ),
+      entete: (r) => <CompteursIncubateurs compteurs={r.compteurs} />,
       actions: (i, rafraichir) => <ActionsIncubateur item={i} rafraichir={rafraichir} />,
     },
     detail: { chemin: (id) => `incubateurs/${id}/` },
@@ -315,4 +342,10 @@ export const MODULES_SUPER: Record<string, ModuleDef> = {
 
 const styles = StyleSheet.create({
   actions: { flexDirection: 'row', gap: spacing.sm },
+  pied: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
+  chiffres: { flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap', flex: 1 },
+  puce: { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 5 },
+  puceTexte: { fontSize: 12, fontWeight: '700' },
+  interrupteur: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  actionTexte: { fontSize: 12, fontWeight: '700' },
 });

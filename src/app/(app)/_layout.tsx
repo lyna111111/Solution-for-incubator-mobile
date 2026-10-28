@@ -3,7 +3,6 @@ import { Tabs } from 'expo-router';
 import { ColorValue } from 'react-native';
 
 import { useNonLues } from '@/hooks/useNotifications';
-import { useAuthStore } from '@/store/auth';
 import { useColors } from '@/theme';
 
 type IconName = React.ComponentProps<typeof FontAwesome5>['name'];
@@ -15,47 +14,36 @@ function icone(name: IconName) {
   );
 }
 
+/**
+ * Même barre pour tous les rôles : Accueil, Menu, Profil. Seul le contenu change selon le rôle
+ * (accueil et entrées du menu : voir `index.tsx` et `(menu)/menu.tsx`).
+ */
 export default function AppTabs() {
   const colors = useColors();
+  // Notifications non lues (utilisateur uniquement ; 0 pour les autres rôles).
   const nonLues = useNonLues();
-  const role = useAuthStore((s) => s.user?.role);
-  // `href: null` masque un onglet. Utilisateur : espace utilisateur ; administrateur : accueil,
-  // gestion (modules selon son type) et profil ; Super Admin : accueil, ses 5 pages (mêmes que la
-  // barre latérale Super Admin du site) et profil.
-  const superadmin = role === 'superadmin';
-  const masqueSauf = (visible: boolean) => (visible ? undefined : null);
-  const utilisateur = role === 'utilisateur';
 
   return (
     <Tabs
+      backBehavior="history"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
-        tabBarLabelStyle: { fontSize: 10 },
+        tabBarLabelStyle: { fontSize: 11 },
         tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.border },
       }}
     >
       <Tabs.Screen name="index" options={{ title: 'Accueil', tabBarIcon: icone('home') }} />
-      <Tabs.Screen name="gestion" options={{ title: 'Gestion', href: masqueSauf(role === 'admin'), tabBarIcon: icone('th-large') }} />
       <Tabs.Screen
-        name="notifications"
+        name="(menu)"
         options={{
-          title: 'Notifs',
-          href: masqueSauf(utilisateur),
-          tabBarIcon: icone('bell'),
+          title: 'Menu',
+          tabBarIcon: icone('th-large'),
           tabBarBadge: nonLues > 0 ? nonLues : undefined,
           tabBarBadgeStyle: { backgroundColor: colors.unread, color: colors.text },
         }}
       />
-      <Tabs.Screen name="evenements" options={{ title: 'Événements', href: masqueSauf(utilisateur), tabBarIcon: icone('calendar-alt') }} />
-      <Tabs.Screen name="requetes" options={{ title: 'Requêtes', href: masqueSauf(utilisateur), tabBarIcon: icone('paper-plane') }} />
-      <Tabs.Screen name="articles" options={{ title: 'Articles', href: masqueSauf(utilisateur), tabBarIcon: icone('newspaper') }} />
-      <Tabs.Screen name="incubateurs" options={{ title: 'Incub.', href: masqueSauf(superadmin), tabBarIcon: icone('building') }} />
-      <Tabs.Screen name="offres" options={{ title: 'Offres', href: masqueSauf(superadmin), tabBarIcon: icone('tags') }} />
-      <Tabs.Screen name="abonnements" options={{ title: 'Abonn.', href: masqueSauf(superadmin), tabBarIcon: icone('sync-alt') }} />
-      <Tabs.Screen name="paiements" options={{ title: 'Paiem.', href: masqueSauf(superadmin), tabBarIcon: icone('credit-card') }} />
-      <Tabs.Screen name="superadmins" options={{ title: 'Admins', href: masqueSauf(superadmin), tabBarIcon: icone('user-shield') }} />
       <Tabs.Screen name="profil" options={{ title: 'Profil', tabBarIcon: icone('user') }} />
     </Tabs>
   );
