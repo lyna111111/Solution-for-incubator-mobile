@@ -19,7 +19,9 @@ export default function AppTabs() {
   const nonLues = useNonLues();
   const role = useAuthStore((s) => s.user?.role);
   // `href: null` masque un onglet. Utilisateur : espace utilisateur ; administrateur : accueil,
-  // gestion (modules selon son type) et profil ; Super Admin : accueil et profil (étape 4).
+  // gestion (modules selon son type) et profil ; Super Admin : accueil, ses 5 pages (mêmes que la
+  // barre latérale Super Admin du site) et profil.
+  const superadmin = role === 'superadmin';
   const masqueSauf = (visible: boolean) => (visible ? undefined : null);
   const utilisateur = role === 'utilisateur';
 
@@ -48,6 +50,11 @@ export default function AppTabs() {
       <Tabs.Screen name="evenements" options={{ title: 'Événements', href: masqueSauf(utilisateur), tabBarIcon: icone('calendar-alt') }} />
       <Tabs.Screen name="requetes" options={{ title: 'Requêtes', href: masqueSauf(utilisateur), tabBarIcon: icone('paper-plane') }} />
       <Tabs.Screen name="articles" options={{ title: 'Articles', href: masqueSauf(utilisateur), tabBarIcon: icone('newspaper') }} />
+      <Tabs.Screen name="incubateurs" options={{ title: 'Incub.', href: masqueSauf(superadmin), tabBarIcon: icone('building') }} />
+      <Tabs.Screen name="offres" options={{ title: 'Offres', href: masqueSauf(superadmin), tabBarIcon: icone('tags') }} />
+      <Tabs.Screen name="abonnements" options={{ title: 'Abonn.', href: masqueSauf(superadmin), tabBarIcon: icone('sync-alt') }} />
+      <Tabs.Screen name="paiements" options={{ title: 'Paiem.', href: masqueSauf(superadmin), tabBarIcon: icone('credit-card') }} />
+      <Tabs.Screen name="superadmins" options={{ title: 'Admins', href: masqueSauf(superadmin), tabBarIcon: icone('user-shield') }} />
       <Tabs.Screen name="profil" options={{ title: 'Profil', tabBarIcon: icone('user') }} />
     </Tabs>
   );

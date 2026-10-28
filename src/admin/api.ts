@@ -4,14 +4,21 @@ import type { Fichier } from './types';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- réponses JSON décrites par les écrans */
 
-/** Lecture sous /api/mobile/admin/... */
-export async function adminGet<T = any>(chemin: string, params?: Record<string, unknown>): Promise<T> {
-  const { data } = await api.get<T>(`/mobile/admin/${chemin}`, { params });
+/** Espace de l'API : /api/mobile/admin/... (administrateur) ou /api/mobile/superadmin/... (Super Admin). */
+export type BaseApi = 'admin' | 'superadmin';
+
+/** Lecture sous /api/mobile/<base>/... */
+export async function adminGet<T = any>(
+  chemin: string,
+  params?: Record<string, unknown>,
+  base: BaseApi = 'admin',
+): Promise<T> {
+  const { data } = await api.get<T>(`/mobile/${base}/${chemin}`, { params });
   return data;
 }
 
 /**
- * Écriture sous /api/mobile/admin/... : JSON, ou multipart dès qu'il y a des fichiers
+ * Écriture sous /api/mobile/<base>/... : JSON, ou multipart dès qu'il y a des fichiers
  * (le serveur valide taille, extension et contenu des fichiers avant toute écriture).
  */
 export async function adminEnvoyer<T = any>(
@@ -19,8 +26,9 @@ export async function adminEnvoyer<T = any>(
   chemin: string,
   corps: Record<string, unknown> = {},
   fichiers: Fichier[] = [],
+  base: BaseApi = 'admin',
 ): Promise<T> {
-  const url = `/mobile/admin/${chemin}`;
+  const url = `/mobile/${base}/${chemin}`;
   if (fichiers.length === 0) {
     const { data } = await api.request<T>({ url, method: methode, data: methode === 'delete' ? undefined : corps });
     return data;

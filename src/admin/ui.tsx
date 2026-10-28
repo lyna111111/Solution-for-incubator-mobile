@@ -12,7 +12,7 @@ import { Banner, Button, Card, ErrorState, Field, Loading } from '@/components/u
 import { colors, radius, spacing } from '@/theme';
 import type { Pagination } from '@/types';
 
-import { adminGet } from './api';
+import { adminGet, type BaseApi } from './api';
 import type { ChampDef, Fichier, FiltreDef } from './types';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- données des écrans de gestion décrites par la config de chaque module */
@@ -140,14 +140,47 @@ export function Compteurs({ valeurs }: { valeurs: { label: string; valeur: numbe
 
 // ── Sélection de choix, d'utilisateurs et de fichiers ────────────────────────
 
-export function ChoixPuces({ options, valeur, onChoisir }: { options: string[]; valeur: string; onChoisir: (v: string) => void }) {
+export function ChoixPuces({
+  options, valeur, onChoisir, libelles,
+}: { options: string[]; valeur: string; onChoisir: (v: string) => void; libelles?: Record<string, string> }) {
   return (
     <View style={styles.puces}>
       {options.map((o) => (
         <Pressable key={o} onPress={() => onChoisir(o)} style={[styles.puce, valeur === o && styles.puceActive]}>
-          <Text style={[styles.puceTexte, valeur === o && styles.puceTexteActive]}>{o}</Text>
+          <Text style={[styles.puceTexte, valeur === o && styles.puceTexteActive]}>{libelles?.[o] ?? o}</Text>
         </Pressable>
       ))}
+    </View>
+  );
+}
+
+/** Choix d'un élément d'une liste du serveur (offre, incubateur...) : la valeur envoyée est son identifiant. */
+export function SelecteurReference({
+  base, source, cleListe, libelle, valeur, onChange,
+}: {
+  base: BaseApi; source: string; cleListe: string; libelle: (x: any) => string;
+  valeur: string; onChange: (v: string) => void;
+}) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['admin', 'reference', base, source, cleListe],
+    queryFn: () => adminGet(source, undefined, base),
+  });
+  const elements: any[] = data?.[cleListe] ?? [];
+
+  return (
+    <View style={{ gap: spacing.sm }}>
+      {isLoading && <Text style={styles.sous}>Chargement...</Text>}
+      {!!error && <Banner message={getErrorMessage(error)} />}
+      {!isLoading && !error && elements.length === 0 && <Text style={styles.sous}>Aucun choix disponible.</Text>}
+      {elements.map((x) => {
+        const choisi = String(x.id) === String(valeur);
+        return (
+          <Pressable key={x.id} onPress={() => onChange(choisi ? '' : String(x.id))} style={[styles.choixUtilisateur, choisi && styles.choixActif]}>
+            <FontAwesome5 name={choisi ? 'dot-circle' : 'circle'} size={16} color={choisi ? colors.primary : colors.textMuted} />
+            <Text style={[styles.titre, { flex: 1 }]}>{libelle(x)}</Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
@@ -238,10 +271,12 @@ interface FormulaireProps {
   mode: 'creation' | 'modification';
   valeursInitiales?: Record<string, any>;
   libelle: string;
+  /** Espace de l'API des listes de choix (champs « reference »). */
+  base?: BaseApi;
   onSubmit: (valeurs: Record<string, any>, fichiers: Fichier[]) => Promise<void>;
 }
 
-export function FormulaireAdmin({ champs, mode, valeursInitiales = {}, libelle, onSubmit }: FormulaireProps) {
+export function FormulaireAdmin({ champs, mode, valeursInitiales = {}, libelle, base = 'admin', onSubmit }: FormulaireProps) {
   const visibles = champs.filter((c) => (mode === 'creation' ? !c.modification : !c.creation));
   const [valeurs, setValeurs] = useState<Record<string, any>>(valeursInitiales);
   const [fichiers, setFichiers] = useState<Fichier[]>([]);
@@ -281,7 +316,16 @@ export function FormulaireAdmin({ champs, mode, valeursInitiales = {}, libelle, 
           return (
             <View key={c.nom} style={{ marginBottom: spacing.md }}>
               <Text style={styles.label}>{etiquette}</Text>
-              <ChoixPuces options={c.options ?? []} valeur={String(valeurs[c.nom] ?? '')} onChoisir={maj(c.nom)} />
+              <ChoixPuces options={c.options ?? []} valeur={String(valeurs[c.nom] ?? '')} onChoisir={maj(c.nom)} libelles={c.libelles} />
+            </View>
+          );
+        }
+        if (c.type === 'reference') {
+          return (
+            <View key={c.nom} style={{ marginBottom: spacing.md }}>
+              <Text style={styles.label}>{etiquette}</Text>
+              <SelecteurReference base={base} source={c.source ?? ''} cleListe={c.cleListe ?? ''}
+                libelle={c.libelleOption ?? ((x) => String(x.nom))} valeur={String(valeurs[c.nom] ?? '')} onChange={maj(c.nom)} />
             </View>
           );
         }

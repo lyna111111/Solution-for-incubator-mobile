@@ -10,7 +10,6 @@ import { useAuthStore } from '@/store/auth';
 import { colors, spacing } from '@/theme';
 
 export default function Connexion() {
-  const tenant = useAuthStore((s) => s.tenant);
   const signIn = useAuthStore((s) => s.signIn);
   const [email, setEmail] = useState('');
   const [mdp, setMdp] = useState('');
@@ -36,12 +35,6 @@ export default function Connexion() {
 
   return (
     <AuthShell title="Connexion" subtitle="Heureux de vous revoir sur la plateforme">
-      {!!tenant && (
-        <Pressable onPress={() => router.push('/incubateur')} style={styles.tenant}>
-          <Text style={styles.tenantText}>{tenant.nom} · changer</Text>
-        </Pressable>
-      )}
-
       {!!erreur && <Banner message={erreur} />}
 
       <Field
@@ -72,7 +65,7 @@ export default function Connexion() {
       <View style={styles.footer}>
         <Pressable onPress={() => router.push('/register')}>
           <Text style={styles.footerText}>
-            Pas encore de compte ? <Text style={styles.footerStrong}>S'inscrire</Text>
+            Pas encore de compte ? <Text style={styles.footerStrong}>S&apos;inscrire</Text>
           </Text>
         </Pressable>
         <Pressable onPress={() => router.push('/forgot-password')}>
@@ -84,8 +77,6 @@ export default function Connexion() {
 }
 
 const styles = StyleSheet.create({
-  tenant: { alignSelf: 'center', marginBottom: spacing.lg },
-  tenantText: { color: colors.primary, fontSize: 13, fontWeight: '600' },
   footer: { alignItems: 'center', gap: spacing.md, marginTop: spacing.xl },
   footerText: { color: colors.textMuted, fontSize: 15 },
   footerStrong: { color: colors.primary, fontWeight: '700' },

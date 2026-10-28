@@ -17,6 +17,7 @@ import { FormulaireAdmin, ListeAdmin, LigneListe } from './ui';
 /** Liste d'un module : recherche, filtres, pagination, bouton « Nouveau ». */
 export function ModuleList({ cle }: { cle: string }) {
   const config = MODULES[cle];
+  const racine = config.base === 'superadmin' ? `/${cle}` : `/gestion/${cle}`;
   return (
     <ListeAdmin
       titre={config.titre}
@@ -26,12 +27,16 @@ export function ModuleList({ cle }: { cle: string }) {
           page,
           ...Object.fromEntries(Object.entries(filtres).filter(([, v]) => v !== '')),
           ...(recherche && config.liste.recherche ? { [config.liste.recherche]: recherche } : {}),
-        })}
-      extraire={(r) => ({ items: r[config.liste.cle] ?? [], pagination: r.pagination })}
+        }, config.base)}
+      // Certaines listes (ex. les offres) tiennent sur une page : le serveur n'envoie alors pas de pagination.
+      extraire={(r) => ({
+        items: r[config.liste.cle] ?? [],
+        pagination: r.pagination ?? { page: 1, nb_pages: 1, a_precedent: false, a_suivant: false, total: (r[config.liste.cle] ?? []).length },
+      })}
       placeholderRecherche={config.liste.recherche ? (config.liste.placeholder ?? 'Rechercher...') : undefined}
       filtres={config.liste.filtres}
       entete={config.liste.entete}
-      action={{ titre: `Nouveau ${config.titreSingulier}`, onPress: () => router.push(`/gestion/${cle}/nouveau`) }}
+      action={{ titre: `Nouveau ${config.titreSingulier}`, onPress: () => router.push(`${racine}/nouveau`) }}
       vide={`Aucun ${config.titreSingulier} à afficher.`}
       renderItem={(item, rafraichir) => (
         <LigneListe
@@ -39,7 +44,7 @@ export function ModuleList({ cle }: { cle: string }) {
           titre={config.liste.titre(item)}
           sousTitre={config.liste.sousTitre(item)}
           badge={config.liste.badge?.(item)}
-          onPress={() => router.push(`/gestion/${cle}/${item.id}`)}
+          onPress={() => router.push(`${racine}/${item.id}`)}
           pied={config.liste.actions?.(item, rafraichir)}
         />
       )}
@@ -61,7 +66,7 @@ export function ModuleNew({ cle }: { cle: string }) {
   const apres = useApresEcriture();
 
   async function envoyer(valeurs: Record<string, any>, fichiers: Fichier[]) {
-    await adminEnvoyer('post', config.creer, valeurs, fichiers);
+    await adminEnvoyer('post', config.creer, valeurs, fichiers, config.base);
     await apres();
     router.back();
   }
@@ -69,7 +74,8 @@ export function ModuleNew({ cle }: { cle: string }) {
   return (
     <Screen>
       <Stack.Screen options={{ title: `Nouveau ${config.titreSingulier}` }} />
-      <FormulaireAdmin champs={config.champs} mode="creation" libelle="Créer" onSubmit={envoyer} />
+      <FormulaireAdmin champs={config.champs} mode="creation" libelle="Créer" base={config.base}
+        valeursInitiales={config.valeursCreation?.()} onSubmit={envoyer} />
     </Screen>
   );
 }
@@ -81,7 +87,7 @@ export function ModuleEdit({ cle }: { cle: string }) {
   const apres = useApresEcriture();
   const { data, isLoading, isRefetching, error, refetch } = useQuery({
     queryKey: ['admin', cle, 'detail', id],
-    queryFn: () => adminGet(config.detail.chemin(id)),
+    queryFn: () => adminGet(config.detail.chemin(id), undefined, config.base),
   });
 
   if (isLoading) return <Loading />;
@@ -90,7 +96,7 @@ export function ModuleEdit({ cle }: { cle: string }) {
   const item = config.detail.cle ? data[config.detail.cle] : data;
 
   async function enregistrer(valeurs: Record<string, any>, fichiers: Fichier[]) {
-    await adminEnvoyer('put', config.modifier(id), valeurs, fichiers);
+    await adminEnvoyer('put', config.modifier(id), valeurs, fichiers, config.base);
     await apres();
     router.back();
   }
@@ -104,7 +110,7 @@ export function ModuleEdit({ cle }: { cle: string }) {
         style: 'destructive',
         onPress: async () => {
           try {
-            await adminEnvoyer('delete', config.supprimer!(id));
+            await adminEnvoyer('delete', config.supprimer!(id), {}, [], config.base);
             await apres();
             router.back();
           } catch (e) {
@@ -123,6 +129,7 @@ export function ModuleEdit({ cle }: { cle: string }) {
         mode="modification"
         valeursInitiales={config.valeursInitiales(item)}
         libelle="Enregistrer"
+        base={config.base}
         onSubmit={enregistrer}
       />
       {config.supprimer && (

@@ -1,10 +1,9 @@
 import { create } from 'zustand';
 
-import type { Compte, Tenant } from '@/types';
+import type { Compte } from '@/types';
 import { loadItem, saveItem } from '@/utils/secureStorage';
 
 const KEYS = {
-  tenant: 'tenant',
   access: 'access_token',
   refresh: 'refresh_token',
   user: 'user',
@@ -13,13 +12,11 @@ const KEYS = {
 interface AuthState {
   /** Vrai quand le stockage sécurisé a été relu au démarrage. */
   hydrated: boolean;
-  tenant: Tenant | null;
   accessToken: string | null;
   refreshToken: string | null;
   user: Compte | null;
 
   hydrate: () => Promise<void>;
-  setTenant: (tenant: Tenant) => Promise<void>;
   signIn: (access: string, refresh: string, user: Compte) => Promise<void>;
   setTokens: (access: string, refresh?: string) => Promise<void>;
   setUser: (user: Compte) => Promise<void>;
@@ -37,30 +34,25 @@ function parseJson<T>(raw: string | null): T | null {
 
 export const useAuthStore = create<AuthState>((set) => ({
   hydrated: false,
-  tenant: null,
   accessToken: null,
   refreshToken: null,
   user: null,
 
   async hydrate() {
-    const [tenant, access, refresh, user] = await Promise.all([
-      loadItem(KEYS.tenant),
+    // Ancien écran « choix de l'incubateur » supprimé : on efface le choix qu'il avait enregistré,
+    // sinon il serait encore envoyé au serveur et bloquerait la connexion d'un compte d'un autre incubateur.
+    void saveItem('tenant', null);
+    const [access, refresh, user] = await Promise.all([
       loadItem(KEYS.access),
       loadItem(KEYS.refresh),
       loadItem(KEYS.user),
     ]);
     set({
-      tenant: parseJson<Tenant>(tenant),
       accessToken: access,
       refreshToken: refresh,
       user: parseJson<Compte>(user),
       hydrated: true,
     });
-  },
-
-  async setTenant(tenant) {
-    set({ tenant });
-    await saveItem(KEYS.tenant, JSON.stringify(tenant));
   },
 
   async signIn(access, refresh, user) {
@@ -84,7 +76,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   async signOut() {
-    // On garde l'incubateur choisi : l'utilisateur se reconnectera au même endroit.
     set({ accessToken: null, refreshToken: null, user: null });
     await Promise.all([
       saveItem(KEYS.access, null),

@@ -25,7 +25,9 @@ const MENU: { module: string; titre: string; icone: IconName; route: string }[] 
 
 /** Menu de gestion : seulement les modules auxquels le type d'administrateur a droit. */
 export default function MenuGestion() {
-  const modules = useAuthStore((s) => s.user?.modules ?? []);
+  // Le sélecteur ne doit pas fabriquer de nouveau tableau (`?? []`) : il relancerait le rendu à l'infini.
+  const modulesBruts = useAuthStore((s) => s.user?.modules);
+  const modules = modulesBruts ?? [];
   const entrees = MENU.filter((m) => modules.includes(m.module));
   const { refreshing, actualiser } = useActualiserCompte();
 

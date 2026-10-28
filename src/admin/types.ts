@@ -18,13 +18,19 @@ export type TypeChamp =
   | 'nombre'
   | 'fichiers'
   | 'utilisateur'
-  | 'utilisateurs';
+  | 'utilisateurs'
+  | 'reference';
 
 export interface ChampDef {
   nom: string;
   label: string;
   type: TypeChamp;
   options?: string[];
+  /** choix : texte affiché pour chaque valeur (ex. { cheque: 'Chèque' }). */
+  libelles?: Record<string, string>;
+  /** reference : clé de la liste dans la réponse de `source`, et texte affiché pour chaque élément. */
+  cleListe?: string;
+  libelleOption?: (x: any) => string;
   requis?: boolean;
   /** Affiché seulement à la création / seulement à la modification. */
   creation?: boolean;
@@ -46,6 +52,8 @@ export interface FiltreDef {
 /* eslint-disable @typescript-eslint/no-explicit-any -- les réponses de l'API admin sont décrites par la config de chaque module */
 export interface ModuleDef {
   cle: string;
+  /** Espace de l'API : 'admin' par défaut, 'superadmin' pour les modules du Super Admin. */
+  base?: 'admin' | 'superadmin';
   titre: string;
   titreSingulier: string;
   icone: string;
@@ -66,6 +74,8 @@ export interface ModuleDef {
   detail: { chemin: (id: string) => string; cle?: string };
   champs: ChampDef[];
   valeursInitiales: (item: any) => Record<string, any>;
+  /** Valeurs proposées à l'ouverture du formulaire de création (ex. date du jour). */
+  valeursCreation?: () => Record<string, any>;
   creer: string;
   modifier: (id: string) => string;
   supprimer?: (id: string) => string;

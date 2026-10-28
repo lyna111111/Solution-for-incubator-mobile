@@ -3,7 +3,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { API_URL } from '@/config';
 import { useAuthStore } from '@/store/auth';
 
-/** Client HTTP unique : ajoute le jeton JWT et l'incubateur à chaque appel. */
+/** Client HTTP unique : ajoute le jeton JWT à chaque appel (l'incubateur est porté par le jeton). */
 export const api = axios.create({
   baseURL: API_URL,
   timeout: 20000,
@@ -13,10 +13,8 @@ export const api = axios.create({
 type RetryableConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 
 api.interceptors.request.use((config) => {
-  const { accessToken, tenant } = useAuthStore.getState();
+  const { accessToken } = useAuthStore.getState();
   if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
-  // Le backend identifie l'incubateur par ce header (middleware TenantMiddleware).
-  if (tenant?.slug) config.headers['X-Tenant-Slug'] = tenant.slug;
   return config;
 });
 
@@ -24,14 +22,14 @@ api.interceptors.request.use((config) => {
 let refreshing: Promise<string | null> | null = null;
 
 async function renewAccessToken(): Promise<string | null> {
-  const { refreshToken, tenant, setTokens } = useAuthStore.getState();
+  const { refreshToken, setTokens } = useAuthStore.getState();
   if (!refreshToken) return null;
   try {
     // Appel "nu" (sans nos intercepteurs) pour éviter une boucle infinie.
     const { data } = await axios.post<{ access: string; refresh?: string }>(
       `${API_URL}/mobile/auth/refresh/`,
       { refresh: refreshToken },
-      { headers: tenant?.slug ? { 'X-Tenant-Slug': tenant.slug } : undefined, timeout: 20000 },
+      { timeout: 20000 },
     );
     await setTokens(data.access, data.refresh);
     return data.access;

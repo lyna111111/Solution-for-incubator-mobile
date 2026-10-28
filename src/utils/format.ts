@@ -50,3 +50,9 @@ export function aujourdhui(): string {
   const jj = String(d.getDate()).padStart(2, '0');
   return `${d.getFullYear()}-${mm}-${jj}`;
 }
+
+/** 125000 -> "125 000 DA" (montants des abonnements et paiements). */
+export function formaterDA(montant: number | null | undefined): string {
+  const n = Math.round(Number(montant ?? 0));
+  return `${String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} DA`;
+}

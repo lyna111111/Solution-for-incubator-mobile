@@ -7,6 +7,7 @@ import { spacing } from '@/theme';
 import { adminEnvoyer } from './api';
 import type { ModuleDef } from './types';
 import { Compteurs } from './ui';
+import { MODULES_SUPER } from './modulesSuper';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- chaque module décrit la forme de ses données */
 
@@ -239,6 +240,9 @@ export const MODULES: Record<string, ModuleDef> = {
     supprimer: (id) => `articles/${id}/`,
     messageSuppression: 'Supprimer cet article ?',
   },
+
+  // Modules du Super Admin (API /mobile/superadmin/).
+  ...MODULES_SUPER,
 };
 
 const styles = StyleSheet.create({

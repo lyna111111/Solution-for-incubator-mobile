@@ -188,16 +188,13 @@ export async function fetchArticle(id: number): Promise<Article> {
 export async function ouvrirDocument(document: DocumentJoint): Promise<void> {
   // Un appel authentifié renouvelle le jeton s'il a expiré : le téléchargement natif, lui, ne le fait pas.
   await fetchMe();
-  const { accessToken, tenant } = useAuthStore.getState();
+  const { accessToken } = useAuthStore.getState();
 
   const dossier = new Directory(Paths.cache, 'documents');
   if (!dossier.exists) dossier.create();
   const fichier = await File.downloadFileAsync(`${API_BASE_URL}${document.download_url}`, dossier, {
     idempotent: true,
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      ...(tenant?.slug ? { 'X-Tenant-Slug': tenant.slug } : {}),
-    },
+    headers: { Authorization: `Bearer ${accessToken}` },
   });
 
   if (await Sharing.isAvailableAsync()) {

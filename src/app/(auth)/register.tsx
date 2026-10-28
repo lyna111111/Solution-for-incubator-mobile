@@ -1,12 +1,12 @@
+import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { getErrorMessage } from '@/api/client';
-import { register } from '@/api/endpoints';
+import { fetchIncubateurs, register } from '@/api/endpoints';
 import { AuthShell } from '@/components/AuthShell';
 import { Banner, Button, Field } from '@/components/ui';
-import { useAuthStore } from '@/store/auth';
 import { colors, radius, spacing } from '@/theme';
 
 // Types de compte acceptés par le backend (Utilisateur.TYPE_CHOICES).
@@ -20,7 +20,8 @@ const TYPES = [
 ];
 
 export default function Inscription() {
-  const tenant = useAuthStore((s) => s.tenant);
+  const incubateurs = useQuery({ queryKey: ['incubateurs'], queryFn: fetchIncubateurs });
+  const [incubateurId, setIncubateurId] = useState<number | null>(null);
   const [form, setForm] = useState({
     nom: '',
     prenom: '',
@@ -39,8 +40,8 @@ export default function Inscription() {
   const maj = (champ: keyof typeof form) => (valeur: string) => setForm((f) => ({ ...f, [champ]: valeur }));
 
   async function sInscrire() {
-    if (!tenant?.id) {
-      setErreur("Choisissez d'abord votre incubateur.");
+    if (!incubateurId) {
+      setErreur('Choisissez votre incubateur.');
       return;
     }
     if (!form.nom.trim() || !form.prenom.trim() || !form.email.trim()) {
@@ -64,7 +65,7 @@ export default function Inscription() {
         prenom: form.prenom.trim(),
         email: form.email.trim().toLowerCase(),
         matricule: form.matricule.trim() || undefined,
-        incubateur: tenant.id,
+        incubateur: incubateurId,
       });
       setSucces(message);
     } catch (e) {
@@ -92,7 +93,7 @@ export default function Inscription() {
   }
 
   return (
-    <AuthShell title="Inscription" subtitle={tenant ? `Rejoignez ${tenant.nom}` : "Rejoignez la plateforme"}>
+    <AuthShell title="Inscription" subtitle="Rejoignez la plateforme">
       {!!erreur && <Banner message={erreur} />}
 
       <Field label="Nom *" icon="user" value={form.nom} onChangeText={maj('nom')} autoCapitalize="words" />
@@ -109,6 +110,25 @@ export default function Inscription() {
       <Field label="Matricule" icon="id-card" value={form.matricule} onChangeText={maj('matricule')} autoCapitalize="characters" />
       <Field label="Département" value={form.departement} onChangeText={maj('departement')} />
       <Field label="Faculté" value={form.faculte} onChangeText={maj('faculte')} />
+
+      <Text style={styles.label}>Incubateur *</Text>
+      <View style={styles.chips}>
+        {incubateurs.isLoading && <Text style={styles.aide}>Chargement des incubateurs...</Text>}
+        {!!incubateurs.error && (
+          <Pressable onPress={() => void incubateurs.refetch()}>
+            <Text style={styles.aide}>{getErrorMessage(incubateurs.error)} Appuyez pour réessayer.</Text>
+          </Pressable>
+        )}
+        {(incubateurs.data ?? []).map((inc) => (
+          <Pressable
+            key={inc.slug}
+            onPress={() => setIncubateurId(inc.id ?? null)}
+            style={[styles.chip, incubateurId === inc.id && styles.chipActive]}
+          >
+            <Text style={[styles.chipText, incubateurId === inc.id && styles.chipTextActive]}>{inc.nom}</Text>
+          </Pressable>
+        ))}
+      </View>
 
       <Text style={styles.label}>Type de compte *</Text>
       <View style={styles.chips}>
@@ -162,4 +182,5 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   chipText: { color: colors.text, fontSize: 13 },
   chipTextActive: { color: '#fff', fontWeight: '600' },
+  aide: { color: colors.textMuted, fontSize: 13 },
 });

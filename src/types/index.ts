@@ -3,7 +3,6 @@
 export interface Tenant {
   id?: number;
   nom: string;
-  /** Vide pour l'espace Super Admin (aucun incubateur annoncé au serveur). */
   slug: string;
   couleur_primaire?: string;
   couleur_secondaire?: string;
