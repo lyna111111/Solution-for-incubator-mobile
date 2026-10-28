@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Screen } from '@/components/Screen';
 import { Card } from '@/components/ui';
+import { useActualiserCompte } from '@/hooks/useActualiserCompte';
 import { useAuthStore } from '@/store/auth';
 import { colors, spacing } from '@/theme';
 
@@ -26,9 +27,10 @@ const MENU: { module: string; titre: string; icone: IconName; route: string }[] 
 export default function MenuGestion() {
   const modules = useAuthStore((s) => s.user?.modules ?? []);
   const entrees = MENU.filter((m) => modules.includes(m.module));
+  const { refreshing, actualiser } = useActualiserCompte();
 
   return (
-    <Screen withTopInset title="Gestion">
+    <Screen withTopInset title="Gestion" refreshing={refreshing} onRefresh={() => void actualiser()}>
       <Stack.Screen options={{ headerShown: false }} />
       {entrees.map((m) => (
         <Pressable key={m.module} onPress={() => router.push(m.route)}>

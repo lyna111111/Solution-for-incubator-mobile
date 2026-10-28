@@ -12,7 +12,7 @@ import { formatDate } from '@/utils/format';
 
 export default function DetailArticle() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, isRefetching, error, refetch } = useQuery({
     queryKey: ['article', id],
     queryFn: () => fetchArticle(Number(id)),
   });
@@ -21,7 +21,7 @@ export default function DetailArticle() {
   if (error || !data) return <ErrorState message={getErrorMessage(error)} onRetry={() => void refetch()} />;
 
   return (
-    <Screen>
+    <Screen refreshing={isRefetching} onRefresh={() => void refetch()}>
       <Text style={styles.title}>{data.titre}</Text>
       <Text style={styles.meta}>
         {data.auteur} · {formatDate(data.created_at)}

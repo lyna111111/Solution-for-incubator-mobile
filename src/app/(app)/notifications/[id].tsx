@@ -12,7 +12,7 @@ import { colors } from '@/theme';
 export default function DetailNotification() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, isRefetching, error, refetch } = useQuery({
     queryKey: ['notification', id],
     queryFn: () => fetchNotification(Number(id)),
   });
@@ -38,7 +38,7 @@ export default function DetailNotification() {
   if (error || !data) return <ErrorState message={getErrorMessage(error)} onRetry={() => void refetch()} />;
 
   return (
-    <Screen>
+    <Screen refreshing={isRefetching} onRefresh={() => void refetch()}>
       <Text style={styles.title}>{data.titre}</Text>
       <Badge label={data.type} fond={colors.primarySoft} texte={colors.primaryDark} />
       <Text style={styles.meta}>{data.created_at}</Text>

@@ -5,18 +5,20 @@ import { AccueilAdmin } from '@/components/AccueilAdmin';
 import { AccueilUtilisateur } from '@/components/AccueilUtilisateur';
 import { Screen } from '@/components/Screen';
 import { Banner, Badge, Card } from '@/components/ui';
+import { useActualiserCompte } from '@/hooks/useActualiserCompte';
 import { useAuthStore } from '@/store/auth';
 import { colors, spacing } from '@/theme';
 
 export default function Accueil() {
   const user = useAuthStore((s) => s.user);
+  const { refreshing, actualiser } = useActualiserCompte();
   if (!user) return null;
   // Utilisateur et administrateur ont leur tableau de bord complet ; le Super Admin arrive à l'étape 4.
   if (user.role === 'utilisateur') return <AccueilUtilisateur />;
   if (user.role === 'admin') return <AccueilAdmin />;
 
   return (
-    <Screen withTopInset title="Tableau de Bord">
+    <Screen withTopInset title="Tableau de Bord" refreshing={refreshing} onRefresh={() => void actualiser()}>
       <Card style={{ gap: spacing.md }}>
         <View>
           <Text style={styles.welcome}>

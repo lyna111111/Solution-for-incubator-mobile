@@ -13,7 +13,7 @@ import { colors, spacing } from '@/theme';
 export default function DetailNotificationAdmin() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
-  const { data: n, isLoading, error, refetch } = useQuery({
+  const { data: n, isLoading, isRefetching, error, refetch } = useQuery({
     queryKey: ['admin', 'notifications', 'detail', id],
     queryFn: () => adminGet(`notifications/${id}/`),
   });
@@ -51,7 +51,7 @@ export default function DetailNotificationAdmin() {
   }
 
   return (
-    <Screen>
+    <Screen refreshing={isRefetching} onRefresh={() => void refetch()}>
       <Stack.Screen options={{ title: 'Notification' }} />
       <Text style={styles.meta}>{n.type} · {n.mode}{n.destinataire ? ` · ${n.destinataire}` : ''} · {n.created_at}</Text>
       {typeof n.read_percentage === 'number' && (

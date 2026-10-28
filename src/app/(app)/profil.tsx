@@ -6,6 +6,7 @@ import { getErrorMessage } from '@/api/client';
 import { changePassword, logout, updateMe } from '@/api/endpoints';
 import { Screen } from '@/components/Screen';
 import { Banner, Button, Card, Field, SectionTitle } from '@/components/ui';
+import { useActualiserCompte } from '@/hooks/useActualiserCompte';
 import { useAuthStore } from '@/store/auth';
 import { colors, spacing } from '@/theme';
 
@@ -26,6 +27,7 @@ export default function Profil() {
   const setUser = useAuthStore((s) => s.setUser);
   const signOut = useAuthStore((s) => s.signOut);
   const queryClient = useQueryClient();
+  const { refreshing, actualiser } = useActualiserCompte();
 
   const estUtilisateur = user?.role === 'utilisateur';
   const estSuperAdmin = user?.role === 'superadmin';
@@ -106,10 +108,23 @@ export default function Profil() {
     ]);
   }
 
+  // Recharge le compte depuis le serveur et remet les champs à jour.
+  async function actualiserProfil() {
+    const moi = await actualiser();
+    if (!moi) return;
+    setForm({
+      nom: moi.nom ?? '',
+      prenom: moi.prenom ?? '',
+      email: moi.email ?? '',
+      departement: moi.departement ?? '',
+      faculte: moi.faculte ?? '',
+    });
+  }
+
   if (!user) return null;
 
   return (
-    <Screen withTopInset title="Mon Profil">
+    <Screen withTopInset title="Mon Profil" refreshing={refreshing} onRefresh={() => void actualiserProfil()}>
       <Text style={styles.name}>
         {user.prenom} {user.nom}
       </Text>

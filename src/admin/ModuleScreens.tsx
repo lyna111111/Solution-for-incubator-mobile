@@ -79,7 +79,7 @@ export function ModuleEdit({ cle }: { cle: string }) {
   const config = MODULES[cle];
   const { id } = useLocalSearchParams<{ id: string }>();
   const apres = useApresEcriture();
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, isRefetching, error, refetch } = useQuery({
     queryKey: ['admin', cle, 'detail', id],
     queryFn: () => adminGet(config.detail.chemin(id)),
   });
@@ -116,7 +116,7 @@ export function ModuleEdit({ cle }: { cle: string }) {
   }
 
   return (
-    <Screen>
+    <Screen refreshing={isRefetching} onRefresh={() => void refetch()}>
       <Stack.Screen options={{ title: config.liste.titre(item) }} />
       <FormulaireAdmin
         champs={config.champs}

@@ -21,7 +21,7 @@ function Ligne({ label, valeur }: { label: string; valeur: string }) {
 
 export default function DetailEvenement() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, isRefetching, error, refetch } = useQuery({
     queryKey: ['evenement', id],
     queryFn: () => fetchEvenement(Number(id)),
   });
@@ -32,7 +32,7 @@ export default function DetailEvenement() {
   const horaire = [data.heure_debut, data.heure_fin].filter(Boolean).join(' - ');
 
   return (
-    <Screen>
+    <Screen refreshing={isRefetching} onRefresh={() => void refetch()}>
       <Text style={styles.title}>{data.titre}</Text>
       <Badge label={data.type} fond={colors.primarySoft} texte={colors.primaryDark} />
 

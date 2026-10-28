@@ -22,7 +22,7 @@ export default function DetailRequeteAdmin() {
   const queryClient = useQueryClient();
   const estPrincipal = useAuthStore((s) => s.user?.type === 'Admin principal');
   const [message, setMessage] = useState('');
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, isRefetching, error, refetch } = useQuery({
     queryKey: ['admin', 'requetes', 'detail', id],
     queryFn: () => adminGet(`requetes/${id}/`),
   });
@@ -61,7 +61,7 @@ export default function DetailRequeteAdmin() {
   }
 
   return (
-    <Screen>
+    <Screen refreshing={isRefetching} onRefresh={() => void refetch()}>
       <Stack.Screen options={{ title: 'Détail de la requête' }} />
       <Text style={styles.titre}>{r.objet}</Text>
       <View style={styles.ligne}>
