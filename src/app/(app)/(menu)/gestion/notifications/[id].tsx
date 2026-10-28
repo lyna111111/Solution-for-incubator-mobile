@@ -1,11 +1,12 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { Alert, StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 
 import { adminEnvoyer, adminGet } from '@/admin/api';
 import type { ChampDef } from '@/admin/types';
 import { FormulaireAdmin } from '@/admin/ui';
 import { getErrorMessage } from '@/api/client';
+import { Dialogue } from '@/components/Dialogue';
 import { Screen } from '@/components/Screen';
 import { Banner, Button, Card, ErrorState, Loading } from '@/components/ui';
 import { type Palette, spacing, useStyles } from '@/theme';
@@ -42,13 +43,13 @@ export default function DetailNotificationAdmin() {
   }
 
   function supprimer() {
-    Alert.alert('Suppression', 'Supprimer cette notification ?', [
+    Dialogue.alert('Suppression', 'Supprimer cette notification ?', [
       { text: 'Annuler', style: 'cancel' },
       { text: 'Supprimer', style: 'destructive', onPress: async () => {
         try { await adminEnvoyer('delete', `notifications/${id}/`); await apres(); router.back(); }
-        catch (e) { Alert.alert('Suppression impossible', getErrorMessage(e)); }
+        catch (e) { Dialogue.alert('Suppression impossible', getErrorMessage(e)); }
       } },
-    ]);
+    ], { ton: 'danger', icone: 'trash-alt' });
   }
 
   return (

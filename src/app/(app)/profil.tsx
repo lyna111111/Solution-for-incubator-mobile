@@ -1,9 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { getErrorMessage } from '@/api/client';
 import { changePassword, logout, updateMe } from '@/api/endpoints';
+import { Dialogue } from '@/components/Dialogue';
 import { Screen } from '@/components/Screen';
 import { Banner, Button, Card, Field, SectionTitle } from '@/components/ui';
 import { useActualiserCompte } from '@/hooks/useActualiserCompte';
@@ -91,7 +92,7 @@ export default function Profil() {
   }
 
   function confirmerDeconnexion() {
-    Alert.alert('Déconnexion', 'Voulez-vous vraiment vous déconnecter ?', [
+    Dialogue.alert('Déconnexion', 'Voulez-vous vraiment vous déconnecter ?', [
       { text: 'Annuler', style: 'cancel' },
       {
         text: 'Se déconnecter',
@@ -107,7 +108,7 @@ export default function Profil() {
           await signOut();
         },
       },
-    ]);
+    ], { ton: 'danger', icone: 'sign-out-alt' });
   }
 
   // Recharge le compte depuis le serveur et remet les champs à jour.

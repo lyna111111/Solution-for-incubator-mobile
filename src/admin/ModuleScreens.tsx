@@ -1,8 +1,9 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { Alert, Text } from 'react-native';
+import { Text } from 'react-native';
 
 import { getErrorMessage } from '@/api/client';
+import { Dialogue } from '@/components/Dialogue';
 import { Screen } from '@/components/Screen';
 import { Button, ErrorState, Loading } from '@/components/ui';
 import { spacing } from '@/theme';
@@ -103,7 +104,7 @@ export function ModuleEdit({ cle }: { cle: string }) {
 
   function supprimer() {
     if (!config.supprimer) return;
-    Alert.alert('Suppression', config.messageSuppression, [
+    Dialogue.alert('Suppression', config.messageSuppression, [
       { text: 'Annuler', style: 'cancel' },
       {
         text: 'Supprimer',
@@ -114,11 +115,11 @@ export function ModuleEdit({ cle }: { cle: string }) {
             await apres();
             router.back();
           } catch (e) {
-            Alert.alert('Suppression impossible', getErrorMessage(e));
+            Dialogue.alert('Suppression impossible', getErrorMessage(e));
           }
         },
       },
-    ]);
+    ], { ton: 'danger', icone: 'trash-alt' });
   }
 
   return (

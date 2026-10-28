@@ -1,9 +1,10 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { getErrorMessage } from '@/api/client';
 import { ouvrirDocument } from '@/api/endpoints';
+import { Dialogue } from '@/components/Dialogue';
 import type { DocumentJoint } from '@/types';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
@@ -18,7 +19,7 @@ export function DocumentLink({ document }: { document: DocumentJoint }) {
     try {
       await ouvrirDocument(document);
     } catch (e) {
-      Alert.alert('Téléchargement impossible', getErrorMessage(e));
+      Dialogue.alert('Téléchargement impossible', getErrorMessage(e));
     } finally {
       setChargement(false);
     }

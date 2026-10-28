@@ -1,11 +1,12 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { adminEnvoyer, adminGet } from '@/admin/api';
 import { SelecteurReference } from '@/admin/ui';
 import { getErrorMessage } from '@/api/client';
+import { Dialogue } from '@/components/Dialogue';
 import { Screen } from '@/components/Screen';
 import { Badge, Banner, Button, Card, ErrorState, Field, Loading, SectionTitle } from '@/components/ui';
 import { type Palette, spacing, useColors, useStyles } from '@/theme';
@@ -43,7 +44,7 @@ export default function AbonnementFiche() {
 
   function agir(action: keyof typeof ACTIONS) {
     const def = ACTIONS[action];
-    Alert.alert(def.titre, def.message, [
+    Dialogue.alert(def.titre, def.message, [
       { text: 'Annuler', style: 'cancel' },
       {
         text: def.libelle,
@@ -53,7 +54,7 @@ export default function AbonnementFiche() {
             await adminEnvoyer('post', `abonnements/${id}/action/`, { action }, [], 'superadmin');
             await apres();
           } catch (e) {
-            Alert.alert('Action impossible', getErrorMessage(e));
+            Dialogue.alert('Action impossible', getErrorMessage(e));
           }
         },
       },

@@ -1,8 +1,9 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { Alert, StyleSheet, Switch, Text, View } from 'react-native';
+import { StyleSheet, Switch, Text, View } from 'react-native';
 
 import { getErrorMessage } from '@/api/client';
+import { Dialogue } from '@/components/Dialogue';
 import { Button } from '@/components/ui';
 import { radius, spacing, useColors } from '@/theme';
 import { aujourdhui, formaterDA, formatDate } from '@/utils/format';
@@ -25,7 +26,7 @@ const MSG_MDP = '8 caractères minimum, avec une majuscule, un chiffre et un car
 function useAction(rafraichir: () => void) {
   const queryClient = useQueryClient();
   return (titre: string, message: string, chemin: string, libelle: string, destructif = false) => {
-    Alert.alert(titre, message, [
+    Dialogue.alert(titre, message, [
       { text: 'Annuler', style: 'cancel' },
       {
         text: libelle,
@@ -35,9 +36,9 @@ function useAction(rafraichir: () => void) {
             const reponse = await adminEnvoyer('post', chemin, {}, [], 'superadmin');
             await queryClient.invalidateQueries({ queryKey: ['admin'] });
             rafraichir();
-            if (reponse?.message) Alert.alert(titre, reponse.message);
+            if (reponse?.message) Dialogue.alert(titre, reponse.message, undefined, { ton: 'success', icone: 'check-circle' });
           } catch (e) {
-            Alert.alert('Action impossible', getErrorMessage(e));
+            Dialogue.alert('Action impossible', getErrorMessage(e));
           }
         },
       },

@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { adminEnvoyer, adminGet } from '@/admin/api';
 import { FormulaireAdmin, ChoixPuces } from '@/admin/ui';
@@ -9,6 +9,7 @@ import { TYPES_DOCUMENT } from '@/admin/modules';
 import { getErrorMessage } from '@/api/client';
 import { DocumentsList } from '@/components/DocumentLink';
 import { StatutBadge } from '@/components/rows';
+import { Dialogue } from '@/components/Dialogue';
 import { Screen } from '@/components/Screen';
 import { Banner, Button, Card, ErrorState, Loading, SectionTitle } from '@/components/ui';
 import { useAuthStore } from '@/store/auth';
@@ -48,18 +49,18 @@ export default function DetailRequeteAdmin() {
       await adminEnvoyer('post', `requetes/${id}/statut/`, { status: statut });
       await apres();
     } catch (e) {
-      Alert.alert('Changement impossible', getErrorMessage(e));
+      Dialogue.alert('Changement impossible', getErrorMessage(e));
     }
   }
 
   function supprimer() {
-    Alert.alert('Suppression', 'Supprimer cette requête et ses réponses ?', [
+    Dialogue.alert('Suppression', 'Supprimer cette requête et ses réponses ?', [
       { text: 'Annuler', style: 'cancel' },
       { text: 'Supprimer', style: 'destructive', onPress: async () => {
         try { await adminEnvoyer('delete', `requetes/${id}/`); await apres(); router.back(); }
-        catch (e) { Alert.alert('Suppression impossible', getErrorMessage(e)); }
+        catch (e) { Dialogue.alert('Suppression impossible', getErrorMessage(e)); }
       } },
-    ]);
+    ], { ton: 'danger', icone: 'trash-alt' });
   }
 
   return (

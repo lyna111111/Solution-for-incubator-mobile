@@ -1,6 +1,7 @@
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { getErrorMessage } from '@/api/client';
+import { Dialogue } from '@/components/Dialogue';
 import { Button } from '@/components/ui';
 import { spacing } from '@/theme';
 
@@ -25,7 +26,7 @@ function ActionsDemande({ item, rafraichir }: { item: any; rafraichir: () => voi
 
   function agir(action: 'approuver' | 'refuser') {
     const libelle = action === 'approuver' ? 'accepter' : 'refuser';
-    Alert.alert('Demande d\'inscription', `Voulez-vous ${libelle} la demande de ${item.prenom} ${item.nom} ?`, [
+    Dialogue.alert('Demande d\'inscription', `Voulez-vous ${libelle} la demande de ${item.prenom} ${item.nom} ?`, [
       { text: 'Annuler', style: 'cancel' },
       {
         text: libelle.charAt(0).toUpperCase() + libelle.slice(1),
@@ -35,11 +36,11 @@ function ActionsDemande({ item, rafraichir }: { item: any; rafraichir: () => voi
             await adminEnvoyer('post', `demandes/${item.id}/${action}/`);
             rafraichir();
           } catch (e) {
-            Alert.alert('Action impossible', getErrorMessage(e));
+            Dialogue.alert('Action impossible', getErrorMessage(e));
           }
         },
       },
-    ]);
+    ], action === 'approuver' ? { ton: 'success', icone: 'check-circle' } : { ton: 'danger', icone: 'times-circle' });
   }
 
   return (
