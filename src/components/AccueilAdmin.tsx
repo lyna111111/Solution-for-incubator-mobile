@@ -1,6 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
-import { StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { adminGet } from '@/admin/api';
 import { Barres } from '@/admin/ui';
@@ -14,16 +15,21 @@ import { Card, ErrorState, Loading, SectionTitle } from './ui';
 
 type IconName = React.ComponentProps<typeof FontAwesome5>['name'];
 
-function Carte({ icone, couleur, fond, label, valeur }: { icone: IconName; couleur: string; fond: string; label: string; valeur: number }) {
+/** Carte de chiffre : mène à la page concernée (comme sur le site), si l'administrateur y a droit. */
+function Carte({ icone, couleur, fond, label, valeur, route }: {
+  icone: IconName; couleur: string; fond: string; label: string; valeur: number; route?: string;
+}) {
   const styles = useStyles(createStyles);
   return (
-    <Card style={styles.carte}>
-      <View style={styles.entete}>
-        <View style={[styles.icone, { backgroundColor: fond }]}><FontAwesome5 name={icone} size={14} color={couleur} /></View>
-        <Text style={styles.label} numberOfLines={2}>{label}</Text>
-      </View>
-      <Text style={styles.valeur}>{valeur}</Text>
-    </Card>
+    <Pressable disabled={!route} onPress={() => route && router.push(route)} style={styles.carte}>
+      <Card style={styles.contenuCarte}>
+        <View style={styles.entete}>
+          <View style={[styles.icone, { backgroundColor: fond }]}><FontAwesome5 name={icone} size={14} color={couleur} /></View>
+          <Text style={styles.label} numberOfLines={2}>{label}</Text>
+        </View>
+        <Text style={styles.valeur}>{valeur}</Text>
+      </Card>
+    </Pressable>
   );
 }
 
@@ -39,6 +45,8 @@ export function AccueilAdmin() {
 
   if (isLoading) return <Loading />;
   if (error || !data) return <ErrorState message={getErrorMessage(error)} onRetry={() => void refetch()} />;
+  // Seulement les pages auxquelles son type d'administrateur donne accès.
+  const lien = (module: string) => (user?.modules?.includes(module) ? `/gestion/${module}` : undefined);
   const t = data.totaux;
   const trimestres = data.evenements_par_trimestre;
 
@@ -52,10 +60,14 @@ export function AccueilAdmin() {
       </Card>
 
       <View style={styles.grille}>
-        <Carte icone="users" couleur={colors.primary} fond={colors.primarySoft} label="Inscrits" valeur={t.utilisateurs} />
-        <Carte icone="tasks" couleur={colors.info} fond={colors.infoSoft} label="Requêtes reçues" valeur={t.requetes} />
-        <Carte icone="calendar-alt" couleur={colors.success} fond={colors.successSoft} label="Événements" valeur={t.evenements} />
-        <Carte icone="user-shield" couleur={colors.warning} fond={colors.warningSoft} label="Staff" valeur={t.administrateurs} />
+        <Carte icone="users" couleur={colors.primary} fond={colors.primarySoft} label="Inscrits" valeur={t.utilisateurs}
+          route={lien('utilisateurs')} />
+        <Carte icone="tasks" couleur={colors.info} fond={colors.infoSoft} label="Requêtes reçues" valeur={t.requetes}
+          route={lien('requetes')} />
+        <Carte icone="calendar-alt" couleur={colors.success} fond={colors.successSoft} label="Événements" valeur={t.evenements}
+          route={lien('evenements')} />
+        <Carte icone="user-shield" couleur={colors.warning} fond={colors.warningSoft} label="Staff" valeur={t.administrateurs}
+          route={lien('administrateurs')} />
       </View>
 
       <Card style={{ gap: spacing.md }}>
@@ -92,6 +104,11 @@ export function AccueilAdmin() {
               </View>
             </View>
           ))}
+          {!!lien('projets') && (
+            <Pressable onPress={() => router.push('/gestion/projets')} hitSlop={8}>
+              <Text style={styles.voirTout}>Voir tout ›</Text>
+            </Pressable>
+          )}
         </Card>
       )}
 
@@ -111,10 +128,12 @@ const createStyles = (colors: Palette) => StyleSheet.create({
   bienvenue: { fontSize: 20, fontWeight: '800', color: colors.text },
   sous: { fontSize: 14, color: colors.textMuted },
   grille: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-  carte: { width: '47.5%', flexGrow: 1, gap: spacing.md, padding: spacing.md },
+  carte: { width: '47.5%', flexGrow: 1 },
+  contenuCarte: { gap: spacing.md, padding: spacing.md },
   entete: { flexDirection: 'row', alignItems: 'center', gap: 8, justifyContent: 'space-between' },
   icone: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   label: { flex: 1, fontSize: 13, color: colors.textMuted, fontWeight: '600' },
   valeur: { fontSize: 28, fontWeight: '800', color: colors.text },
+  voirTout: { fontSize: 14, color: colors.primary, fontWeight: '600', textAlign: 'right' },
   piste: { height: 10, borderRadius: 5, backgroundColor: colors.border, overflow: 'hidden' },
 });

@@ -1,7 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import * as DocumentPicker from 'expo-document-picker';
-import { Stack } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { ReactNode, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -39,8 +39,14 @@ export function ListeAdmin({
   const [saisie, setSaisie] = useState('');
   const [recherche, setRecherche] = useState('');
   const [page, setPage] = useState(1);
+  // Un filtre peut arriver dans l'adresse (ex. `/paiements?statut=completed` depuis une carte du tableau de bord).
+  const parametres = useLocalSearchParams<Record<string, string>>();
   const [valeursFiltres, setValeursFiltres] = useState<Record<string, string>>(
-    Object.fromEntries(filtres.map((f) => [f.param, f.defaut ?? f.options[0].value])),
+    Object.fromEntries(filtres.map((f) => {
+      const demande = parametres[f.param];
+      const valide = typeof demande === 'string' && f.options.some((o) => o.value === demande);
+      return [f.param, valide ? demande : f.defaut ?? f.options[0].value];
+    })),
   );
 
   const requete = useQuery({

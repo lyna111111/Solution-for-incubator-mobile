@@ -15,16 +15,21 @@ import { Badge, Card, ErrorState, Loading, SectionTitle } from './ui';
 
 type IconName = React.ComponentProps<typeof FontAwesome5>['name'];
 
-function Carte({ icone, couleur, fond, label, valeur }: { icone: IconName; couleur: string; fond: string; label: string; valeur: string | number }) {
+/** Carte de chiffre : mène à la page concernée, déjà filtrée, comme sur le site. */
+function Carte({ icone, couleur, fond, label, valeur, route }: {
+  icone: IconName; couleur: string; fond: string; label: string; valeur: string | number; route: string;
+}) {
   const styles = useStyles(createStyles);
   return (
-    <Card style={styles.carte}>
-      <View style={styles.entete}>
-        <View style={[styles.icone, { backgroundColor: fond }]}><FontAwesome5 name={icone} size={14} color={couleur} /></View>
-        <Text style={styles.label} numberOfLines={2}>{label}</Text>
-      </View>
-      <Text style={styles.valeur} adjustsFontSizeToFit numberOfLines={1}>{valeur}</Text>
-    </Card>
+    <Pressable onPress={() => router.push(route)} style={styles.carte}>
+      <Card style={styles.contenuCarte}>
+        <View style={styles.entete}>
+          <View style={[styles.icone, { backgroundColor: fond }]}><FontAwesome5 name={icone} size={14} color={couleur} /></View>
+          <Text style={styles.label} numberOfLines={2}>{label}</Text>
+        </View>
+        <Text style={styles.valeur} adjustsFontSizeToFit numberOfLines={1}>{valeur}</Text>
+      </Card>
+    </Pressable>
   );
 }
 
@@ -51,10 +56,14 @@ export function AccueilSuperAdmin() {
       </Card>
 
       <View style={styles.grille}>
-        <Carte icone="building" couleur={colors.primary} fond={colors.primarySoft} label="Incubateurs" valeur={data.total_incubateurs} />
-        <Carte icone="check-circle" couleur={colors.success} fond={colors.successSoft} label="Incubateurs actifs" valeur={data.incubateurs_actifs} />
-        <Carte icone="money-bill-wave" couleur={colors.info} fond={colors.infoSoft} label="Revenus du mois" valeur={formaterDA(data.revenus_mois)} />
-        <Carte icone="ban" couleur={colors.danger} fond={colors.dangerSoft} label="Abonnements annulés" valeur={data.abonnements_annules} />
+        <Carte icone="building" couleur={colors.primary} fond={colors.primarySoft} label="Incubateurs" valeur={data.total_incubateurs}
+          route="/incubateurs" />
+        <Carte icone="check-circle" couleur={colors.success} fond={colors.successSoft} label="Incubateurs actifs" valeur={data.incubateurs_actifs}
+          route="/incubateurs?statut=actif" />
+        <Carte icone="money-bill-wave" couleur={colors.info} fond={colors.infoSoft} label="Revenus du mois" valeur={formaterDA(data.revenus_mois)}
+          route="/paiements?statut=completed" />
+        <Carte icone="ban" couleur={colors.danger} fond={colors.dangerSoft} label="Abonnements annulés" valeur={data.abonnements_annules}
+          route="/abonnements?statut=annule" />
       </View>
 
       <Card style={{ gap: spacing.md }}>
@@ -83,6 +92,9 @@ export function AccueilSuperAdmin() {
               texte={i.actif ? colors.success : colors.danger} />
           </Pressable>
         ))}
+        <Pressable onPress={() => router.push('/incubateurs')} hitSlop={8}>
+          <Text style={styles.voirTout}>Voir tout ›</Text>
+        </Pressable>
       </Card>
     </Screen>
   );
@@ -92,12 +104,14 @@ const createStyles = (colors: Palette) => StyleSheet.create({
   bienvenue: { fontSize: 20, fontWeight: '800', color: colors.text },
   sous: { fontSize: 13, color: colors.textMuted },
   grille: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-  carte: { width: '47.5%', flexGrow: 1, gap: spacing.md, padding: spacing.md },
+  carte: { width: '47.5%', flexGrow: 1 },
+  contenuCarte: { gap: spacing.md, padding: spacing.md },
   entete: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   icone: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   label: { flex: 1, fontSize: 13, color: colors.textMuted, fontWeight: '600' },
   valeur: { fontSize: 26, fontWeight: '800', color: colors.text },
   incubateur: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   pastille: { width: 14, height: 14, borderRadius: 7 },
+  voirTout: { fontSize: 14, color: colors.primary, fontWeight: '600', textAlign: 'right' },
   nom: { fontSize: 15, fontWeight: '600', color: colors.text },
 });
