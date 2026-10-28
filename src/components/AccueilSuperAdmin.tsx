@@ -7,7 +7,7 @@ import { adminGet } from '@/admin/api';
 import { Barres } from '@/admin/ui';
 import { getErrorMessage } from '@/api/client';
 import { useAuthStore } from '@/store/auth';
-import { colors, spacing } from '@/theme';
+import { type Palette, spacing, useColors, useStyles } from '@/theme';
 import { formaterDA } from '@/utils/format';
 
 import { Screen } from './Screen';
@@ -16,6 +16,7 @@ import { Badge, Card, ErrorState, Loading, SectionTitle } from './ui';
 type IconName = React.ComponentProps<typeof FontAwesome5>['name'];
 
 function Carte({ icone, couleur, fond, label, valeur }: { icone: IconName; couleur: string; fond: string; label: string; valeur: string | number }) {
+  const styles = useStyles(createStyles);
   return (
     <Card style={styles.carte}>
       <View style={styles.entete}>
@@ -29,6 +30,8 @@ function Carte({ icone, couleur, fond, label, valeur }: { icone: IconName; coule
 
 /** Tableau de bord du Super Admin : mêmes chiffres que l'accueil Super Admin du site. */
 export function AccueilSuperAdmin() {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   const user = useAuthStore((s) => s.user);
   const { data, isLoading, isRefetching, error, refetch } = useQuery({
     queryKey: ['admin', 'super-dashboard'],
@@ -85,7 +88,7 @@ export function AccueilSuperAdmin() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   bienvenue: { fontSize: 20, fontWeight: '800', color: colors.text },
   sous: { fontSize: 13, color: colors.textMuted },
   grille: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },

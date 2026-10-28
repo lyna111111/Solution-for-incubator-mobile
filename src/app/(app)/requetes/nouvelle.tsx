@@ -9,7 +9,7 @@ import { getErrorMessage } from '@/api/client';
 import { createRequete } from '@/api/endpoints';
 import { Screen } from '@/components/Screen';
 import { Banner, Button, Field } from '@/components/ui';
-import { colors, radius, spacing } from '@/theme';
+import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 import type { PieceJointe } from '@/types';
 
 // Mêmes valeurs que le formulaire du site.
@@ -30,6 +30,7 @@ const MIME_AUTORISES = [
 const TAILLE_MAX = 10 * 1024 * 1024; // 10 Mo, comme le serveur
 
 function Choix({ options, valeur, onChoisir }: { options: string[]; valeur: string; onChoisir: (v: string) => void }) {
+  const styles = useStyles(createStyles);
   return (
     <View style={styles.chips}>
       {options.map((o) => (
@@ -42,6 +43,8 @@ function Choix({ options, valeur, onChoisir }: { options: string[]; valeur: stri
 }
 
 export default function NouvelleRequete() {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   const queryClient = useQueryClient();
   const [objet, setObjet] = useState('');
   const [type, setType] = useState('');
@@ -136,7 +139,7 @@ export default function NouvelleRequete() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   label: { fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 6 },
   aide: { fontSize: 12, color: colors.textMuted },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },

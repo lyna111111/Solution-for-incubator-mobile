@@ -13,7 +13,7 @@ import {
   ViewStyle,
 } from 'react-native';
 
-import { colors, gradient, radius, shadow, spacing } from '@/theme';
+import { gradient, type Palette, radius, shadow, spacing, useColors, useStyles } from '@/theme';
 
 type IconName = React.ComponentProps<typeof FontAwesome5>['name'];
 
@@ -32,6 +32,8 @@ interface ButtonProps {
 }
 
 export function Button({ title, onPress, loading, disabled, variant = 'primary', pill, icon, style }: ButtonProps) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   const inactif = disabled || loading;
   const clair = variant === 'secondary';
   const contenu = loading ? (
@@ -87,6 +89,8 @@ interface FieldProps extends TextInputProps {
 }
 
 export function Field({ label, error, icon, secureTextEntry, style, ...props }: FieldProps) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   // Œil afficher/masquer, comme sur la page de connexion du site.
   const [masque, setMasque] = useState(true);
   const estMotDePasse = !!secureTextEntry;
@@ -116,10 +120,12 @@ export function Field({ label, error, icon, secureTextEntry, style, ...props }: 
 // ── Carte, pastille, titres ──────────────────────────────────────────────────
 
 export function Card({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+  const styles = useStyles(createStyles);
   return <View style={[styles.card, style]}>{children}</View>;
 }
 
 export function Badge({ label, fond, texte }: { label: string; fond: string; texte: string }) {
+  const styles = useStyles(createStyles);
   return (
     <View style={[styles.badge, { backgroundColor: fond }]}>
       <Text style={[styles.badgeText, { color: texte }]}>{label}</Text>
@@ -128,6 +134,8 @@ export function Badge({ label, fond, texte }: { label: string; fond: string; tex
 }
 
 export function SectionTitle({ children, icon }: { children: ReactNode; icon?: IconName }) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   return (
     <View style={styles.sectionRow}>
       {!!icon && <FontAwesome5 name={icon} size={15} color={colors.primary} />}
@@ -139,6 +147,8 @@ export function SectionTitle({ children, icon }: { children: ReactNode; icon?: I
 // ── États : chargement, erreur, liste vide ───────────────────────────────────
 
 export function Loading() {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   return (
     <View style={styles.center}>
       <ActivityIndicator size="large" color={colors.primary} />
@@ -147,6 +157,7 @@ export function Loading() {
 }
 
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  const styles = useStyles(createStyles);
   return (
     <View style={styles.center}>
       <Text style={styles.errorText}>{message}</Text>
@@ -156,6 +167,7 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
 }
 
 export function EmptyState({ message }: { message: string }) {
+  const styles = useStyles(createStyles);
   return (
     <View style={styles.center}>
       <Text style={styles.emptyText}>{message}</Text>
@@ -164,12 +176,14 @@ export function EmptyState({ message }: { message: string }) {
 }
 
 export function Banner({ message, type = 'error' }: { message: string; type?: 'error' | 'success' | 'info' }) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   const palette =
     type === 'success'
-      ? { fond: colors.successSoft, texte: '#047857', icone: 'check-circle' as const }
+      ? { fond: colors.successSoft, texte: colors.successText, icone: 'check-circle' as const }
       : type === 'info'
         ? { fond: colors.primarySoft, texte: colors.primaryDark, icone: 'info-circle' as const }
-        : { fond: colors.dangerSoft, texte: '#b91c1c', icone: 'exclamation-circle' as const };
+        : { fond: colors.dangerSoft, texte: colors.dangerText, icone: 'exclamation-circle' as const };
   return (
     <View style={[styles.banner, { backgroundColor: palette.fond }]}>
       <FontAwesome5 name={palette.icone} size={15} color={palette.texte} style={{ marginTop: 2 }} />
@@ -178,7 +192,7 @@ export function Banner({ message, type = 'error' }: { message: string; type?: 'e
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   button: {
     minHeight: 50,
     paddingHorizontal: spacing.xl,
@@ -191,7 +205,7 @@ const styles = StyleSheet.create({
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.input,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 12,

@@ -7,9 +7,10 @@ import { login } from '@/api/endpoints';
 import { AuthShell } from '@/components/AuthShell';
 import { Banner, Button, Field } from '@/components/ui';
 import { useAuthStore } from '@/store/auth';
-import { colors, spacing } from '@/theme';
+import { type Palette, spacing, useStyles } from '@/theme';
 
 export default function Connexion() {
+  const styles = useStyles(createStyles);
   const signIn = useAuthStore((s) => s.signIn);
   const [email, setEmail] = useState('');
   const [mdp, setMdp] = useState('');
@@ -76,7 +77,7 @@ export default function Connexion() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   footer: { alignItems: 'center', gap: spacing.md, marginTop: spacing.xl },
   footerText: { color: colors.textMuted, fontSize: 15 },
   footerStrong: { color: colors.primary, fontWeight: '700' },

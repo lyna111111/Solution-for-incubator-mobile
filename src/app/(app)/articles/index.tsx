@@ -7,9 +7,10 @@ import { getErrorMessage } from '@/api/client';
 import { fetchArticles } from '@/api/endpoints';
 import { Screen } from '@/components/Screen';
 import { Button, Card, ErrorState, Field, Loading } from '@/components/ui';
-import { colors, spacing } from '@/theme';
+import { type Palette, spacing, useStyles } from '@/theme';
 
 export default function Articles() {
+  const styles = useStyles(createStyles);
   const [saisie, setSaisie] = useState('');
   const [recherche, setRecherche] = useState('');
   const [page, setPage] = useState(1);
@@ -59,7 +60,7 @@ export default function Articles() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   title: { fontSize: 16, fontWeight: '600', color: colors.text },
   meta: { fontSize: 13, color: colors.textMuted },
   empty: { color: colors.textMuted, textAlign: 'center', marginTop: 24, fontSize: 15 },

@@ -3,16 +3,19 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Evenement, Notification, RequeteResume } from '@/types';
-import { colors, spacing } from '@/theme';
-import { COULEUR_STATUT, formatDate, formatDateTime, LIBELLE_STATUT } from '@/utils/format';
+import { type Palette, spacing, useColors, useStyles } from '@/theme';
+import { couleurStatut, formatDate, formatDateTime, LIBELLE_STATUT } from '@/utils/format';
 
 import { Badge, Card } from './ui';
 
 function Chevron() {
+  const colors = useColors();
   return <FontAwesome5 name="angle-right" size={18} color={colors.textMuted} />;
 }
 
 export function EvenementRow({ evenement }: { evenement: Evenement }) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   const horaire = [evenement.heure_debut, evenement.heure_fin].filter(Boolean).join(' - ');
   return (
     <Pressable onPress={() => router.push(`/evenements/${evenement.id}`)}>
@@ -42,10 +45,12 @@ export function EvenementRow({ evenement }: { evenement: Evenement }) {
 }
 
 export function StatutBadge({ statut }: { statut: RequeteResume['statut'] }) {
-  return <Badge label={LIBELLE_STATUT[statut]} fond={COULEUR_STATUT[statut].fond} texte={COULEUR_STATUT[statut].texte} />;
+  const { fond, texte } = couleurStatut(useColors())[statut];
+  return <Badge label={LIBELLE_STATUT[statut]} fond={fond} texte={texte} />;
 }
 
 export function RequeteRow({ requete }: { requete: RequeteResume }) {
+  const styles = useStyles(createStyles);
   return (
     <Pressable onPress={() => router.push(`/requetes/${requete.id}`)}>
       <Card style={styles.card}>
@@ -67,6 +72,8 @@ export function RequeteRow({ requete }: { requete: RequeteResume }) {
 }
 
 export function NotificationRow({ notification }: { notification: Notification }) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   return (
     <Pressable onPress={() => router.push(`/notifications/${notification.id}`)}>
       <Card style={styles.card}>
@@ -85,7 +92,7 @@ export function NotificationRow({ notification }: { notification: Notification }
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   card: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   title: { fontSize: 16, fontWeight: '600', color: colors.text },
   meta: { fontSize: 13, color: colors.textMuted },

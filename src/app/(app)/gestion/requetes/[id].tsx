@@ -12,12 +12,14 @@ import { StatutBadge } from '@/components/rows';
 import { Screen } from '@/components/Screen';
 import { Banner, Button, Card, ErrorState, Loading, SectionTitle } from '@/components/ui';
 import { useAuthStore } from '@/store/auth';
-import { colors, spacing } from '@/theme';
+import { type Palette, spacing, useColors, useStyles } from '@/theme';
 import { formatDateTime } from '@/utils/format';
 
 const STATUTS = ['Traitée', 'Rejetée', 'En attente'];
 
 export default function DetailRequeteAdmin() {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
   const estPrincipal = useAuthStore((s) => s.user?.type === 'Admin principal');
@@ -119,7 +121,7 @@ export default function DetailRequeteAdmin() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   titre: { fontSize: 22, fontWeight: '800', color: colors.text },
   ligne: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
   meta: { fontSize: 13, color: colors.textMuted },

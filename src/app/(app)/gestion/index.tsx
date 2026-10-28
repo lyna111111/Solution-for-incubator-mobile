@@ -6,7 +6,7 @@ import { Screen } from '@/components/Screen';
 import { Card } from '@/components/ui';
 import { useActualiserCompte } from '@/hooks/useActualiserCompte';
 import { useAuthStore } from '@/store/auth';
-import { colors, spacing } from '@/theme';
+import { type Palette, spacing, useColors, useStyles } from '@/theme';
 
 type IconName = React.ComponentProps<typeof FontAwesome5>['name'];
 
@@ -25,6 +25,8 @@ const MENU: { module: string; titre: string; icone: IconName; route: string }[] 
 
 /** Menu de gestion : seulement les modules auxquels le type d'administrateur a droit. */
 export default function MenuGestion() {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   // Le sélecteur ne doit pas fabriquer de nouveau tableau (`?? []`) : il relancerait le rendu à l'infini.
   const modulesBruts = useAuthStore((s) => s.user?.modules);
   const modules = modulesBruts ?? [];
@@ -47,7 +49,7 @@ export default function MenuGestion() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   ligne: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   icone: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },
   titre: { flex: 1, fontSize: 16, fontWeight: '600', color: colors.text },

@@ -9,11 +9,12 @@ import { Chips } from '@/components/Chips';
 import { RequeteRow } from '@/components/rows';
 import { Screen } from '@/components/Screen';
 import { Button, ErrorState, Field, Loading } from '@/components/ui';
-import { colors, spacing } from '@/theme';
+import { type Palette, spacing, useStyles } from '@/theme';
 
 type Filtre = 'all' | 'pending' | 'delivered' | 'canceled';
 
 export default function MesRequetes() {
+  const styles = useStyles(createStyles);
   const [filtre, setFiltre] = useState<Filtre>('all');
   const [saisie, setSaisie] = useState('');
   const [recherche, setRecherche] = useState('');
@@ -75,7 +76,7 @@ export default function MesRequetes() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   empty: { color: colors.textMuted, textAlign: 'center', marginTop: 24, fontSize: 15 },
   pager: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   pageInfo: { color: colors.textMuted, fontSize: 14 },

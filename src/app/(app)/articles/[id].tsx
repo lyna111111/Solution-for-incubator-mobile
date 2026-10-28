@@ -7,10 +7,11 @@ import { fetchArticle } from '@/api/endpoints';
 import { DocumentLink } from '@/components/DocumentLink';
 import { Screen } from '@/components/Screen';
 import { Card, ErrorState, Loading } from '@/components/ui';
-import { colors } from '@/theme';
+import { type Palette, useStyles } from '@/theme';
 import { formatDate } from '@/utils/format';
 
 export default function DetailArticle() {
+  const styles = useStyles(createStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, isLoading, isRefetching, error, refetch } = useQuery({
     queryKey: ['article', id],
@@ -34,7 +35,7 @@ export default function DetailArticle() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   title: { fontSize: 24, fontWeight: '800', color: colors.text },
   meta: { fontSize: 13, color: colors.textMuted },
   body: { fontSize: 16, color: colors.text, lineHeight: 24 },

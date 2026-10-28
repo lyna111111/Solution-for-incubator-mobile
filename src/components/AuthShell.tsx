@@ -1,10 +1,11 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { colors, radius, shadow, spacing } from '@/theme';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { type Palette, radius, shadow, spacing, useColors, useStyles } from '@/theme';
 
 /**
  * Habillage commun des écrans de connexion, inscription et mot de passe oublié.
@@ -12,9 +13,12 @@ import { colors, radius, shadow, spacing } from '@/theme';
  * titre violet, fond doux teinté de violet.
  */
 export function AuthShell({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   return (
-    <LinearGradient colors={['#efe5ff', '#f8fafc', '#e6f8ff']} style={{ flex: 1 }}>
+    <LinearGradient colors={colors.authFond} style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }}>
+        <ThemeToggle style={styles.theme} />
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
             <View style={styles.card}>
@@ -32,7 +36,8 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
+  theme: { position: 'absolute', top: 8, right: 12, zIndex: 10 },
   content: { flexGrow: 1, justifyContent: 'center', padding: spacing.lg },
   card: {
     backgroundColor: colors.card,

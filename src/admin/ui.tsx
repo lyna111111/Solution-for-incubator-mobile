@@ -9,7 +9,7 @@ import { getErrorMessage } from '@/api/client';
 import { Chips } from '@/components/Chips';
 import { Screen } from '@/components/Screen';
 import { Banner, Button, Card, ErrorState, Field, Loading } from '@/components/ui';
-import { colors, radius, spacing } from '@/theme';
+import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 import type { Pagination } from '@/types';
 
 import { adminGet, type BaseApi } from './api';
@@ -35,6 +35,7 @@ interface ListeAdminProps {
 export function ListeAdmin({
   titre, queryKey, charger, extraire, placeholderRecherche, filtres = [], entete, renderItem, action, vide,
 }: ListeAdminProps) {
+  const styles = useStyles(createStyles);
   const [saisie, setSaisie] = useState('');
   const [recherche, setRecherche] = useState('');
   const [page, setPage] = useState(1);
@@ -106,6 +107,8 @@ export function ListeAdmin({
 export function LigneListe({
   titre, sousTitre, badge, onPress, pied,
 }: { titre: string; sousTitre?: string; badge?: string | null; onPress?: () => void; pied?: ReactNode }) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   return (
     <Pressable onPress={onPress}>
       <Card style={{ gap: spacing.sm }}>
@@ -126,6 +129,7 @@ export function LigneListe({
 }
 
 export function Compteurs({ valeurs }: { valeurs: { label: string; valeur: number | string }[] }) {
+  const styles = useStyles(createStyles);
   return (
     <View style={styles.compteurs}>
       {valeurs.map((v) => (
@@ -143,6 +147,7 @@ export function Compteurs({ valeurs }: { valeurs: { label: string; valeur: numbe
 export function ChoixPuces({
   options, valeur, onChoisir, libelles,
 }: { options: string[]; valeur: string; onChoisir: (v: string) => void; libelles?: Record<string, string> }) {
+  const styles = useStyles(createStyles);
   return (
     <View style={styles.puces}>
       {options.map((o) => (
@@ -161,6 +166,8 @@ export function SelecteurReference({
   base: BaseApi; source: string; cleListe: string; libelle: (x: any) => string;
   valeur: string; onChange: (v: string) => void;
 }) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   const { data, isLoading, error } = useQuery({
     queryKey: ['admin', 'reference', base, source, cleListe],
     queryFn: () => adminGet(source, undefined, base),
@@ -188,6 +195,8 @@ export function SelecteurReference({
 export function SelecteurUtilisateurs({
   source, valeur, multiple, onChange,
 }: { source: string; valeur: number[]; multiple: boolean; onChange: (v: number[]) => void }) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   const [saisie, setSaisie] = useState('');
   const [q, setQ] = useState('');
   const { data, isLoading, error } = useQuery({
@@ -234,6 +243,8 @@ const TAILLE_MAX = 10 * 1024 * 1024; // 10 Mo, comme le serveur
 export function SelecteurFichiers({
   champ, fichiers, multiple, onChange, onErreur,
 }: { champ: string; fichiers: Fichier[]; multiple: boolean; onChange: (f: Fichier[]) => void; onErreur: (m: string) => void }) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   async function choisir() {
     const resultat = await DocumentPicker.getDocumentAsync({ type: MIME_DOCUMENTS, multiple, copyToCacheDirectory: true });
     if (resultat.canceled) return;
@@ -277,6 +288,7 @@ interface FormulaireProps {
 }
 
 export function FormulaireAdmin({ champs, mode, valeursInitiales = {}, libelle, base = 'admin', onSubmit }: FormulaireProps) {
+  const styles = useStyles(createStyles);
   const visibles = champs.filter((c) => (mode === 'creation' ? !c.modification : !c.creation));
   const [valeurs, setValeurs] = useState<Record<string, any>>(valeursInitiales);
   const [fichiers, setFichiers] = useState<Fichier[]>([]);
@@ -370,7 +382,10 @@ export function FormulaireAdmin({ champs, mode, valeursInitiales = {}, libelle, 
 
 // ── Graphiques simples (barres horizontales) ─────────────────────────────────
 
-export function Barres({ donnees, couleur = colors.primary }: { donnees: { label: string; valeur: number }[]; couleur?: string }) {
+export function Barres({ donnees, couleur }: { donnees: { label: string; valeur: number }[]; couleur?: string }) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
+  const remplissage = couleur ?? colors.primary;
   const maxi = Math.max(1, ...donnees.map((d) => d.valeur));
   return (
     <View style={{ gap: spacing.sm }}>
@@ -381,7 +396,7 @@ export function Barres({ donnees, couleur = colors.primary }: { donnees: { label
             <Text style={styles.titre}>{d.valeur}</Text>
           </View>
           <View style={styles.barrePiste}>
-            <View style={[styles.barre, { width: `${(d.valeur / maxi) * 100}%`, backgroundColor: couleur }]} />
+            <View style={[styles.barre, { width: `${(d.valeur / maxi) * 100}%`, backgroundColor: remplissage }]} />
           </View>
         </View>
       ))}
@@ -389,7 +404,7 @@ export function Barres({ donnees, couleur = colors.primary }: { donnees: { label
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   vide: { color: colors.textMuted, textAlign: 'center', marginTop: 24, fontSize: 15 },
   pager: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   pageInfo: { color: colors.textMuted, fontSize: 14 },

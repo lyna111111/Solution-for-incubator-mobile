@@ -7,10 +7,11 @@ import { fetchEvenement } from '@/api/endpoints';
 import { DocumentsList } from '@/components/DocumentLink';
 import { Screen } from '@/components/Screen';
 import { Badge, Card, ErrorState, Loading, SectionTitle } from '@/components/ui';
-import { colors, spacing } from '@/theme';
+import { type Palette, spacing, useColors, useStyles } from '@/theme';
 import { formatDate } from '@/utils/format';
 
 function Ligne({ label, valeur }: { label: string; valeur: string }) {
+  const styles = useStyles(createStyles);
   return (
     <View style={styles.line}>
       <Text style={styles.lineLabel}>{label}</Text>
@@ -20,6 +21,8 @@ function Ligne({ label, valeur }: { label: string; valeur: string }) {
 }
 
 export default function DetailEvenement() {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, isLoading, isRefetching, error, refetch } = useQuery({
     queryKey: ['evenement', id],
@@ -66,7 +69,7 @@ export default function DetailEvenement() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   title: { fontSize: 24, fontWeight: '800', color: colors.text },
   line: { gap: 2 },
   lineLabel: { fontSize: 13, color: colors.textMuted, fontWeight: '600' },

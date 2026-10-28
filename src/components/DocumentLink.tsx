@@ -5,10 +5,12 @@ import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'rea
 import { getErrorMessage } from '@/api/client';
 import { ouvrirDocument } from '@/api/endpoints';
 import type { DocumentJoint } from '@/types';
-import { colors, radius, spacing } from '@/theme';
+import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
 /** Ligne « pièce jointe » : télécharge le fichier avec le jeton (droits vérifiés par le serveur). */
 export function DocumentLink({ document }: { document: DocumentJoint }) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   const [chargement, setChargement] = useState(false);
 
   async function ouvrir() {
@@ -51,7 +53,7 @@ export function DocumentsList({ documents }: { documents: DocumentJoint[] | unde
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',

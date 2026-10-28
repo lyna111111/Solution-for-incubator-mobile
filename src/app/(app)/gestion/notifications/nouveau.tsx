@@ -7,7 +7,7 @@ import { adminEnvoyer } from '@/admin/api';
 import type { ChampDef } from '@/admin/types';
 import { ChoixPuces, FormulaireAdmin } from '@/admin/ui';
 import { Screen } from '@/components/Screen';
-import { colors } from '@/theme';
+import { useColors } from '@/theme';
 
 const MODES = ['Diffusion à tous', 'À un utilisateur', 'À plusieurs utilisateurs'];
 const SOURCE = 'notifications/destinataires/';
@@ -23,6 +23,7 @@ function champs(mode: string): ChampDef[] {
 }
 
 export default function NouvelleNotification() {
+  const colors = useColors();
   const [mode, setMode] = useState(MODES[0]);
   const queryClient = useQueryClient();
 

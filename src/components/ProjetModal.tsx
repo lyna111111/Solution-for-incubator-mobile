@@ -3,9 +3,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { ProjetUtilisateur } from '@/types';
-import { colors, gradient, radius, spacing } from '@/theme';
+import { gradient, type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
 function Ligne({ label, valeur }: { label: string; valeur: string }) {
+  const styles = useStyles(createStyles);
   return (
     <View style={{ gap: 2 }}>
       <Text style={styles.label}>{label}</Text>
@@ -18,6 +19,8 @@ function Ligne({ label, valeur }: { label: string; valeur: string }) {
 export function ProjetModal({
   projet, chargement, visible, onClose,
 }: { projet: ProjetUtilisateur | undefined; chargement?: boolean; visible: boolean; onClose: () => void }) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <Pressable style={styles.overlay} onPress={onClose}>
@@ -55,7 +58,7 @@ export function ProjetModal({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.5)', justifyContent: 'flex-end' },
   sheet: { backgroundColor: colors.card, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl,
     padding: spacing.xl, maxHeight: '85%' },

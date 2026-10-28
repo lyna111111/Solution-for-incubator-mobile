@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 
 import { Loading } from '@/components/ui';
 import { useAuthStore } from '@/store/auth';
+import { useThemeStore } from '@/store/theme';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -16,18 +17,22 @@ export default function RootLayout() {
   const hydrated = useAuthStore((s) => s.hydrated);
   const hydrate = useAuthStore((s) => s.hydrate);
   const connecte = useAuthStore((s) => !!s.accessToken && !!s.user);
+  const themePret = useThemeStore((s) => s.pret);
+  const hydrateTheme = useThemeStore((s) => s.hydrate);
+  const sombre = useThemeStore((s) => s.mode === 'dark');
 
   useEffect(() => {
     void hydrate();
-  }, [hydrate]);
+    void hydrateTheme();
+  }, [hydrate, hydrateTheme]);
 
   // Évite d'afficher l'écran de connexion une fraction de seconde alors que
   // le jeton est en cours de lecture dans le stockage sécurisé.
-  if (!hydrated) return <Loading />;
+  if (!hydrated || !themePret) return <Loading />;
 
   return (
     <QueryClientProvider client={queryClient}>
-      <StatusBar style="dark" />
+      <StatusBar style={sombre ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Protected guard={connecte}>
           <Stack.Screen name="(app)" />

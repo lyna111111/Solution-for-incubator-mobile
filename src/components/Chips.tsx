@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 
-import { colors, radius, spacing } from '@/theme';
+import { type Palette, radius, spacing, useStyles } from '@/theme';
 
 interface ChipsProps<T extends string> {
   options: { value: T; label: string }[];
@@ -10,6 +10,7 @@ interface ChipsProps<T extends string> {
 
 /** Filtres horizontaux (une seule valeur active). */
 export function Chips<T extends string>({ options, value, onChange }: ChipsProps<T>) {
+  const styles = useStyles(createStyles);
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
       {options.map((o) => {
@@ -24,7 +25,7 @@ export function Chips<T extends string>({ options, value, onChange }: ChipsProps
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   row: { gap: spacing.sm, paddingVertical: 2 },
   chip: {
     borderWidth: 1,

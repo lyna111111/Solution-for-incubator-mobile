@@ -1,4 +1,4 @@
-import { colors } from '@/theme';
+import type { Palette } from '@/theme';
 import type { CategorieStatut } from '@/types';
 
 const MOIS = [
@@ -37,11 +37,11 @@ export const LIBELLE_STATUT: Record<CategorieStatut, string> = {
   rejetee: 'Rejetée',
 };
 
-export const COULEUR_STATUT: Record<CategorieStatut, { fond: string; texte: string }> = {
+export const couleurStatut = (colors: Palette): Record<CategorieStatut, { fond: string; texte: string }> => ({
   attente: { fond: colors.warningSoft, texte: colors.warning },
   traitee: { fond: colors.successSoft, texte: colors.success },
   rejetee: { fond: colors.dangerSoft, texte: colors.danger },
-};
+});
 
 /** Date du jour au format AAAA-MM-JJ (heure locale). */
 export function aujourdhui(): string {

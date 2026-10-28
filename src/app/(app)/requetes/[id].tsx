@@ -8,10 +8,12 @@ import { DocumentsList } from '@/components/DocumentLink';
 import { StatutBadge } from '@/components/rows';
 import { Screen } from '@/components/Screen';
 import { Card, ErrorState, Loading, SectionTitle } from '@/components/ui';
-import { colors, spacing } from '@/theme';
+import { type Palette, spacing, useColors, useStyles } from '@/theme';
 import { formatDateTime } from '@/utils/format';
 
 export default function DetailRequete() {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, isLoading, isRefetching, error, refetch } = useQuery({
     queryKey: ['requete', id],
@@ -54,7 +56,7 @@ export default function DetailRequete() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   title: { fontSize: 22, fontWeight: '800', color: colors.text },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
   meta: { fontSize: 13, color: colors.textMuted },

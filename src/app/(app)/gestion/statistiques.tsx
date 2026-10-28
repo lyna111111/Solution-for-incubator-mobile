@@ -9,7 +9,7 @@ import { getErrorMessage } from '@/api/client';
 import { Chips } from '@/components/Chips';
 import { Screen } from '@/components/Screen';
 import { Card, ErrorState, Loading, SectionTitle } from '@/components/ui';
-import { colors, spacing } from '@/theme';
+import { type Palette, spacing, useColors, useStyles } from '@/theme';
 
 const PERIODES = [
   { value: '', label: 'Global' }, { value: 'week', label: 'Semaine' }, { value: 'month', label: 'Mois' },
@@ -18,11 +18,14 @@ const PERIODES = [
 const ENGAGEMENT = [{ value: 'semaine', label: 'Semaine' }, { value: 'mois', label: 'Mois' }, { value: 'trimestre', label: 'Trimestre' }];
 
 function Variation({ valeur }: { valeur: number }) {
+  const colors = useColors();
   const positif = valeur >= 0;
   return <Text style={{ color: positif ? colors.success : colors.danger, fontWeight: '700' }}>{positif ? '▲' : '▼'} {Math.abs(valeur)} %</Text>;
 }
 
 export default function Statistiques() {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   const [periode, setPeriode] = useState('');
   const [engagement, setEngagement] = useState('mois');
   const { data, isLoading, isRefetching, error, refetch } = useQuery({
@@ -104,7 +107,7 @@ export default function Statistiques() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   ligne: { fontSize: 15, color: colors.text },
   gras: { fontWeight: '800' },
   grille: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },

@@ -2,7 +2,9 @@ import { ReactNode } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { colors, spacing } from '@/theme';
+import { ThemeToggle } from '@/components/ThemeToggle';
+
+import { type Palette, spacing, useColors, useStyles } from '@/theme';
 
 interface ScreenProps {
   children: ReactNode;
@@ -16,11 +18,14 @@ interface ScreenProps {
 
 /** Page défilante avec tirer-pour-actualiser. */
 export function Screen({ children, refreshing = false, onRefresh, withTopInset = false, title }: ScreenProps) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   return (
     <SafeAreaView style={styles.safe} edges={withTopInset ? ['top'] : []}>
       {!!title && (
         <View style={styles.topbar}>
           <Text style={styles.topbarTitle}>{title}</Text>
+          <ThemeToggle />
         </View>
       )}
       <ScrollView
@@ -43,12 +48,15 @@ export function Screen({ children, refreshing = false, onRefresh, withTopInset =
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   topbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: colors.card,
     paddingHorizontal: spacing.lg,
-    paddingVertical: 14,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },

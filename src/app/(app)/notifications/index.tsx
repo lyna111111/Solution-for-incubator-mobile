@@ -8,7 +8,7 @@ import { Chips } from '@/components/Chips';
 import { NotificationRow } from '@/components/rows';
 import { Screen } from '@/components/Screen';
 import { Banner, Button, ErrorState, Field, Loading } from '@/components/ui';
-import { colors } from '@/theme';
+import { type Palette, useStyles } from '@/theme';
 
 // Mêmes onglets que la page Notifications du site.
 const TYPES = [
@@ -21,6 +21,7 @@ const TYPES = [
 ];
 
 export default function Notifications() {
+  const styles = useStyles(createStyles);
   const queryClient = useQueryClient();
   const [type, setType] = useState('all');
   const [saisie, setSaisie] = useState('');
@@ -78,6 +79,6 @@ export default function Notifications() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   empty: { color: colors.textMuted, textAlign: 'center', marginTop: 24, fontSize: 15 },
 });

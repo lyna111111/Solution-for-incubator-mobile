@@ -7,7 +7,7 @@ import { getErrorMessage } from '@/api/client';
 import { fetchIncubateurs, register } from '@/api/endpoints';
 import { AuthShell } from '@/components/AuthShell';
 import { Banner, Button, Field } from '@/components/ui';
-import { colors, radius, spacing } from '@/theme';
+import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
 // Types de compte acceptés par le backend (Utilisateur.TYPE_CHOICES).
 const TYPES = [
@@ -20,6 +20,8 @@ const TYPES = [
 ];
 
 export default function Inscription() {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   const incubateurs = useQuery({ queryKey: ['incubateurs'], queryFn: fetchIncubateurs });
   const [incubateurId, setIncubateurId] = useState<number | null>(null);
   const [form, setForm] = useState({
@@ -168,7 +170,7 @@ export default function Inscription() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   label: { fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 6 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
   chip: {

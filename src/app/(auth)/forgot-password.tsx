@@ -6,9 +6,10 @@ import { getErrorMessage } from '@/api/client';
 import { requestPasswordReset } from '@/api/endpoints';
 import { AuthShell } from '@/components/AuthShell';
 import { Banner, Button, Field } from '@/components/ui';
-import { colors, spacing } from '@/theme';
+import { type Palette, spacing, useStyles } from '@/theme';
 
 export default function MotDePasseOublie() {
+  const styles = useStyles(createStyles);
   const [email, setEmail] = useState('');
   const [erreur, setErreur] = useState('');
   const [envoye, setEnvoye] = useState(false);
@@ -64,7 +65,7 @@ export default function MotDePasseOublie() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   link: { alignItems: 'center', paddingVertical: spacing.lg },
   linkText: { color: colors.primary, fontSize: 15, fontWeight: '600' },
 });

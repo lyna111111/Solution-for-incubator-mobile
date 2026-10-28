@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius, spacing } from '@/theme';
+import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
 const MOIS = [
   'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
@@ -28,6 +28,8 @@ export function Calendrier({
   onChangerMois,
   onSelectionnerJour,
 }: CalendrierProps) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   const nbJours = new Date(annee, mois + 1, 0).getDate();
   // getDay(): 0 = dimanche ; on veut lundi = 0.
   const decalage = (new Date(annee, mois, 1).getDay() + 6) % 7;
@@ -99,7 +101,7 @@ export function Calendrier({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   box: {
     backgroundColor: colors.card,
     borderRadius: radius.lg,

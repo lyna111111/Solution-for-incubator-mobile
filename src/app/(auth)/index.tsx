@@ -7,8 +7,9 @@ import { useEffect, useState } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui';
-import { colors, radius, spacing } from '@/theme';
+import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
 type IconName = React.ComponentProps<typeof FontAwesome5>['name'];
 
@@ -24,6 +25,8 @@ const ATOUTS: { icon: IconName; label: string }[] = [
 
 /** Page de bienvenue, avant la connexion : logo, présentation de la plateforme, puis accès à la connexion. */
 export default function Bienvenue() {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   const insets = useSafeAreaInsets();
   // Tout tient sur un écran, sans défilement : sur les petits téléphones on retire la phrase de présentation.
   const court = useWindowDimensions().height < 720;
@@ -52,6 +55,7 @@ export default function Bienvenue() {
   return (
     <LinearGradient colors={[colors.navy, '#2b1366', colors.primaryDark]} style={styles.root}>
       <StatusBar style="light" />
+      <ThemeToggle couleur="#fff" style={[styles.theme, { top: insets.top + 8 }]} />
       <View style={styles.content}>
         {/* Halos décoratifs aux couleurs de la marque */}
         <View pointerEvents="none" style={[styles.halo, styles.haloViolet]} />
@@ -105,7 +109,8 @@ export default function Bienvenue() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
+  theme: { position: 'absolute', right: 12, zIndex: 10 },
   root: { flex: 1 },
   content: { flex: 1 },
 

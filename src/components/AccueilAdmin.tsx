@@ -6,7 +6,7 @@ import { adminGet } from '@/admin/api';
 import { Barres } from '@/admin/ui';
 import { getErrorMessage } from '@/api/client';
 import { useAuthStore } from '@/store/auth';
-import { colors, gradient, spacing } from '@/theme';
+import { gradient, type Palette, spacing, useColors, useStyles } from '@/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { Screen } from './Screen';
@@ -15,6 +15,7 @@ import { Card, ErrorState, Loading, SectionTitle } from './ui';
 type IconName = React.ComponentProps<typeof FontAwesome5>['name'];
 
 function Carte({ icone, couleur, fond, label, valeur }: { icone: IconName; couleur: string; fond: string; label: string; valeur: number }) {
+  const styles = useStyles(createStyles);
   return (
     <Card style={styles.carte}>
       <View style={styles.entete}>
@@ -28,6 +29,8 @@ function Carte({ icone, couleur, fond, label, valeur }: { icone: IconName; coule
 
 /** Tableau de bord de l'administrateur : mêmes chiffres que l'accueil du site (lus dans son cache). */
 export function AccueilAdmin() {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   const user = useAuthStore((s) => s.user);
   const { data, isLoading, isRefetching, error, refetch } = useQuery({
     queryKey: ['admin', 'dashboard'],
@@ -104,7 +107,7 @@ export function AccueilAdmin() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   bienvenue: { fontSize: 20, fontWeight: '800', color: colors.text },
   sous: { fontSize: 14, color: colors.textMuted },
   grille: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },

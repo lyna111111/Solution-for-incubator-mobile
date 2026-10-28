@@ -8,7 +8,7 @@ import { SelecteurReference } from '@/admin/ui';
 import { getErrorMessage } from '@/api/client';
 import { Screen } from '@/components/Screen';
 import { Badge, Banner, Button, Card, ErrorState, Field, Loading, SectionTitle } from '@/components/ui';
-import { colors, spacing } from '@/theme';
+import { type Palette, spacing, useColors, useStyles } from '@/theme';
 import { formaterDA, formatDate } from '@/utils/format';
 
 const ACTIONS: Record<string, { titre: string; message: string; libelle: string; destructif: boolean }> = {
@@ -19,6 +19,8 @@ const ACTIONS: Record<string, { titre: string; message: string; libelle: string;
 
 /** Fiche d'un abonnement : informations, paiements, suspension / réactivation / résiliation, renouvellement. */
 export default function AbonnementFiche() {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
   const [dateFin, setDateFin] = useState('');
@@ -125,7 +127,7 @@ export default function AbonnementFiche() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   entete: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
   titre: { flex: 1, fontSize: 18, fontWeight: '800', color: colors.text },
   ligne: { fontSize: 14, color: colors.textMuted },

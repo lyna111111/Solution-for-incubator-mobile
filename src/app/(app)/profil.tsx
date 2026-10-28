@@ -8,9 +8,10 @@ import { Screen } from '@/components/Screen';
 import { Banner, Button, Card, Field, SectionTitle } from '@/components/ui';
 import { useActualiserCompte } from '@/hooks/useActualiserCompte';
 import { useAuthStore } from '@/store/auth';
-import { colors, spacing } from '@/theme';
+import { type Palette, spacing, useStyles } from '@/theme';
 
 function Info({ label, valeur }: { label: string; valeur: string }) {
+  const styles = useStyles(createStyles);
   return (
     <View style={{ gap: 2 }}>
       <Text style={styles.infoLabel}>{label}</Text>
@@ -22,6 +23,7 @@ function Info({ label, valeur }: { label: string; valeur: string }) {
 type Message = { type: 'success' | 'error'; texte: string } | null;
 
 export default function Profil() {
+  const styles = useStyles(createStyles);
   const user = useAuthStore((s) => s.user);
   const refreshToken = useAuthStore((s) => s.refreshToken);
   const setUser = useAuthStore((s) => s.setUser);
@@ -202,7 +204,7 @@ export default function Profil() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   name: { fontSize: 24, fontWeight: '800', color: colors.text },
   infoLabel: { fontSize: 13, color: colors.textMuted, fontWeight: '600' },
   infoValue: { fontSize: 16, color: colors.text },

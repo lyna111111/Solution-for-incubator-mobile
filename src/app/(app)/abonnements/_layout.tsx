@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 
-import { stackOptions } from '@/components/stackOptions';
+import { useStackOptions } from '@/components/stackOptions';
 
 export default function Layout() {
-  return <Stack screenOptions={stackOptions} />;
+  return <Stack screenOptions={useStackOptions()} />;
 }

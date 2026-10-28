@@ -10,7 +10,7 @@ import { Chips } from '@/components/Chips';
 import { EvenementRow } from '@/components/rows';
 import { Screen } from '@/components/Screen';
 import { ErrorState, Loading } from '@/components/ui';
-import { colors } from '@/theme';
+import { type Palette, useColors, useStyles } from '@/theme';
 
 // Mêmes valeurs que le filtre « Type d'événement » du site.
 const TYPES = [
@@ -23,6 +23,8 @@ const TYPES = [
 ];
 
 export default function Evenements() {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   const maintenant = new Date();
   const [annee, setAnnee] = useState(maintenant.getFullYear());
   const [mois, setMois] = useState(maintenant.getMonth() + 1); // 1-12 comme le serveur
@@ -76,6 +78,6 @@ export default function Evenements() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   empty: { color: colors.textMuted, textAlign: 'center', marginTop: 24, fontSize: 15 },
 });

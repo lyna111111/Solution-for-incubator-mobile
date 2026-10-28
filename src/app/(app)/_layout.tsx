@@ -4,7 +4,7 @@ import { ColorValue } from 'react-native';
 
 import { useNonLues } from '@/hooks/useNotifications';
 import { useAuthStore } from '@/store/auth';
-import { colors } from '@/theme';
+import { useColors } from '@/theme';
 
 type IconName = React.ComponentProps<typeof FontAwesome5>['name'];
 
@@ -16,6 +16,7 @@ function icone(name: IconName) {
 }
 
 export default function AppTabs() {
+  const colors = useColors();
   const nonLues = useNonLues();
   const role = useAuthStore((s) => s.user?.role);
   // `href: null` masque un onglet. Utilisateur : espace utilisateur ; administrateur : accueil,

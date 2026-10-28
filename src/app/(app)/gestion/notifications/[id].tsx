@@ -8,9 +8,10 @@ import { FormulaireAdmin } from '@/admin/ui';
 import { getErrorMessage } from '@/api/client';
 import { Screen } from '@/components/Screen';
 import { Banner, Button, Card, ErrorState, Loading } from '@/components/ui';
-import { colors, spacing } from '@/theme';
+import { type Palette, spacing, useStyles } from '@/theme';
 
 export default function DetailNotificationAdmin() {
+  const styles = useStyles(createStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
   const { data: n, isLoading, isRefetching, error, refetch } = useQuery({
@@ -79,7 +80,7 @@ export default function DetailNotificationAdmin() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   meta: { fontSize: 13, color: colors.textMuted },
   titre: { fontSize: 18, fontWeight: '700', color: colors.text, marginBottom: 6 },
   corps: { fontSize: 16, color: colors.text, lineHeight: 24 },

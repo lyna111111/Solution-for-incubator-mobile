@@ -8,7 +8,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { getErrorMessage } from '@/api/client';
 import { fetchAccueil, fetchMonProjet } from '@/api/endpoints';
 import { useAuthStore } from '@/store/auth';
-import { colors, gradient, spacing } from '@/theme';
+import { gradient, type Palette, spacing, useColors, useStyles } from '@/theme';
 
 import { ProjetModal } from './ProjetModal';
 import { EvenementRow, NotificationRow, RequeteRow } from './rows';
@@ -24,6 +24,7 @@ function StatCard({
   icone: IconName; couleur: string; fond: string; label: string;
   children: React.ReactNode; onPress?: () => void; large?: boolean;
 }) {
+  const styles = useStyles(createStyles);
   return (
     <Pressable onPress={onPress} style={[styles.statWrap, large && { width: '100%' }]}>
       <Card style={styles.stat}>
@@ -40,6 +41,8 @@ function StatCard({
 }
 
 function SectionHeader({ icone, titre, onVoirTout }: { icone: IconName; titre: string; onVoirTout?: () => void }) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   return (
     <View style={styles.sectionHeader}>
       <View style={styles.sectionLeft}>
@@ -57,6 +60,8 @@ function SectionHeader({ icone, titre, onVoirTout }: { icone: IconName; titre: s
 
 /** Tableau de bord de l'utilisateur : une seule requête serveur (/api/mobile/user/accueil/). */
 export function AccueilUtilisateur() {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   const setUser = useAuthStore((s) => s.setUser);
   const queryClient = useQueryClient();
   const [detailsOuverts, setDetailsOuverts] = useState(false);
@@ -167,7 +172,7 @@ export function AccueilUtilisateur() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   welcome: { fontSize: 22, fontWeight: '800', color: colors.text },
   welcomeText: { fontSize: 14, color: colors.textMuted, marginTop: 4, lineHeight: 20 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },

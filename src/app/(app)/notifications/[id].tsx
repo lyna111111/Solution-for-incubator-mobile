@@ -7,9 +7,11 @@ import { getErrorMessage } from '@/api/client';
 import { fetchNotification, markNotificationRead } from '@/api/endpoints';
 import { Screen } from '@/components/Screen';
 import { Badge, Card, ErrorState, Loading } from '@/components/ui';
-import { colors } from '@/theme';
+import { type Palette, useColors, useStyles } from '@/theme';
 
 export default function DetailNotification() {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
   const { data, isLoading, isRefetching, error, refetch } = useQuery({
@@ -49,7 +51,7 @@ export default function DetailNotification() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   title: { fontSize: 22, fontWeight: '800', color: colors.text },
   meta: { fontSize: 13, color: colors.textMuted },
   body: { fontSize: 16, color: colors.text, lineHeight: 24 },
