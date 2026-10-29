@@ -9,7 +9,7 @@ import { type Palette, spacing, useColors, useStyles } from '@/theme';
 export interface PartAnneau { cle: string; label: string; valeur: number; couleur: string }
 
 /** Anneau (Chart.js `doughnut`, trou de 62 %) : un secteur par plan, légende en bas ; toucher un secteur ou un nom l'ouvre. */
-export function Anneau({ parts, onSelect }: { parts: PartAnneau[]; onSelect: (part: PartAnneau) => void }) {
+export function Anneau({ parts, onSelect }: { parts: PartAnneau[]; onSelect?: (part: PartAnneau) => void }) {
   const styles = useStyles(createStyles);
   const colors = useColors();
   const taille = 200;
@@ -37,7 +37,7 @@ export function Anneau({ parts, onSelect }: { parts: PartAnneau[]; onSelect: (pa
                 strokeWidth={epaisseur}
                 strokeDasharray={`${longueur} ${circonference - longueur}`}
                 strokeDashoffset={decalage}
-                onPress={() => onSelect(p)}
+                onPress={() => onSelect?.(p)}
               />
             );
           })}
@@ -48,7 +48,7 @@ export function Anneau({ parts, onSelect }: { parts: PartAnneau[]; onSelect: (pa
       </Svg>
       <View style={styles.legende}>
         {parts.map((p) => (
-          <Pressable key={p.cle} onPress={() => onSelect(p)} style={styles.legendeItem} hitSlop={6}>
+          <Pressable key={p.cle} disabled={!onSelect} onPress={() => onSelect?.(p)} style={styles.legendeItem} hitSlop={6}>
             <View style={[styles.carre, { backgroundColor: p.couleur }]} />
             <Text style={styles.legendeTexte}>{p.label} ({p.valeur})</Text>
           </Pressable>
@@ -61,11 +61,12 @@ export function Anneau({ parts, onSelect }: { parts: PartAnneau[]; onSelect: (pa
 export interface BarreHisto { cle: string; label: string; valeur: number }
 
 /** Plus petit pas « rond » (1, 2, 2,5, 5 × 10ⁿ) qui couvre `maxi` en `nb` graduations, comme l'axe de Chart.js. */
-function graduations(maxi: number, nb = 5): number[] {
-  const brut = (maxi > 0 ? maxi : 1000) / nb;
+function graduations(maxi: number, nb = 5, entier = false): number[] {
+  const brut = (maxi > 0 ? maxi : entier ? 5 : 1000) / nb;
   const puissance = 10 ** Math.floor(Math.log10(brut));
-  const pas = [1, 2, 2.5, 5, 10].map((m) => m * puissance).find((p) => p >= brut) ?? brut;
-  const nombre = Math.ceil((maxi > 0 ? maxi : 1000) / pas);
+  let pas = [1, 2, 2.5, 5, 10].map((m) => m * puissance).find((p) => p >= brut) ?? brut;
+  if (entier) pas = Math.max(1, Math.ceil(pas)); // des effectifs : jamais de graduation décimale
+  const nombre = Math.ceil((maxi > 0 ? maxi : entier ? 5 : 1000) / pas);
   return Array.from({ length: nombre + 1 }, (_, i) => i * pas);
 }
 
@@ -119,6 +120,68 @@ export function Histogramme({ barres, unite = 'DA', onSelect }: {
           })}
         </Svg>
       )}
+    </View>
+  );
+}
+
+export interface BarreEmpilee { cle: string; label: string; valeurs: number[] }
+export interface SerieHisto { label: string; couleur: string }
+
+/** Histogramme empilé (Chart.js `bar` avec `stack`) : une colonne par période, une couleur par série, légende en bas. */
+export function HistogrammeEmpile({ barres, series }: { barres: BarreEmpilee[]; series: SerieHisto[] }) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
+  const [largeur, setLargeur] = useState(0);
+  const hauteur = 220;
+  const marge = { haut: 10, bas: 28, gauche: 34, droite: 8 };
+
+  const totaux = barres.map((b) => b.valeurs.reduce((a, v) => a + v, 0));
+  const ticks = graduations(Math.max(0, ...totaux), 5, true);
+  const sommet = ticks[ticks.length - 1];
+  const zoneL = Math.max(0, largeur - marge.gauche - marge.droite);
+  const zoneH = hauteur - marge.haut - marge.bas;
+  const colonne = barres.length ? zoneL / barres.length : 0;
+  const y = (v: number) => marge.haut + zoneH - (v / sommet) * zoneH;
+
+  return (
+    <View style={{ gap: spacing.md }}>
+      <View style={{ height: hauteur }} onLayout={(e) => setLargeur(e.nativeEvent.layout.width)}>
+        {largeur > 0 && (
+          <Svg width={largeur} height={hauteur}>
+            {ticks.map((t) => (
+              <G key={t}>
+                <Line x1={marge.gauche} x2={largeur - marge.droite} y1={y(t)} y2={y(t)} stroke={colors.border} strokeWidth={1} />
+                <SvgText x={marge.gauche - 8} y={y(t) + 4} fontSize={11} fill={colors.textMuted} textAnchor="end">{nombre(t)}</SvgText>
+              </G>
+            ))}
+            {barres.map((b, i) => {
+              const x0 = marge.gauche + i * colonne;
+              const largeurBarre = colonne * 0.5;
+              return (
+                <G key={b.cle}>
+                  {b.valeurs.map((v, k) => {
+                    if (v <= 0) return null;
+                    const dessous = b.valeurs.slice(0, k).reduce((a, n) => a + n, 0);
+                    return (
+                      <Rect key={series[k].label} x={x0 + (colonne - largeurBarre) / 2} y={y(dessous + v)} width={largeurBarre}
+                        height={y(dessous) - y(dessous + v)} fill={series[k].couleur} />
+                    );
+                  })}
+                  <SvgText x={x0 + colonne / 2} y={hauteur - 8} fontSize={11} fill={colors.textMuted} textAnchor="middle">{b.label}</SvgText>
+                </G>
+              );
+            })}
+          </Svg>
+        )}
+      </View>
+      <View style={styles.legende}>
+        {series.map((sr) => (
+          <View key={sr.label} style={styles.legendeItem}>
+            <View style={[styles.carre, { backgroundColor: sr.couleur }]} />
+            <Text style={styles.legendeTexte}>{sr.label}</Text>
+          </View>
+        ))}
+      </View>
     </View>
   );
 }

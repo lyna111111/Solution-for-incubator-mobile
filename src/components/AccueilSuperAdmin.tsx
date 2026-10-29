@@ -7,11 +7,10 @@ import { adminGet } from '@/admin/api';
 import { getErrorMessage } from '@/api/client';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
+import { Kpi, TitreGraphique } from './DashboardUi';
 import { Anneau, Histogramme } from './Graphiques';
 import { Screen } from './Screen';
 import { Badge, Card, ErrorState, Loading } from './ui';
-
-type IconName = React.ComponentProps<typeof FontAwesome5>['name'];
 
 const espacer = (n: number) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
@@ -19,39 +18,6 @@ const espacer = (n: number) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d
 function jourMoisAnnee(iso: string): string {
   const [annee, mois, jour] = iso.slice(0, 10).split('-');
   return `${jour}/${mois}/${annee}`;
-}
-
-/** Carte de chiffre (`.sa-kpi-card`) : mène à la page concernée, déjà filtrée, comme sur le site. */
-function Kpi({ icone, couleur, fond, label, valeur, unite, route }: {
-  icone: IconName; couleur: string; fond: string; label: string; valeur: string | number; unite?: string; route: string;
-}) {
-  const styles = useStyles(createStyles);
-  return (
-    <Pressable onPress={() => router.push(route)} style={styles.kpi}>
-      <Card style={styles.kpiContenu}>
-        <View style={[styles.kpiIcone, { backgroundColor: fond }]}><FontAwesome5 name={icone} size={20} color={couleur} /></View>
-        <View style={{ flex: 1, gap: 4 }}>
-          <Text style={styles.kpiLabel} numberOfLines={2}>{label}</Text>
-          <Text style={styles.kpiValeur} adjustsFontSizeToFit numberOfLines={1}>
-            {valeur}{unite ? <Text style={styles.kpiUnite}> {unite}</Text> : null}
-          </Text>
-        </View>
-      </Card>
-    </Pressable>
-  );
-}
-
-function TitreGraphique({ icone, couleur, titre, indice }: { icone: IconName; couleur: string; titre: string; indice: string }) {
-  const styles = useStyles(createStyles);
-  return (
-    <View style={{ gap: 4 }}>
-      <View style={styles.titreLigne}>
-        <FontAwesome5 name={icone} size={15} color={couleur} />
-        <Text style={styles.titre}>{titre}</Text>
-      </View>
-      <Text style={styles.indice}>{indice}</Text>
-    </View>
-  );
 }
 
 /** Tableau de bord du Super Admin : reprend `templates/superadmin/dashboard.html` du site. */
@@ -140,15 +106,8 @@ export function AccueilSuperAdmin() {
 
 const createStyles = (colors: Palette) => StyleSheet.create({
   grille: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-  kpi: { width: '47.5%', flexGrow: 1 },
-  kpiContenu: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md },
-  kpiIcone: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  kpiLabel: { fontSize: 11, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
-  kpiValeur: { fontSize: 24, fontWeight: '700', color: colors.text },
-  kpiUnite: { fontSize: 13, fontWeight: '600', color: colors.textMuted },
   titreLigne: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   titre: { flexShrink: 1, fontSize: 15, fontWeight: '600', color: colors.text },
-  indice: { fontSize: 12, color: colors.textMuted },
   vide: { fontSize: 13, color: colors.textMuted, textAlign: 'center', paddingVertical: spacing.md },
   entete: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   voirTout: {
