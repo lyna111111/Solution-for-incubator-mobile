@@ -40,7 +40,10 @@ export default function AppTabs() {
         name="(menu)"
         // « Menu » affiche toujours la liste du Menu : la pile est remise à zéro en appuyant sur l'onglet et en le quittant.
         listeners={({ navigation }) => ({
-          tabPress: () => viderPileMenu(navigation),
+          tabPress: () => {
+            viderPileMenu(navigation);
+            useRetour.getState().definir(null);
+          },
           blur: () => {
             viderPileMenu(navigation);
             useRetour.getState().definir(null);
