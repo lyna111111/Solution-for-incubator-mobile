@@ -23,6 +23,7 @@ const clair = {
   info: '#0ea5e9',
   infoSoft: '#e0f2fe',
   unread: '#facc15', // pastille jaune des notifications non lues
+  unreadFond: '#e2d0ff', // fond des notifications non lues : plus soutenu que celui des lues
   navy: '#0e0e2c', // fond du logo
   input: '#f8fafc', // fond des champs de saisie
   authFond: ['#efe5ff', '#f8fafc', '#e6f8ff'] as readonly [string, string, string], // fond des pages de connexion
@@ -52,6 +53,7 @@ const sombre: Palette = {
   info: '#38bdf8',
   infoSoft: '#0c4a6e',
   unread: '#facc15',
+  unreadFond: '#3b2273',
   navy: '#0e0e2c',
   input: '#0b1220',
   authFond: ['#1a0b3d', '#030712', '#04202e'],

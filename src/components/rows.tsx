@@ -79,13 +79,13 @@ export function NotificationRow({ notification }: { notification: Notification }
   const colors = useColors();
   return (
     <Pressable onPress={() => ouvrir(`/notifications/${notification.id}`)}>
-      <Card style={styles.card}>
+      <Card style={[styles.card, !notification.read && styles.nonLue]}>
         <View style={[styles.dot, { backgroundColor: notification.read ? 'transparent' : colors.unread }]} />
         <View style={{ flex: 1, gap: 4 }}>
           <Text style={[styles.title, !notification.read && { fontWeight: '800' }]} numberOfLines={2}>
             {notification.titre}
           </Text>
-          <Text style={styles.meta}>
+          <Text style={[styles.meta, !notification.read && { color: colors.text }]}>
             {notification.type} · {formatDateTime(notification.created_at)}
           </Text>
         </View>
@@ -100,4 +100,5 @@ const createStyles = (colors: Palette) => StyleSheet.create({
   title: { fontSize: 16, fontWeight: '600', color: colors.text },
   meta: { fontSize: 13, color: colors.textMuted },
   dot: { width: 10, height: 10, borderRadius: 5 },
+  nonLue: { backgroundColor: colors.unreadFond, borderColor: colors.primary },
 });
