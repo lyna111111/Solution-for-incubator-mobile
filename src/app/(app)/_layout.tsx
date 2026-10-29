@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router';
 import { ColorValue } from 'react-native';
 
 import { useNonLues } from '@/hooks/useNotifications';
+import { useRetour, viderPileMenu } from '@/store/retour';
 import { useColors } from '@/theme';
 
 type IconName = React.ComponentProps<typeof FontAwesome5>['name'];
@@ -37,6 +38,14 @@ export default function AppTabs() {
       <Tabs.Screen name="index" options={{ title: 'Accueil', tabBarIcon: icone('home') }} />
       <Tabs.Screen
         name="(menu)"
+        // « Menu » affiche toujours la liste du Menu : la pile est remise à zéro en appuyant sur l'onglet et en le quittant.
+        listeners={({ navigation }) => ({
+          tabPress: () => viderPileMenu(navigation),
+          blur: () => {
+            viderPileMenu(navigation);
+            useRetour.getState().definir(null);
+          },
+        })}
         options={{
           title: 'Menu',
           tabBarIcon: icone('th-large'),

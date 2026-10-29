@@ -1,7 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useOuvrir } from '@/hooks/useOuvrir';
 import { type Palette, spacing, useStyles } from '@/theme';
 
 import { Card } from './ui';
@@ -12,9 +12,10 @@ type IconName = React.ComponentProps<typeof FontAwesome5>['name'];
 export function Kpi({ icone, couleur, fond, label, valeur, unite, route }: {
   icone: IconName; couleur: string; fond: string; label: string; valeur: string | number; unite?: string; route?: string;
 }) {
+  const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   return (
-    <Pressable disabled={!route} onPress={() => route && router.push(route)} style={styles.kpi}>
+    <Pressable disabled={!route} onPress={() => route && ouvrir(route)} style={styles.kpi}>
       <Card style={styles.kpiContenu}>
         <View style={[styles.kpiIcone, { backgroundColor: fond }]}><FontAwesome5 name={icone} size={20} color={couleur} /></View>
         <View style={{ flex: 1, gap: 4 }}>

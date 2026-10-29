@@ -1,10 +1,10 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useOuvrir } from '@/hooks/useOuvrir';
 import { getErrorMessage } from '@/api/client';
 import { fetchAccueil, fetchMonProjet } from '@/api/endpoints';
 import { useAuthStore } from '@/store/auth';
@@ -60,6 +60,7 @@ function SectionHeader({ icone, titre, onVoirTout }: { icone: IconName; titre: s
 
 /** Tableau de bord de l'utilisateur : une seule requête serveur (/api/mobile/user/accueil/). */
 export function AccueilUtilisateur() {
+  const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const setUser = useAuthStore((s) => s.setUser);
@@ -96,24 +97,24 @@ export function AccueilUtilisateur() {
             Suivez vos activités et restez informé des derniers événements de l'incubateur.
           </Text>
         </View>
-        <Button title="Nouvelle Requête" icon="paper-plane" onPress={() => router.push('/requetes/nouvelle')} />
+        <Button title="Nouvelle Requête" icon="paper-plane" onPress={() => ouvrir('/requetes/nouvelle')} />
       </Card>
 
       <View style={styles.grid}>
         <StatCard icone="calendar-check" couleur={colors.info} fond={colors.infoSoft} label="Événements à venir"
-          onPress={() => router.push('/evenements')}>
+          onPress={() => ouvrir('/evenements')}>
           <Text style={styles.statValue}>{a.evenements_a_venir_total}</Text>
         </StatCard>
         <StatCard icone="paper-plane" couleur={colors.success} fond={colors.successSoft} label="Requêtes Envoyées"
-          onPress={() => router.push('/requetes')}>
+          onPress={() => ouvrir('/requetes')}>
           <Text style={styles.statValue}>{a.requetes_total}</Text>
         </StatCard>
         <StatCard icone="reply-all" couleur={colors.warning} fond={colors.warningSoft} label="Requêtes en Attente"
-          onPress={() => router.push('/requetes')}>
+          onPress={() => ouvrir('/requetes')}>
           <Text style={styles.statValue}>{a.requetes_en_attente}</Text>
         </StatCard>
         <StatCard icone="bell" couleur={colors.danger} fond={colors.dangerSoft} label="Notifications"
-          onPress={() => router.push('/notifications')}>
+          onPress={() => ouvrir('/notifications')}>
           <Text style={styles.statValue}>{a.notifications_non_lues}</Text>
         </StatCard>
         <StatCard large icone="lightbulb" couleur={colors.primary} fond={colors.primarySoft} label="Projet en cours">
@@ -151,17 +152,17 @@ export function AccueilUtilisateur() {
         </Card>
       )}
 
-      <SectionHeader icone="calendar-alt" titre="Événements à venir" onVoirTout={() => router.push('/evenements')} />
+      <SectionHeader icone="calendar-alt" titre="Événements à venir" onVoirTout={() => ouvrir('/evenements')} />
       {a.evenements_a_venir.length === 0
         ? <Text style={styles.vide}>Aucun événement à venir.</Text>
         : a.evenements_a_venir.map((e) => <EvenementRow key={e.id} evenement={e} />)}
 
-      <SectionHeader icone="paper-plane" titre="Mes dernières requêtes" onVoirTout={() => router.push('/requetes')} />
+      <SectionHeader icone="paper-plane" titre="Mes dernières requêtes" onVoirTout={() => ouvrir('/requetes')} />
       {a.requetes_recentes.length === 0
         ? <Text style={styles.vide}>Vous n'avez envoyé aucune requête.</Text>
         : a.requetes_recentes.map((r) => <RequeteRow key={r.id} requete={r} />)}
 
-      <SectionHeader icone="bell" titre="Notifications récentes" onVoirTout={() => router.push('/notifications')} />
+      <SectionHeader icone="bell" titre="Notifications récentes" onVoirTout={() => ouvrir('/notifications')} />
       {a.notifications_recentes.length === 0
         ? <Text style={styles.vide}>Aucune notification.</Text>
         : a.notifications_recentes.map((n) => <NotificationRow key={n.id} notification={n} />)}

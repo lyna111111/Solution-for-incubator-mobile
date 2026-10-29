@@ -1,9 +1,9 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useOuvrir } from '@/hooks/useOuvrir';
 import { adminGet } from '@/admin/api';
 import { getErrorMessage } from '@/api/client';
 import { useAuthStore } from '@/store/auth';
@@ -21,6 +21,7 @@ const COULEURS_UTILISATEURS = ['#8a3ffc', '#00c2ff', '#10b981', '#f59e0b', '#ef4
 
 /** Tableau de bord de l'administrateur : mêmes chiffres que l'accueil du site (lus dans son cache). */
 export function AccueilAdmin() {
+  const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const user = useAuthStore((s) => s.user);
@@ -109,7 +110,7 @@ export function AccueilAdmin() {
               <TitreGraphique icone="rocket" couleur={colors.primary} titre="Progression des projets clés" />
             </View>
             {!!lien('projets') && (
-              <Pressable onPress={() => router.push('/gestion/projets')} style={styles.voirTout} hitSlop={8}>
+              <Pressable onPress={() => ouvrir('/gestion/projets')} style={styles.voirTout} hitSlop={8}>
                 <Text style={styles.voirToutTexte}>Voir tout</Text>
                 <FontAwesome5 name="arrow-right" size={11} color={colors.text} />
               </Pressable>

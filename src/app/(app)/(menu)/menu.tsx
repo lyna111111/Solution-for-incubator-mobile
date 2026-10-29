@@ -1,11 +1,12 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import { router, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Screen } from '@/components/Screen';
 import { Card } from '@/components/ui';
 import { useActualiserCompte } from '@/hooks/useActualiserCompte';
 import { useNonLues } from '@/hooks/useNotifications';
+import { useOuvrir } from '@/hooks/useOuvrir';
 import { useAuthStore } from '@/store/auth';
 import { type Palette, spacing, useColors, useStyles } from '@/theme';
 
@@ -53,6 +54,7 @@ const MENU_SUPERADMIN: Entree[] = [
 
 /** Menu : la même page pour tous les rôles, seules les entrées proposées changent. */
 export default function Menu() {
+  const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const role = useAuthStore((s) => s.user?.role);
@@ -70,7 +72,7 @@ export default function Menu() {
     <Screen withTopInset title="Menu" refreshing={refreshing} onRefresh={() => void actualiser()}>
       <Stack.Screen options={{ headerShown: false }} />
       {entrees.map((m) => (
-        <Pressable key={m.route} onPress={() => router.push(m.route)}>
+        <Pressable key={m.route} onPress={() => ouvrir(m.route as never)}>
           <Card style={styles.ligne}>
             <View style={styles.icone}><FontAwesome5 name={m.icone} size={18} color={colors.primary} /></View>
             <Text style={styles.titre}>{m.titre}</Text>

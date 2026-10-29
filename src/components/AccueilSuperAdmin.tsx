@@ -1,8 +1,8 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
-import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useOuvrir } from '@/hooks/useOuvrir';
 import { adminGet } from '@/admin/api';
 import { getErrorMessage } from '@/api/client';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
@@ -22,6 +22,7 @@ function jourMoisAnnee(iso: string): string {
 
 /** Tableau de bord du Super Admin : reprend `templates/superadmin/dashboard.html` du site. */
 export function AccueilSuperAdmin() {
+  const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const { data, isLoading, isRefetching, error, refetch } = useQuery({
@@ -54,7 +55,7 @@ export function AccueilSuperAdmin() {
             <Anneau
               // `cle` = nom en minuscules (filtre « plan » du serveur) ; reconstruite si un ancien serveur ne l'envoie pas.
               parts={data.plans.map((p: any) => ({ cle: p.cle ?? String(p.nom).trim().toLowerCase(), label: p.nom, valeur: p.n, couleur: p.couleur }))}
-              onSelect={(p) => router.push({ pathname: '/abonnements', params: { plan: p.cle } })}
+              onSelect={(p) => ouvrir({ pathname: '/abonnements', params: { plan: p.cle } })}
             />
           )}
       </Card>
@@ -64,7 +65,7 @@ export function AccueilSuperAdmin() {
           indice="Cliquez sur un mois pour voir les paiements correspondants" />
         <Histogramme
           barres={data.revenus.map((r: any) => ({ cle: r.cle, label: r.libelle, valeur: r.total }))}
-          onSelect={(b) => router.push({ pathname: '/paiements', params: { statut: 'completed', mois: b.cle } })}
+          onSelect={(b) => ouvrir({ pathname: '/paiements', params: { statut: 'completed', mois: b.cle } })}
         />
       </Card>
 
@@ -74,14 +75,14 @@ export function AccueilSuperAdmin() {
             <FontAwesome5 name="clock" size={15} color={colors.textMuted} />
             <Text style={styles.titre} numberOfLines={2}>Derniers Incubateurs Créés</Text>
           </View>
-          <Pressable onPress={() => router.push('/incubateurs')} style={styles.voirTout} hitSlop={8}>
+          <Pressable onPress={() => ouvrir('/incubateurs')} style={styles.voirTout} hitSlop={8}>
             <Text style={styles.voirToutTexte}>Voir tout</Text>
             <FontAwesome5 name="arrow-right" size={11} color={colors.text} />
           </Pressable>
         </View>
         {data.derniers_incubateurs.length === 0 && <Text style={styles.vide}>Aucun incubateur enregistré</Text>}
         {data.derniers_incubateurs.map((i: any) => (
-          <Pressable key={i.id} onPress={() => router.push(`/incubateurs/${i.id}`)} style={styles.incubateur}>
+          <Pressable key={i.id} onPress={() => ouvrir(`/incubateurs/${i.id}`)} style={styles.incubateur}>
             <View style={[styles.avatar, { backgroundColor: i.couleur }]}>
               <Text style={styles.avatarTexte}>{String(i.nom).charAt(0)}</Text>
             </View>

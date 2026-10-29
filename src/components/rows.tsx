@@ -1,7 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useOuvrir } from '@/hooks/useOuvrir';
 import type { Evenement, Notification, RequeteResume } from '@/types';
 import { type Palette, spacing, useColors, useStyles } from '@/theme';
 import { couleurStatut, formatDate, formatDateTime, LIBELLE_STATUT } from '@/utils/format';
@@ -14,11 +14,12 @@ function Chevron() {
 }
 
 export function EvenementRow({ evenement }: { evenement: Evenement }) {
+  const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const horaire = [evenement.heure_debut, evenement.heure_fin].filter(Boolean).join(' - ');
   return (
-    <Pressable onPress={() => router.push(`/evenements/${evenement.id}`)}>
+    <Pressable onPress={() => ouvrir(`/evenements/${evenement.id}`)}>
       <Card style={styles.card}>
         <View style={{ flex: 1, gap: 4 }}>
           <Text style={styles.title}>{evenement.titre}</Text>
@@ -50,9 +51,10 @@ export function StatutBadge({ statut }: { statut: RequeteResume['statut'] }) {
 }
 
 export function RequeteRow({ requete }: { requete: RequeteResume }) {
+  const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   return (
-    <Pressable onPress={() => router.push(`/requetes/${requete.id}`)}>
+    <Pressable onPress={() => ouvrir(`/requetes/${requete.id}`)}>
       <Card style={styles.card}>
         <View style={{ flex: 1, gap: 4 }}>
           <Text style={styles.title} numberOfLines={2}>
@@ -72,10 +74,11 @@ export function RequeteRow({ requete }: { requete: RequeteResume }) {
 }
 
 export function NotificationRow({ notification }: { notification: Notification }) {
+  const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   const colors = useColors();
   return (
-    <Pressable onPress={() => router.push(`/notifications/${notification.id}`)}>
+    <Pressable onPress={() => ouvrir(`/notifications/${notification.id}`)}>
       <Card style={styles.card}>
         <View style={[styles.dot, { backgroundColor: notification.read ? 'transparent' : colors.unread }]} />
         <View style={{ flex: 1, gap: 4 }}>
