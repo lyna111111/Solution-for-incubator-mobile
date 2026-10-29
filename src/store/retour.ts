@@ -35,7 +35,6 @@ export interface PileNavigation {
   getState: () => { routes: { key: string; name: string }[] };
   goBack: () => void;
   isFocused: () => boolean;
-  dispatch: (action: { type: string }) => void;
 }
 
 /** Vrai si `routeKey` est la première page ouverte au-dessus de la liste du Menu (celle ouverte depuis l'Accueil/Profil). */
@@ -53,8 +52,7 @@ export function reculer(navigation: PileNavigation, routeKey: string): void {
   const { origine, definir } = useRetour.getState();
   if (origine && estPremierePage(navigation, routeKey)) {
     definir(null);
-    navigation.dispatch({ type: 'POP_TO_TOP' }); // le Menu retrouve sa liste, pas la page qu'on vient de quitter
-    router.navigate(origine as never);
+    router.navigate(origine as never); // la pile du Menu est remise à zéro en quittant l'onglet (voir `viderPileMenu`)
     return;
   }
   navigation.goBack();
