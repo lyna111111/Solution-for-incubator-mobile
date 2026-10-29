@@ -65,6 +65,8 @@ export interface ModuleDef {
     recherche?: string;
     placeholder?: string;
     filtres?: FiltreDef[];
+    /** Filtres reçus seulement par l'adresse (ex. `?plan=pro`, `?mois=2026-10` depuis un graphique du tableau de bord). */
+    parametresUrl?: { param: string; libelle: string }[];
     titre: (x: any) => string;
     sousTitre: (x: any) => string;
     badge?: (x: any) => string | null;

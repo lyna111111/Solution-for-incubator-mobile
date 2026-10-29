@@ -36,6 +36,7 @@ export function ModuleList({ cle }: { cle: string }) {
       })}
       placeholderRecherche={config.liste.recherche ? (config.liste.placeholder ?? 'Rechercher...') : undefined}
       filtres={config.liste.filtres}
+      parametresUrl={config.liste.parametresUrl}
       entete={config.liste.entete}
       action={{ titre: `Nouveau ${config.titreSingulier}`, onPress: () => router.push(`${racine}/nouveau`) }}
       vide={`Aucun ${config.titreSingulier} à afficher.`}

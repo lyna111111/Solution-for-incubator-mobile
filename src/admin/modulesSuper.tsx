@@ -225,6 +225,7 @@ export const MODULES_SUPER: Record<string, ModuleDef> = {
       cle: 'paiements',
       recherche: 'q',
       placeholder: 'Référence ou incubateur...',
+      parametresUrl: [{ param: 'mois', libelle: 'Mois' }],
       filtres: [{
         param: 'statut',
         defaut: '',
@@ -273,6 +274,7 @@ export const MODULES_SUPER: Record<string, ModuleDef> = {
       cle: 'abonnements',
       recherche: 'q',
       placeholder: 'Incubateur...',
+      parametresUrl: [{ param: 'plan', libelle: 'Plan' }],
       filtres: [{
         param: 'statut',
         defaut: '',
@@ -283,7 +285,7 @@ export const MODULES_SUPER: Record<string, ModuleDef> = {
       badge: (a) => a.statut_display,
       entete: (r) => (
         <Compteurs valeurs={[
-          { label: 'Actifs', valeur: r.compteurs.actifs }, { label: 'Annulés', valeur: r.compteurs.expires },
+          { label: 'Actifs', valeur: r.compteurs.actifs }, { label: 'Expirés', valeur: r.compteurs.expires },
           { label: 'Fin < 30 j', valeur: r.compteurs.expirent_bientot }, { label: 'Ce mois', valeur: r.compteurs.renouvellements_mois },
         ]} />
       ),

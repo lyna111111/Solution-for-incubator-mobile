@@ -1,7 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import * as DocumentPicker from 'expo-document-picker';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { ReactNode, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -26,6 +26,7 @@ interface ListeAdminProps {
   extraire: (reponse: any) => { items: any[]; pagination: Pagination };
   placeholderRecherche?: string;
   filtres?: FiltreDef[];
+  parametresUrl?: { param: string; libelle: string }[];
   entete?: (reponse: any) => ReactNode;
   renderItem: (item: any, rafraichir: () => void) => ReactNode;
   action?: { titre: string; onPress: () => void };
@@ -33,9 +34,10 @@ interface ListeAdminProps {
 }
 
 export function ListeAdmin({
-  titre, queryKey, charger, extraire, placeholderRecherche, filtres = [], entete, renderItem, action, vide,
+  titre, queryKey, charger, extraire, placeholderRecherche, filtres = [], parametresUrl = [], entete, renderItem, action, vide,
 }: ListeAdminProps) {
   const styles = useStyles(createStyles);
+  const colors = useColors();
   const [saisie, setSaisie] = useState('');
   const [recherche, setRecherche] = useState('');
   const [page, setPage] = useState(1);
@@ -49,9 +51,14 @@ export function ListeAdmin({
     })),
   );
 
+  // Filtres imposés par l'adresse seule (pas de puce) : affichés dans un bandeau que l'on peut retirer.
+  const imposes = parametresUrl.filter((p) => typeof parametres[p.param] === 'string' && parametres[p.param] !== '');
+  const valeursImposees = Object.fromEntries(imposes.map((p) => [p.param, parametres[p.param] as string]));
+  const tousFiltres = { ...valeursFiltres, ...valeursImposees };
+
   const requete = useQuery({
-    queryKey: [...queryKey, recherche, page, valeursFiltres],
-    queryFn: () => charger({ page, recherche, filtres: valeursFiltres }),
+    queryKey: [...queryKey, recherche, page, tousFiltres],
+    queryFn: () => charger({ page, recherche, filtres: tousFiltres }),
     placeholderData: (precedent) => precedent,
   });
 
@@ -83,6 +90,12 @@ export function ListeAdmin({
           placeholder={placeholderRecherche}
         />
       )}
+      {imposes.map((p) => (
+        <Pressable key={p.param} style={styles.imposee} onPress={() => { router.setParams({ [p.param]: '' }); setPage(1); }}>
+          <Text style={styles.imposeeTexte}>{p.libelle} : {valeursImposees[p.param]}</Text>
+          <FontAwesome5 name="times" size={12} color={colors.primaryDark} />
+        </Pressable>
+      ))}
       {filtres.map((f) => (
         <Chips
           key={f.param}
@@ -414,6 +427,8 @@ export function Barres({ donnees, couleur }: { donnees: { label: string; valeur:
 const createStyles = (colors: Palette) => StyleSheet.create({
   vide: { color: colors.textMuted, textAlign: 'center', marginTop: 24, fontSize: 15 },
   pager: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  imposee: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 8, backgroundColor: colors.primarySoft, borderRadius: radius.pill, paddingHorizontal: 14, paddingVertical: 8 },
+  imposeeTexte: { color: colors.primaryDark, fontSize: 13, fontWeight: '700' },
   pageInfo: { color: colors.textMuted, fontSize: 14 },
   ligne: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   titre: { fontSize: 15, fontWeight: '600', color: colors.text },
