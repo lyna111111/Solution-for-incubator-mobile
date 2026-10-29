@@ -34,9 +34,8 @@ export default function MesRequetes() {
   const p = data.pagination;
 
   return (
-    <Screen refreshing={isRefetching} onRefresh={() => void refetch()}>
-      <Button title="Nouvelle requête" icon="plus" onPress={() => router.push('/requetes/nouvelle')} />
-
+    <Screen refreshing={isRefetching} onRefresh={() => void refetch()}
+      fab={{ titre: 'Nouvelle requête', onPress: () => router.push('/requetes/nouvelle') }}>
       <Field
         label="Rechercher dans mes requêtes"
         icon="search"

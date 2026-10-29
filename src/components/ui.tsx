@@ -31,47 +31,39 @@ interface ButtonProps {
   style?: StyleProp<ViewStyle>;
 }
 
-export function Button({ title, onPress, loading, disabled, variant = 'primary', pill, icon, style }: ButtonProps) {
+export function Button({ title, onPress, loading, disabled, variant = 'primary', icon, style }: ButtonProps) {
   const styles = useStyles(createStyles);
   const colors = useColors();
   const inactif = disabled || loading;
-  const clair = variant === 'secondary';
+  // Couleurs du texte selon la variante : blanc sur le dégradé, teinte sur les fonds clairs.
+  const texte = variant === 'primary' ? '#fff' : variant === 'danger' ? colors.dangerText : colors.primaryDark;
   const contenu = loading ? (
-    <ActivityIndicator color={clair ? colors.primary : '#fff'} />
+    <ActivityIndicator size="small" color={texte} />
   ) : (
     <View style={styles.buttonRow}>
-      <Text style={[styles.buttonText, clair && { color: colors.primary }]}>{title}</Text>
-      {!!icon && <FontAwesome5 name={icon} size={12} color={clair ? colors.primary : '#fff'} />}
+      <Text style={[styles.buttonText, { color: texte }]}>{title}</Text>
+      {!!icon && <FontAwesome5 name={icon} size={12} color={texte} />}
     </View>
   );
-  const forme = pill ? radius.pill : radius.sm;
 
   return (
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
       disabled={inactif}
-      style={({ pressed }) => [{ opacity: inactif ? 0.55 : pressed ? 0.85 : 1 }, style]}
+      style={({ pressed }) => [{ alignSelf: 'center', opacity: inactif ? 0.5 : pressed ? 0.85 : 1 }, style]}
     >
       {variant === 'primary' ? (
         <LinearGradient
-          colors={pill ? gradient.button : [colors.primary, colors.primary]}
+          colors={gradient.button}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={[styles.button, { borderRadius: forme }]}
+          style={[styles.button, styles.ombre, { backgroundColor: colors.primary }]}
         >
           {contenu}
         </LinearGradient>
       ) : (
-        <View
-          style={[
-            styles.button,
-            { borderRadius: forme },
-            clair
-              ? { backgroundColor: colors.card, borderWidth: 1.5, borderColor: colors.primary }
-              : { backgroundColor: colors.danger },
-          ]}
-        >
+        <View style={[styles.button, { backgroundColor: variant === 'danger' ? colors.dangerSoft : colors.primarySoft }]}>
           {contenu}
         </View>
       )}
@@ -194,13 +186,21 @@ export function Banner({ message, type = 'error' }: { message: string; type?: 'e
 
 const createStyles = (colors: Palette) => StyleSheet.create({
   button: {
-    minHeight: 40,
-    paddingHorizontal: spacing.lg,
+    minHeight: 38,
+    paddingHorizontal: 20,
+    borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  ombre: {
+    shadowColor: '#8a3ffc',
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
   buttonRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  buttonText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  buttonText: { fontSize: 14, fontWeight: '600' },
   label: { fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 6 },
   inputWrap: {
     flexDirection: 'row',

@@ -183,6 +183,7 @@ export const MODULES_SUPER: Record<string, ModuleDef> = {
     base: 'superadmin',
     titre: 'Offres SaaS',
     titreSingulier: 'offre',
+    feminin: true,
     icone: 'tags',
     module: 'offres',
     liste: {

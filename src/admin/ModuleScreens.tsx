@@ -15,6 +15,12 @@ import { FormulaireAdmin, ListeAdmin, LigneListe } from './ui';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- données décrites par la config de chaque module */
 
+/** « Nouvelle offre », « Nouvel incubateur » (voyelle ou h muet), « Nouveau projet ». */
+function libelleNouveau(config: { titreSingulier: string; feminin?: boolean }): string {
+  const mot = config.feminin ? 'Nouvelle' : /^[aeiouyéèêh]/i.test(config.titreSingulier) ? 'Nouvel' : 'Nouveau';
+  return `${mot} ${config.titreSingulier}`;
+}
+
 /** Liste d'un module : recherche, filtres, pagination, bouton « Nouveau ». */
 export function ModuleList({ cle }: { cle: string }) {
   const config = MODULES[cle];
@@ -38,8 +44,8 @@ export function ModuleList({ cle }: { cle: string }) {
       filtres={config.liste.filtres}
       parametresUrl={config.liste.parametresUrl}
       entete={config.liste.entete}
-      action={{ titre: `Nouveau ${config.titreSingulier}`, onPress: () => router.push(`${racine}/nouveau`) }}
-      vide={`Aucun ${config.titreSingulier} à afficher.`}
+      action={{ titre: libelleNouveau(config), onPress: () => router.push(`${racine}/nouveau`) }}
+      vide={`${config.feminin ? 'Aucune' : 'Aucun'} ${config.titreSingulier} à afficher.`}
       renderItem={(item, rafraichir) => (
         <LigneListe
           key={item.id}
@@ -75,7 +81,7 @@ export function ModuleNew({ cle }: { cle: string }) {
 
   return (
     <Screen>
-      <Stack.Screen options={{ title: `Nouveau ${config.titreSingulier}` }} />
+      <Stack.Screen options={{ title: libelleNouveau(config) }} />
       <FormulaireAdmin champs={config.champs} mode="creation" libelle="Créer" base={config.base}
         valeursInitiales={config.valeursCreation?.()} onSubmit={envoyer} />
     </Screen>

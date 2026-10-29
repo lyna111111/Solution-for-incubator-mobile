@@ -56,6 +56,8 @@ export interface ModuleDef {
   base?: 'admin' | 'superadmin';
   titre: string;
   titreSingulier: string;
+  /** Nom féminin (« Nouvelle offre », « Aucune offre ») ; sinon masculin (« Nouveau projet », « Nouvel incubateur »). */
+  feminin?: boolean;
   icone: string;
   /** Clé de permissions du backend (ADMIN_MODULES). */
   module: string;

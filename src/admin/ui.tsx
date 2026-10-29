@@ -74,9 +74,8 @@ export function ListeAdmin({
   const { items, pagination } = extraire(requete.data);
 
   return (
-    <Screen refreshing={requete.isRefetching} onRefresh={() => void requete.refetch()}>
+    <Screen refreshing={requete.isRefetching} onRefresh={() => void requete.refetch()} fab={action}>
       <Stack.Screen options={{ title: titre }} />
-      {action && <Button title={action.titre} icon="plus" onPress={action.onPress} />}
       {entete?.(requete.data)}
 
       {placeholderRecherche !== undefined && (
