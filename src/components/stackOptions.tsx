@@ -6,9 +6,9 @@ export function useStackOptions() {
   const colors = useColors();
   return {
     headerTintColor: colors.primary,
-    headerBackTitle: 'Retour',
-    headerStyle: { backgroundColor: colors.card },
-    headerTitleStyle: { color: colors.text, fontWeight: '700' as const },
+    headerBackButtonDisplayMode: 'minimal' as const,
+    headerStyle: { backgroundColor: colors.background },
+    headerTitleStyle: { color: colors.textMuted, fontSize: 15, fontWeight: '600' as const },
     headerShadowVisible: false,
     headerRight: () => <ThemeToggle />,
     contentStyle: { backgroundColor: colors.background },

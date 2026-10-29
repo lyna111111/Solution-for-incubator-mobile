@@ -50,16 +50,14 @@ export function Screen({ children, refreshing = false, onRefresh, withTopInset =
 
 const createStyles = (colors: Palette) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
+  // Barre très discrète : pas de fond ni de trait, titre en petit, comme une application mobile.
   topbar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.card,
     paddingHorizontal: spacing.lg,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingTop: 2,
   },
-  topbarTitle: { fontSize: 20, fontWeight: '700', color: colors.text },
+  topbarTitle: { fontSize: 15, fontWeight: '600', color: colors.textMuted },
   content: { padding: spacing.lg, paddingBottom: spacing.xl * 2, gap: spacing.md },
 });

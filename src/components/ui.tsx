@@ -41,7 +41,7 @@ export function Button({ title, onPress, loading, disabled, variant = 'primary',
   ) : (
     <View style={styles.buttonRow}>
       <Text style={[styles.buttonText, clair && { color: colors.primary }]}>{title}</Text>
-      {!!icon && <FontAwesome5 name={icon} size={14} color={clair ? colors.primary : '#fff'} />}
+      {!!icon && <FontAwesome5 name={icon} size={12} color={clair ? colors.primary : '#fff'} />}
     </View>
   );
   const forme = pill ? radius.pill : radius.sm;
@@ -194,13 +194,13 @@ export function Banner({ message, type = 'error' }: { message: string; type?: 'e
 
 const createStyles = (colors: Palette) => StyleSheet.create({
   button: {
-    minHeight: 50,
-    paddingHorizontal: spacing.xl,
+    minHeight: 40,
+    paddingHorizontal: spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   buttonRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  buttonText: { color: '#fff', fontSize: 14, fontWeight: '600' },
   label: { fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 6 },
   inputWrap: {
     flexDirection: 'row',
