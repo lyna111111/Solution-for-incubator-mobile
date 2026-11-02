@@ -52,7 +52,7 @@ export function AccueilSuperAdmin() {
 
       <Card style={{ gap: spacing.md }}>
         <TitreGraphique icone="chart-pie" couleur={colors.primary} titre="Répartition des Plans"
-          indice="Cliquez sur un plan pour voir les abonnements correspondants" />
+          indice="Cliquez sur un plan pour voir les abonnements correspondants" route="/abonnements" />
         {data.plans.length === 0
           ? <Text style={styles.vide}>Aucun abonnement.</Text>
           : (
@@ -66,7 +66,7 @@ export function AccueilSuperAdmin() {
 
       <Card style={{ gap: spacing.md }}>
         <TitreGraphique icone="chart-bar" couleur={colors.secondary} titre="Revenus Mensuels (6 derniers mois)"
-          indice="Cliquez sur un mois pour voir les paiements correspondants" />
+          indice="Cliquez sur un mois pour voir les paiements correspondants" route="/paiements?statut=completed" />
         <Histogramme
           barres={data.revenus.map((r: any) => ({ cle: r.cle, label: r.libelle, valeur: r.total }))}
           onSelect={(b) => ouvrir({ pathname: '/paiements', params: { statut: 'completed', mois: b.cle } })}

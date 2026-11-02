@@ -73,13 +73,13 @@ export function AccueilAdmin() {
       </View>
 
       <Card style={{ gap: spacing.md }}>
-        <TitreGraphique icone="chart-pie" couleur={colors.primary} titre="Répartition des utilisateurs" />
+        <TitreGraphique icone="chart-pie" couleur={colors.primary} titre="Répartition des utilisateurs" route={lien('utilisateurs')} />
         <Anneau parts={data.repartition_utilisateurs.map((r: any, i: number) => ({
           cle: r.type, label: r.libelle, valeur: r.total, couleur: COULEURS_UTILISATEURS[i % COULEURS_UTILISATEURS.length] }))} />
       </Card>
 
       <Card style={{ gap: spacing.md }}>
-        <TitreGraphique icone="calendar-check" couleur={colors.secondary} titre="Événements par trimestre" />
+        <TitreGraphique icone="calendar-check" couleur={colors.secondary} titre="Événements par trimestre" route={lien('evenements')} />
         <HistogrammeEmpile
           series={[
             { label: 'Workshops', couleur: '#8a3ffc' }, { label: 'Conférences', couleur: '#00c2ff' }, { label: 'Formations', couleur: '#10b981' },
@@ -90,7 +90,7 @@ export function AccueilAdmin() {
       </Card>
 
       <Card style={{ gap: spacing.md }}>
-        <TitreGraphique icone="file-alt" couleur={colors.success} titre="Documents" />
+        <TitreGraphique icone="file-alt" couleur={colors.success} titre="Documents" route={lien('documents')} />
         <View style={styles.documents}>
           {documents.map((d) => (
             <View key={d.label} style={styles.document}>

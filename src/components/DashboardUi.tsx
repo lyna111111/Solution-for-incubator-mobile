@@ -2,7 +2,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useOuvrir } from '@/hooks/useOuvrir';
-import { type Palette, spacing, useColors, useStyles } from '@/theme';
+import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
 import { Card } from './ui';
 
@@ -45,14 +45,27 @@ export function BandeauBienvenue({ titre, nom, detail }: { titre: string; nom: s
   );
 }
 
-/** Titre d'une carte de graphique : icône colorée, titre et, si besoin, une phrase d'aide. */
-export function TitreGraphique({ icone, couleur, titre, indice }: { icone: IconName; couleur: string; titre: string; indice?: string }) {
+/**
+ * Titre d'une carte de graphique : icône colorée, titre et, si besoin, une phrase d'aide. Avec `route`, un bouton
+ * « Voir plus » mène à la page qui détaille ces chiffres (à ne donner que si cette page existe et est accessible).
+ */
+export function TitreGraphique({ icone, couleur, titre, indice, route }: {
+  icone: IconName; couleur: string; titre: string; indice?: string; route?: string;
+}) {
+  const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
+  const colors = useColors();
   return (
     <View style={{ gap: 4 }}>
       <View style={styles.titreLigne}>
         <FontAwesome5 name={icone} size={15} color={couleur} />
         <Text style={styles.titre}>{titre}</Text>
+        {!!route && (
+          <Pressable accessibilityRole="button" onPress={() => ouvrir(route)} style={styles.voirPlus} hitSlop={8}>
+            <Text style={styles.voirPlusTexte}>Voir plus</Text>
+            <FontAwesome5 name="arrow-right" size={11} color={colors.text} />
+          </Pressable>
+        )}
       </View>
       {!!indice && <Text style={styles.indice}>{indice}</Text>}
     </View>
@@ -73,6 +86,11 @@ const createStyles = (colors: Palette) => StyleSheet.create({
   heroTitre: { fontSize: 20, fontWeight: '800', color: colors.text },
   heroSous: { fontSize: 13, color: colors.primary, fontWeight: '600' },
   titreLigne: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  titre: { flexShrink: 1, fontSize: 15, fontWeight: '600', color: colors.text },
+  titre: { flex: 1, fontSize: 15, fontWeight: '600', color: colors.text },
+  voirPlus: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: colors.border,
+    borderRadius: radius.md, paddingHorizontal: 10, paddingVertical: 6,
+  },
+  voirPlusTexte: { fontSize: 12, fontWeight: '600', color: colors.text },
   indice: { fontSize: 12, color: colors.textMuted },
 });
