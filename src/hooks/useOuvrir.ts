@@ -18,3 +18,13 @@ export function useOuvrir() {
     router.push(href);
   };
 }
+
+/** Remplace la page affichée (ex. formulaire de création -> fiche créée) : le formulaire quitte l'historique. */
+export function useRemplacer() {
+  return (href: Href) => router.replace(href);
+}
+
+/** Change les paramètres de la page affichée (filtres imposés d'une liste) sans ajouter d'entrée à l'historique. */
+export function useParametres() {
+  return (params: Record<string, string>) => router.setParams(params);
+}

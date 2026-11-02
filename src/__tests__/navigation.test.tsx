@@ -363,16 +363,17 @@ describe.each([
 
 describe('espace de connexion', () => {
   const { Stack } = jest.requireActual('expo-router');
-  const { reculerOuSecours } = jest.requireActual('../navigation/retour');
+  const { useReculer } = jest.requireActual('../hooks/useReculer');
   const Layout = () => <Stack screenOptions={{ headerShown: false }} />;
   const ecran = (nom: string, versOuvrir?: string) =>
     function Ecran() {
       const ouvrir = useOuvrir();
+      const reculer = useReculer({ secours: '/login', android: true });
       return (
         <View>
           <Text>{nom}</Text>
           {versOuvrir && <Pressable onPress={() => ouvrir(versOuvrir as never)}><Text>{nom}-ouvrir</Text></Pressable>}
-          <Pressable onPress={() => reculerOuSecours('/login')}><Text>{nom}-retour</Text></Pressable>
+          <Pressable onPress={reculer}><Text>{nom}-retour</Text></Pressable>
         </View>
       );
     };

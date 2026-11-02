@@ -1,7 +1,6 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as DocumentPicker from 'expo-document-picker';
-import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -9,6 +8,7 @@ import { getErrorMessage } from '@/api/client';
 import { createRequete } from '@/api/endpoints';
 import { Screen } from '@/components/Screen';
 import { Banner, Button, Field } from '@/components/ui';
+import { useRemplacer } from '@/hooks/useOuvrir';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 import type { PieceJointe } from '@/types';
 
@@ -43,6 +43,7 @@ function Choix({ options, valeur, onChoisir }: { options: string[]; valeur: stri
 }
 
 export default function NouvelleRequete() {
+  const remplacer = useRemplacer();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const queryClient = useQueryClient();
@@ -58,7 +59,7 @@ export default function NouvelleRequete() {
     onSuccess: async (requete) => {
       await queryClient.invalidateQueries({ queryKey: ['requetes'] });
       await queryClient.invalidateQueries({ queryKey: ['accueil'] });
-      router.replace(`/requetes/${requete.id}`);
+      remplacer(`/requetes/${requete.id}`);
     },
     onError: (e) => setErreur(getErrorMessage(e)),
   });

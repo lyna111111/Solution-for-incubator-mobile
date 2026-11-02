@@ -1,7 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import * as DocumentPicker from 'expo-document-picker';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { ReactNode, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -9,6 +9,7 @@ import { getErrorMessage } from '@/api/client';
 import { Chips } from '@/components/Chips';
 import { Screen } from '@/components/Screen';
 import { Banner, Button, Card, ErrorState, Field, Loading } from '@/components/ui';
+import { useParametres } from '@/hooks/useOuvrir';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 import type { Pagination } from '@/types';
 
@@ -38,6 +39,7 @@ export function ListeAdmin({
 }: ListeAdminProps) {
   const styles = useStyles(createStyles);
   const colors = useColors();
+  const definirParametres = useParametres();
   const [saisie, setSaisie] = useState('');
   const [recherche, setRecherche] = useState('');
   const [page, setPage] = useState(1);
@@ -90,7 +92,7 @@ export function ListeAdmin({
         />
       )}
       {imposes.map((p) => (
-        <Pressable key={p.param} style={styles.imposee} onPress={() => { router.setParams({ [p.param]: '' }); setPage(1); }}>
+        <Pressable key={p.param} style={styles.imposee} onPress={() => { definirParametres({ [p.param]: '' }); setPage(1); }}>
           <Text style={styles.imposeeTexte}>{p.libelle} : {valeursImposees[p.param]}</Text>
           <FontAwesome5 name="times" size={12} color={colors.primaryDark} />
         </Pressable>

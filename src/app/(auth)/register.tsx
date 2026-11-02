@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -7,7 +6,8 @@ import { getErrorMessage } from '@/api/client';
 import { fetchIncubateurs, register } from '@/api/endpoints';
 import { AuthShell } from '@/components/AuthShell';
 import { Banner, Button, Field } from '@/components/ui';
-import { reculerOuSecours } from '@/navigation/retour';
+import { useRemplacer } from '@/hooks/useOuvrir';
+import { useReculer } from '@/hooks/useReculer';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
 // Types de compte acceptés par le backend (Utilisateur.TYPE_CHOICES).
@@ -21,6 +21,8 @@ const TYPES = [
 ];
 
 export default function Inscription() {
+  const reculer = useReculer({ secours: '/login', android: true });
+  const remplacer = useRemplacer();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const incubateurs = useQuery({ queryKey: ['incubateurs'], queryFn: fetchIncubateurs });
@@ -90,7 +92,7 @@ export default function Inscription() {
             '3. Connectez-vous ensuite avec votre email et votre mot de passe.'
           }
         />
-        <Button title="Retour à la connexion" onPress={() => router.replace('/login')} />
+        <Button title="Retour à la connexion" onPress={() => remplacer('/login')} />
       </AuthShell>
     );
   }
@@ -164,7 +166,7 @@ export default function Inscription() {
       />
 
       <Button pill icon="arrow-right" title="S'inscrire" onPress={() => void sInscrire()} loading={chargement} />
-      <Pressable onPress={() => reculerOuSecours('/login')} style={{ alignItems: 'center', paddingVertical: spacing.lg }}>
+      <Pressable onPress={reculer} style={{ alignItems: 'center', paddingVertical: spacing.lg }}>
         <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 15 }}>Déjà un compte ? Se connecter</Text>
       </Pressable>
     </AuthShell>

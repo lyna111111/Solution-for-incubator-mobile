@@ -5,10 +5,11 @@ import { getErrorMessage } from '@/api/client';
 import { requestPasswordReset } from '@/api/endpoints';
 import { AuthShell } from '@/components/AuthShell';
 import { Banner, Button, Field } from '@/components/ui';
-import { reculerOuSecours } from '@/navigation/retour';
+import { useReculer } from '@/hooks/useReculer';
 import { type Palette, spacing, useStyles } from '@/theme';
 
 export default function MotDePasseOublie() {
+  const reculer = useReculer({ secours: '/login', android: true });
   const styles = useStyles(createStyles);
   const [email, setEmail] = useState('');
   const [erreur, setErreur] = useState('');
@@ -58,7 +59,7 @@ export default function MotDePasseOublie() {
           <Button pill icon="paper-plane" title="Envoyer un mot de passe temporaire" onPress={() => void envoyer()} loading={chargement} />
         </>
       )}
-      <Pressable onPress={() => reculerOuSecours('/login')} style={styles.link}>
+      <Pressable onPress={reculer} style={styles.link}>
         <Text style={styles.linkText}>Retour à la connexion</Text>
       </Pressable>
     </AuthShell>

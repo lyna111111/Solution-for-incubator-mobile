@@ -1,25 +1,15 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useEffect } from 'react';
-import { BackHandler, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
 
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { estPremierePage, type PileMenu, reculer } from '@/navigation/retour';
+import { useRetourAndroid } from '@/hooks/useReculer';
+import { estPremierePage, type Navigation, reculer } from '@/navigation/retour';
 import { useColors } from '@/theme';
 
-type Navigation = PileMenu & { isFocused: () => boolean };
-
-/** Flèche de retour de l'en-tête ; gère aussi le bouton retour d'Android pour la page affichée. */
+/** Flèche de retour de l'en-tête : la fonction de retour de l'application, branchée aussi sur le bouton Android. */
 function BoutonRetour({ navigation, routeKey }: { navigation: Navigation; routeKey: string }) {
   const colors = useColors();
-  useEffect(() => {
-    const abonnement = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (!navigation.isFocused()) return false;
-      reculer(navigation, routeKey);
-      return true;
-    });
-    return () => abonnement.remove();
-  }, [navigation, routeKey]);
-
+  useRetourAndroid(navigation, routeKey, '/menu');
   return (
     <Pressable accessibilityRole="button" accessibilityLabel="Retour" hitSlop={12} onPress={() => reculer(navigation, routeKey)}
       style={{ paddingHorizontal: 8, paddingVertical: 6 }}>
