@@ -1,10 +1,12 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ReactNode } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { ReactNode, useCallback, useEffect, useRef } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { rechargerCodeSiNouveau } from '@/utils/rechargerCode';
 
 import { gradient, type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
@@ -20,10 +22,30 @@ interface ScreenProps {
   fab?: { titre: string; onPress: () => void };
 }
 
-/** Page défilante avec tirer-pour-actualiser. */
+/**
+ * Page défilante avec tirer-pour-actualiser. La page se réactualise aussi toute seule quand on y revient (retour
+ * d'une autre page ou d'un autre onglet), et en développement tirer-pour-actualiser recharge aussi le code de
+ * l'app s'il a changé (voir `utils/rechargerCode.ts`).
+ */
 export function Screen({ children, refreshing = false, onRefresh, withTopInset = false, title, fab }: ScreenProps) {
   const styles = useStyles(createStyles);
   const colors = useColors();
+  const actualiserRef = useRef(onRefresh);
+  useEffect(() => {
+    actualiserRef.current = onRefresh;
+  });
+  const premierAffichage = useRef(true);
+  useFocusEffect(
+    useCallback(() => {
+      // Au premier affichage la page charge déjà ses données ; ensuite, chaque retour sur la page les relit.
+      if (premierAffichage.current) premierAffichage.current = false;
+      else actualiserRef.current?.();
+    }, []),
+  );
+  const tirerPourActualiser = useCallback(() => {
+    void rechargerCodeSiNouveau();
+    actualiserRef.current?.();
+  }, []);
   return (
     <SafeAreaView style={styles.safe} edges={withTopInset ? ['top'] : []}>
       {!!title && (
@@ -33,13 +55,14 @@ export function Screen({ children, refreshing = false, onRefresh, withTopInset =
         </View>
       )}
       <ScrollView
+        testID="page-defilante"
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         refreshControl={
           onRefresh ? (
             <RefreshControl
               refreshing={refreshing}
-              onRefresh={onRefresh}
+              onRefresh={tirerPourActualiser}
               tintColor={colors.primary}
               colors={[colors.primary]}
             />

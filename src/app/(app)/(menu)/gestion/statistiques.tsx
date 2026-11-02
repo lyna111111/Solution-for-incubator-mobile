@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { adminGet } from '@/admin/api';
@@ -28,9 +28,15 @@ export default function Statistiques() {
   const colors = useColors();
   const [periode, setPeriode] = useState('');
   const [engagement, setEngagement] = useState('mois');
+  // Tirer-pour-actualiser demande des chiffres recalculés (le serveur garde sinon ceux des 5 dernières minutes).
+  const frais = useRef(false);
   const { data, isLoading, isRefetching, error, refetch } = useQuery({
     queryKey: ['admin', 'statistiques', periode],
-    queryFn: () => adminGet('statistiques/', periode ? { periode } : undefined),
+    queryFn: () => {
+      const recalcules = frais.current;
+      frais.current = false;
+      return adminGet('statistiques/', { ...(periode ? { periode } : {}), ...(recalcules ? { frais: 1 } : {}) });
+    },
   });
 
   if (isLoading) return <Loading />;
@@ -47,7 +53,7 @@ export default function Statistiques() {
   ];
 
   return (
-    <Screen refreshing={isRefetching} onRefresh={() => void refetch()}>
+    <Screen refreshing={isRefetching} onRefresh={() => { frais.current = true; void refetch(); }}>
       <Stack.Screen options={{ title: 'Statistiques Global' }} />
       <Chips options={PERIODES} value={periode} onChange={setPeriode} />
 

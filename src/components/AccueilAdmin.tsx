@@ -1,6 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRef } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useOuvrir } from '@/hooks/useOuvrir';
@@ -25,9 +26,15 @@ export function AccueilAdmin() {
   const styles = useStyles(createStyles);
   const colors = useColors();
   const user = useAuthStore((s) => s.user);
+  // Tirer-pour-actualiser demande des chiffres recalculés (le serveur garde sinon ceux des 5 dernières minutes).
+  const frais = useRef(false);
   const { data, isLoading, isRefetching, error, refetch } = useQuery({
     queryKey: ['admin', 'dashboard'],
-    queryFn: () => adminGet('dashboard/'),
+    queryFn: () => {
+      const recalcules = frais.current;
+      frais.current = false;
+      return adminGet('dashboard/', recalcules ? { frais: 1 } : undefined);
+    },
   });
 
   if (isLoading) return <Loading />;
@@ -50,7 +57,7 @@ export function AccueilAdmin() {
   ];
 
   return (
-    <Screen withTopInset title="Tableau de bord" refreshing={isRefetching} onRefresh={() => void refetch()}>
+    <Screen withTopInset title="Tableau de bord" refreshing={isRefetching} onRefresh={() => { frais.current = true; void refetch(); }}>
       <BandeauBienvenue titre={(user?.type === 'Admin principal' ? 'Administrateur principal' : user?.type) ?? ''}
         nom={`${user?.prenom ?? ''} ${user?.nom ?? ''}`.trim()} detail={user?.incubateur?.nom} />
 
