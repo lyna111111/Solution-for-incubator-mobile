@@ -1,13 +1,17 @@
 /**
  * Retour en arrière : une seule règle pour toute l'application (tous les rôles, tous les espaces).
  *
- * Le routeur tient déjà l'historique réel : chaque pile (Menu, connexion) garde ses pages ouvertes dans l'ordre, et
- * la barre d'onglets garde l'ordre des onglets visités (`backBehavior="history"`, sans doublon). Il n'y a donc aucune
- * « page d'origine » mémorisée à part, et donc rien qui puisse devenir périmé. Retour = revenir d'une page, avec
- * une seule particularité :
+ * Dans le Menu, le retour va toujours vers une route précise, jamais « en arrière » dans un historique :
  *
- *   la première page ouverte au-dessus de la liste du Menu (depuis l'Accueil, le Profil ou la liste elle-même)
- *   ramène à l'onglet visité juste avant, car la liste du Menu n'est jamais une page de l'historique.
+ *   page ouverte depuis l'Accueil ou le Profil  ->  cet onglet (route `/` ou `/profil`, portée par le paramètre
+ *                                                   `retour` que `useOuvrir` ajoute à l'adresse de la page)
+ *   détail, formulaire de création              ->  sa liste          (ex. /requetes/7, /requetes/nouvelle  ->  /requetes)
+ *   liste, page de gestion                      ->  la liste du Menu  (ex. /requetes, /gestion/statistiques  ->  /menu)
+ *
+ * L'origine voyage dans l'adresse de la page : elle ne peut donc jamais devenir périmée (pas d'état global).
+ *
+ * Dans l'espace de connexion (Bienvenue, Connexion, Inscription...), il n'y a pas de hiérarchie : retour = page
+ * précédente de la pile, ou `secours` sans page précédente (lien direct, actualisation).
  *
  * `reculer` est l'unique fonction de retour. Les écrans ne l'appellent jamais directement : ils passent par
  * `hooks/useReculer.ts` (flèche, bouton Android, retours après enregistrement ou suppression, liens « retour »).
@@ -16,44 +20,83 @@
  */
 import { type Href, router } from 'expo-router';
 
-interface Onglets {
-  getState: () => { key: string; history?: unknown[] };
-  dispatch: (action: { type: string; target?: string }) => void;
+export interface Route {
+  name: string;
+  params?: object;
 }
 
 export interface Navigation {
-  getState: () => { routes: { key: string; name: string }[] };
-  getParent: () => unknown;
+  getState: () => { routes: Route[] };
   goBack: () => void;
   canGoBack: () => boolean;
   isFocused: () => boolean;
 }
 
-/** Nom de l'écran « liste du Menu » : toujours le premier de la pile, jamais une page de l'historique. */
+/** Nom de l'écran « liste du Menu » : toujours le premier de la pile du Menu. */
 const LISTE_MENU = 'menu';
 
-/** Vrai pour la première page de sa pile (au-dessus de la liste du Menu pour le Menu). */
-export function estPremierePage(navigation: Navigation, routeKey: string): boolean {
-  const routes = navigation.getState().routes;
-  const premiere = routes[0]?.name === LISTE_MENU ? 1 : 0;
-  return routes[premiere]?.key === routeKey;
+/** Nom du paramètre d'adresse qui porte l'onglet d'où la page a été ouverte. */
+export const PARAM_RETOUR = 'retour';
+
+/** Onglets (hors Menu) depuis lesquels on ouvre des pages du Menu, et vers lesquels celles-ci reviennent. */
+const ORIGINES = ['/', '/profil'];
+
+/** Dossiers de pages qui regroupent des modules sans avoir de liste à eux (il n'y a pas de page `/gestion`). */
+const SANS_LISTE = ['gestion'];
+
+/**
+ * Page parente d'une page du Menu, d'après le nom de sa route (`requetes/[id]`, `gestion/requetes/index`...) :
+ * la liste pour un détail ou un formulaire, la liste du Menu pour une liste ou une page de gestion.
+ */
+export function pageParente(nomRoute: string): Href {
+  const segments = nomRoute.split('/');
+  if (segments.at(-1) === 'index') return '/menu';
+  const dossier = segments.slice(0, -1);
+  if (dossier.length === 0 || SANS_LISTE.includes(dossier.join('/'))) return '/menu';
+  return `/${dossier.join('/')}` as Href;
 }
 
-/** Onglets si la page peut ramener à l'onglet précédent (au moins deux onglets visités), sinon `null`. */
-function ongletPrecedent(navigation: Navigation): { onglets: Onglets; cle: string } | null {
-  const onglets = navigation.getParent() as Onglets | undefined;
-  const etat = onglets?.getState();
-  if (!onglets || !etat?.history || etat.history.length < 2) return null;
-  return { onglets, cle: etat.key };
+/** Ajoute l'onglet d'origine à l'adresse à ouvrir, si la page affichée (`chemin`) est l'Accueil ou le Profil. */
+export function avecOrigine(href: Href, chemin: string): Href {
+  if (!ORIGINES.includes(chemin)) return href;
+  if (typeof href === 'string') return `${href}${href.includes('?') ? '&' : '?'}${PARAM_RETOUR}=${encodeURIComponent(chemin)}` as Href;
+  return { ...href, params: { ...href.params, [PARAM_RETOUR]: chemin } };
+}
+
+/** Onglet d'origine porté par l'adresse de la page, s'il est valide. */
+export function origineDe(route: Route): string | null {
+  const valeur = (route.params as Record<string, unknown> | undefined)?.[PARAM_RETOUR];
+  return typeof valeur === 'string' && ORIGINES.includes(valeur) ? valeur : null;
 }
 
 /**
- * Retour de la page `routeKey` : onglet précédent pour la première page du Menu, sinon page précédente de la pile.
- * Sans page précédente (lien direct, actualisation) : `secours` (la liste du Menu, ou la connexion).
+ * Adresse de la page parente de `route`, avec les paramètres que celle-ci a déjà dans la pile : remonter vers
+ * une page ouverte sans eux effacerait son propre onglet d'origine (liste ouverte depuis l'Accueil, par exemple).
  */
-export function reculer(navigation: Navigation, routeKey: string, secours: Href = '/menu'): void {
-  const precedent = estPremierePage(navigation, routeKey) ? ongletPrecedent(navigation) : null;
-  if (precedent) precedent.onglets.dispatch({ type: 'GO_BACK', target: precedent.cle });
-  else if (navigation.canGoBack()) navigation.goBack();
+function parentDansLaPile(navigation: Navigation, route: Route): Href {
+  const chemin = pageParente(route.name) as string;
+  const nom = chemin === `/${LISTE_MENU}` ? LISTE_MENU : `${chemin.slice(1)}/index`;
+  const parent = navigation.getState().routes.filter((r) => r.name === nom).pop();
+  const params = parent?.params;
+  return (params && Object.keys(params).length ? { pathname: chemin, params } : chemin) as Href;
+}
+
+/** Vrai pour les pages de la pile du Menu (la liste du Menu en est toujours le premier écran). */
+function estDansMenu(navigation: Navigation): boolean {
+  return navigation.getState().routes[0]?.name === LISTE_MENU;
+}
+
+/**
+ * Retour de la page `route`, dans le Menu : l'onglet d'où elle a été ouverte (Accueil, Profil), sinon sa page
+ * parente (on remonte jusqu'à elle si elle est dans la pile, sinon elle remplace la page affichée). Hors du Menu :
+ * page précédente de la pile ou `secours`. La liste du Menu n'a ni origine ni parent : son retour est celui des
+ * onglets (onglet visité juste avant).
+ */
+export function reculer(navigation: Navigation, route: Route, secours: Href = '/menu'): void {
+  if (estDansMenu(navigation) && route.name !== LISTE_MENU) {
+    const origine = origineDe(route);
+    if (origine) router.navigate(origine as Href);
+    else router.dismissTo(parentDansLaPile(navigation, route));
+  } else if (navigation.canGoBack()) navigation.goBack();
   else router.replace(secours);
 }

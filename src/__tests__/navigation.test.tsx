@@ -1,14 +1,14 @@
 /// <reference types="jest" />
 /**
  * Scénarios de navigation joués sur le vrai routeur (layouts de l'application, pages remplacées par des
- * maquettes). Vérifie surtout le bouton Retour : il doit toujours ramener à la dernière page réellement visitée.
+ * maquettes). Vérifie surtout le bouton Retour : dans le Menu, il ramène toujours à la page parente de la page affichée.
  */
 import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library';
-import { router } from 'expo-router';
 import { BackHandler, Pressable, Text, View } from 'react-native';
 
-import { useOuvrir } from '@/hooks/useOuvrir';
+import { useOuvrir, useRemplacer } from '@/hooks/useOuvrir';
 import { useReculer } from '@/hooks/useReculer';
+import { pageParente } from '@/navigation/retour';
 
 jest.mock('@/hooks/useNotifications', () => ({ useNonLues: () => 0 }));
 jest.mock('@/hooks/useActualiserCompte', () => ({ useActualiserCompte: () => ({ refreshing: false, actualiser: async () => {} }) }));
@@ -33,6 +33,8 @@ const onglet = (nom: string) =>
         <Pressable onPress={() => ouvrir('/requetes')}><Text>{nom}-vers-requetes</Text></Pressable>
         <Pressable onPress={() => ouvrir('/evenements')}><Text>{nom}-vers-evenements</Text></Pressable>
         <Pressable onPress={() => ouvrir('/requetes/7')}><Text>{nom}-vers-detail</Text></Pressable>
+        <Pressable onPress={() => ouvrir('/requetes/nouvelle')}><Text>{nom}-vers-nouvelle</Text></Pressable>
+        <Pressable onPress={() => ouvrir({ pathname: '/requetes', params: { statut: 'completed' } })}><Text>{nom}-vers-filtre</Text></Pressable>
       </View>
     );
   };
@@ -42,6 +44,7 @@ const pageMenu = (nom: string) =>
   function PageMenu() {
     const ouvrir = useOuvrir();
     const reculer = useReculer();
+    const remplacer = useRemplacer();
     return (
       <View>
         <Text>{nom}</Text>
@@ -49,7 +52,7 @@ const pageMenu = (nom: string) =>
         <Pressable onPress={() => ouvrir('/requetes/nouvelle')}><Text>{nom}-vers-nouvelle</Text></Pressable>
         <Pressable onPress={() => ouvrir('/evenements')}><Text>{nom}-vers-evenements</Text></Pressable>
         <Pressable onPress={reculer}><Text>{nom}-enregistrer</Text></Pressable>
-        <Pressable onPress={() => router.replace('/requetes/7')}><Text>{nom}-remplacer</Text></Pressable>
+        <Pressable onPress={() => remplacer('/requetes/7')}><Text>{nom}-remplacer</Text></Pressable>
       </View>
     );
   };
@@ -99,7 +102,7 @@ const ongletBarre = async (nom: string) => {
   await laisserPasserAnimations();
 };
 
-describe('depuis les onglets', () => {
+describe('depuis les onglets : le retour ramène à l\'onglet d\'où la page a été ouverte', () => {
   test('Accueil -> page -> Retour -> Accueil', async () => {
     const r = await monter('/');
     await appuyer('ACCUEIL-vers-requetes');
@@ -136,29 +139,39 @@ describe('depuis les onglets', () => {
     await retour();
     expect(r.getPathname()).toBe('/');
   });
+
+  test('page ouverte avec des paramètres depuis le Profil : ils sont conservés, Retour -> Profil', async () => {
+    const r = await monter('/');
+    await ongletBarre('Profil');
+    await appuyer('PROFIL-vers-filtre');
+    expect(r.getPathname()).toBe('/requetes');
+    expect(r.getSearchParams()).toMatchObject({ statut: 'completed', retour: '/profil' });
+    await retour();
+    expect(r.getPathname()).toBe('/profil');
+  });
 });
 
-describe('depuis la liste du Menu (jamais une page de l\'historique)', () => {
-  test('Accueil -> Menu -> page -> Retour -> Accueil', async () => {
+describe('depuis la liste du Menu', () => {
+  test('Accueil -> Menu -> page -> Retour -> liste du Menu', async () => {
     const r = await monter('/');
     await ongletBarre('Menu');
     expect(r.getPathname()).toBe('/menu');
     await appuyer('Mes Requêtes');
     expect(r.getPathname()).toBe('/requetes');
     await retour();
-    expect(r.getPathname()).toBe('/');
+    expect(r.getPathname()).toBe('/menu');
   });
 
-  test('Profil -> Menu -> page -> Retour -> Profil', async () => {
+  test('Profil -> Menu -> page -> Retour -> liste du Menu', async () => {
     const r = await monter('/');
     await ongletBarre('Profil');
     await ongletBarre('Menu');
     await appuyer('Mes Requêtes');
     await retour();
-    expect(r.getPathname()).toBe('/profil');
+    expect(r.getPathname()).toBe('/menu');
   });
 
-  test('scénario signalé : Accueil -> carte -> Retour, puis Menu -> même page -> Retour -> Accueil', async () => {
+  test('Accueil -> carte -> Retour -> Accueil, puis Menu -> même page -> Retour -> liste du Menu', async () => {
     const r = await monter('/');
     await appuyer('ACCUEIL-vers-requetes');
     await retour();
@@ -167,16 +180,7 @@ describe('depuis la liste du Menu (jamais une page de l\'historique)', () => {
     expect(r.getPathname()).toBe('/menu'); // la liste, et non la page précédemment ouverte
     await appuyer('Mes Requêtes');
     await retour();
-    expect(r.getPathname()).toBe('/');
-  });
-
-  test('Accueil -> Profil -> Menu -> page -> Retour -> Profil (dernière page visitée)', async () => {
-    const r = await monter('/');
-    await ongletBarre('Profil');
-    await ongletBarre('Menu');
-    await appuyer('Articles');
-    await retour();
-    expect(r.getPathname()).toBe('/profil');
+    expect(r.getPathname()).toBe('/menu'); // ouverte depuis le Menu : on y revient, pas à l'Accueil
   });
 
   test('Menu quitté sans Retour : l\'onglet Menu rouvre toujours la liste', async () => {
@@ -188,7 +192,7 @@ describe('depuis la liste du Menu (jamais une page de l\'historique)', () => {
     expect(r.getPathname()).toBe('/menu');
     await appuyer('Événements');
     await retour();
-    expect(r.getPathname()).toBe('/profil');
+    expect(r.getPathname()).toBe('/menu');
   });
 
   test('appuyer sur Menu depuis une page du Menu ramène à la liste', async () => {
@@ -201,7 +205,7 @@ describe('depuis la liste du Menu (jamais une page de l\'historique)', () => {
 });
 
 describe('navigation successive dans le Menu', () => {
-  test('Menu -> liste -> détail -> nouvelle -> Retour x3 revient pas à pas puis à l\'onglet', async () => {
+  test('liste -> détail -> nouvelle : chaque page revient à sa page parente', async () => {
     const r = await monter('/');
     await ongletBarre('Menu');
     await appuyer('Mes Requêtes');
@@ -209,22 +213,18 @@ describe('navigation successive dans le Menu', () => {
     await appuyer('DETAIL-vers-nouvelle');
     expect(r.getPathname()).toBe('/requetes/nouvelle');
     await retour();
-    expect(r.getPathname()).toBe('/requetes/7');
+    expect(r.getPathname()).toBe('/requetes'); // la liste (parent de « nouvelle »), pas le détail d'où l'on vient
     await retour();
-    expect(r.getPathname()).toBe('/requetes');
-    await retour();
-    expect(r.getPathname()).toBe('/');
+    expect(r.getPathname()).toBe('/menu');
   });
 
-  test('page A -> page B (autre module) -> Retour -> A -> Retour -> origine', async () => {
+  test('page A -> page B (autre module) -> Retour -> liste du Menu', async () => {
     const r = await monter('/');
     await appuyer('ACCUEIL-vers-requetes');
     await appuyer('REQUETES-vers-evenements');
     expect(r.getPathname()).toBe('/evenements');
     await retour();
-    expect(r.getPathname()).toBe('/requetes');
-    await retour();
-    expect(r.getPathname()).toBe('/');
+    expect(r.getPathname()).toBe('/menu');
   });
 
   test('retour programmatique (enregistrer / supprimer) = même destination que la flèche', async () => {
@@ -239,10 +239,10 @@ describe('navigation successive dans le Menu', () => {
     await appuyer('DETAIL-enregistrer');
     expect(r.getPathname()).toBe('/requetes');
     await appuyer('REQUETES-enregistrer');
-    expect(r.getPathname()).toBe('/');
+    expect(r.getPathname()).toBe('/menu');
   });
 
-  test('double appui sur un lien : une seule entrée d\'historique', async () => {
+  test('double appui sur un lien : une seule page ouverte', async () => {
     const r = await monter('/');
     await act(async () => {
       fireEvent.press(screen.getByText('ACCUEIL-vers-requetes'));
@@ -262,8 +262,10 @@ describe('accès direct et actualisation', () => {
     expect(r.getPathname()).toBe('/menu');
   });
 
-  test('lien direct vers un détail : Retour mène à la liste du Menu', async () => {
+  test('lien direct vers un détail : Retour mène à sa liste, puis à la liste du Menu', async () => {
     const r = await monter('/requetes/7');
+    await retour();
+    expect(r.getPathname()).toBe('/requetes');
     await retour();
     expect(r.getPathname()).toBe('/menu');
   });
@@ -279,7 +281,7 @@ describe('accès direct et actualisation', () => {
 });
 
 describe('remplacement de page (création -> fiche)', () => {
-  test('Accueil -> formulaire remplacé par la fiche -> Retour -> Accueil', async () => {
+  test('liste -> formulaire remplacé par la fiche -> Retour -> liste -> Retour -> liste du Menu', async () => {
     const r = await monter('/');
     await ongletBarre('Menu');
     await appuyer('Mes Requêtes');
@@ -287,7 +289,18 @@ describe('remplacement de page (création -> fiche)', () => {
     await appuyer('NOUVELLE-remplacer');
     expect(r.getPathname()).toBe('/requetes/7');
     await retour();
-    expect(r.getPathname()).toBe('/requetes'); // la liste d'où l'on est parti, le formulaire n'est plus dans l'historique
+    expect(r.getPathname()).toBe('/requetes');
+    await retour();
+    expect(r.getPathname()).toBe('/menu');
+  });
+});
+
+describe('remplacement de page depuis un onglet', () => {
+  test('Accueil -> formulaire remplacé par la fiche -> Retour -> Accueil', async () => {
+    const r = await monter('/');
+    await appuyer('ACCUEIL-vers-nouvelle');
+    await appuyer('NOUVELLE-remplacer');
+    expect(r.getPathname()).toBe('/requetes/7');
     await retour();
     expect(r.getPathname()).toBe('/');
   });
@@ -309,7 +322,7 @@ describe("bouton retour d'Android", () => {
     await jest.advanceTimersByTimeAsync(2000);
   });
 
-  test("même destination que la flèche : page -> page précédente -> onglet d'origine", async () => {
+  test("même destination que la flèche : détail -> liste -> onglet d'origine", async () => {
     const r = await monter('/');
     await ongletBarre('Profil');
     await appuyer('PROFIL-vers-requetes');
@@ -330,34 +343,48 @@ describe("bouton retour d'Android", () => {
 });
 
 describe.each([
-  ['utilisateur', 'Mes Requêtes', '/requetes'],
-  ['admin', 'Gestion des Requêtes', '/gestion/requetes'],
-  ['admin', 'Gestion des Projets', '/gestion/projets'],
-  ['superadmin', 'Incubateurs', '/incubateurs'],
-  ['superadmin', 'Paiements', '/paiements'],
-])('rôle %s : entrée « %s » du Menu', (role, entree, chemin) => {
+  ['utilisateur', 'Mes Requêtes', '/requetes', 'REQUETES'],
+  ['admin', 'Gestion des Requêtes', '/gestion/requetes', 'GEST-REQUETES'],
+  ['admin', 'Gestion des Projets', '/gestion/projets', 'GEST-PROJETS'],
+  ['superadmin', 'Incubateurs', '/incubateurs', 'INCUBATEURS'],
+  ['superadmin', 'Paiements', '/paiements', 'PAIEMENTS'],
+])('rôle %s : entrée « %s » du Menu', (role, entree, chemin, maquette) => {
   beforeEach(() => { mockRole = role; });
   afterAll(() => { mockRole = 'utilisateur'; });
 
-  test('Accueil -> Menu -> entrée -> fiche -> Retour -> Retour -> Accueil', async () => {
+  test('Accueil -> Menu -> entrée -> autre module -> Retour -> liste du Menu', async () => {
     const r = await monter('/');
     await ongletBarre('Menu');
     await appuyer(entree);
     expect(r.getPathname()).toBe(chemin);
-    await appuyer(`${chemin === '/requetes' ? 'REQUETES' : chemin === '/gestion/requetes' ? 'GEST-REQUETES' : chemin === '/gestion/projets' ? 'GEST-PROJETS' : chemin === '/incubateurs' ? 'INCUBATEURS' : 'PAIEMENTS'}-vers-evenements`);
+    await appuyer(`${maquette}-vers-evenements`);
     await retour();
-    expect(r.getPathname()).toBe(chemin);
-    await retour();
-    expect(r.getPathname()).toBe('/');
+    expect(r.getPathname()).toBe('/menu');
   });
 
-  test('Profil -> Menu -> entrée -> Retour -> Profil', async () => {
+  test('Profil -> Menu -> entrée -> Retour -> liste du Menu', async () => {
     const r = await monter('/');
     await ongletBarre('Profil');
     await ongletBarre('Menu');
     await appuyer(entree);
     await retour();
-    expect(r.getPathname()).toBe('/profil');
+    expect(r.getPathname()).toBe('/menu');
+  });
+});
+
+describe("page parente d'après le nom de la route", () => {
+  test.each([
+    ['requetes/index', '/menu'],
+    ['requetes/[id]', '/requetes'],
+    ['requetes/nouvelle', '/requetes'],
+    ['superadmins/nouveau', '/superadmins'],
+    ['gestion/requetes/index', '/menu'],
+    ['gestion/requetes/[id]', '/gestion/requetes'],
+    ['gestion/articles/nouveau', '/gestion/articles'],
+    ['gestion/statistiques', '/menu'],
+    ['gestion/documents/index', '/menu'],
+  ])('%s -> %s', (route, parent) => {
+    expect(pageParente(route)).toBe(parent);
   });
 });
 

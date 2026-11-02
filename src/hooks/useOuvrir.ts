@@ -1,8 +1,11 @@
-import { type Href, router, usePathname } from 'expo-router';
+import { type Href, router, usePathname, useRoute } from 'expo-router';
 import { useRef } from 'react';
 
+import { avecOrigine, origineDe } from '@/navigation/retour';
+
 /**
- * Ouvre une page : l'historique est tenu par le routeur (voir `navigation/retour.ts`), rien n'est mémorisé ici.
+ * Ouvre une page. Depuis l'Accueil ou le Profil, l'adresse de la page porte l'onglet d'origine (paramètre `retour`)
+ * pour que son retour y ramène (voir `navigation/retour.ts`) ; rien n'est mémorisé ailleurs.
  * À utiliser pour toute ouverture de page. Un double appui sur un lien n'ajoute qu'une seule entrée à
  * l'historique (même lien rappuyé aussitôt, ou lien vers la page déjà affichée).
  */
@@ -15,13 +18,17 @@ export function useOuvrir() {
     if (cle === dernier.current.cle && maintenant - dernier.current.quand < 600) return;
     if (typeof href === 'string' && href === chemin) return;
     dernier.current = { cle, quand: maintenant };
-    router.push(href);
+    router.push(avecOrigine(href, chemin));
   };
 }
 
-/** Remplace la page affichée (ex. formulaire de création -> fiche créée) : le formulaire quitte l'historique. */
+/**
+ * Remplace la page affichée (ex. formulaire de création -> fiche créée) : le formulaire quitte l'historique, et la
+ * nouvelle page garde l'onglet d'origine du formulaire (Accueil, Profil) pour que son retour y ramène aussi.
+ */
 export function useRemplacer() {
-  return (href: Href) => router.replace(href);
+  const origine = origineDe(useRoute());
+  return (href: Href) => router.replace(origine ? avecOrigine(href, origine) : href);
 }
 
 /** Change les paramètres de la page affichée (filtres imposés d'une liste) sans ajouter d'entrée à l'historique. */
