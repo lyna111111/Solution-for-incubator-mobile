@@ -40,8 +40,8 @@ export function AccueilSuperAdmin() {
           valeur={data.total_incubateurs} route="/incubateurs" />
         <Kpi icone="check-circle" couleur={colors.success} fond={colors.successSoft} label="Incubateurs Actifs"
           valeur={data.incubateurs_actifs} route="/incubateurs?statut=actif" />
-        <Kpi icone="coins" couleur={colors.warning} fond={colors.warningSoft} label="Revenus Mensuels"
-          valeur={espacer(data.revenus_mois)} unite="DA" route="/paiements?statut=completed" />
+        <Kpi icone="coins" couleur={colors.warning} fond={colors.warningSoft} label="Revenus Totaux"
+          valeur={espacer(data.revenus_total ?? 0)} unite="DA" route="/paiements?statut=completed" />
         <Kpi icone="exclamation-triangle" couleur={colors.danger} fond={colors.dangerSoft} label="Abonnements Expirés"
           valeur={data.abonnements_annules} route="/abonnements?statut=annule" />
       </View>
