@@ -2,7 +2,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useOuvrir } from '@/hooks/useOuvrir';
-import { type Palette, spacing, useStyles } from '@/theme';
+import { type Palette, spacing, useColors, useStyles } from '@/theme';
 
 import { Card } from './ui';
 
@@ -29,6 +29,22 @@ export function Kpi({ icone, couleur, fond, label, valeur, unite, route }: {
   );
 }
 
+/** Bandeau de bienvenue des tableaux de bord : rôle du compte connecté et son nom. */
+export function BandeauBienvenue({ titre, nom, detail }: { titre: string; nom: string; detail?: string | null }) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
+  return (
+    <Card style={styles.hero}>
+      <View style={styles.heroIcone}><FontAwesome5 name="rocket" size={20} color={colors.primary} /></View>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={styles.heroPetit}>Bienvenue</Text>
+        <Text style={styles.heroTitre} numberOfLines={2}>{titre}</Text>
+        <Text style={styles.heroSous} numberOfLines={2}>{detail ? `${nom} · ${detail}` : nom}</Text>
+      </View>
+    </Card>
+  );
+}
+
 /** Titre d'une carte de graphique : icône colorée, titre et, si besoin, une phrase d'aide. */
 export function TitreGraphique({ icone, couleur, titre, indice }: { icone: IconName; couleur: string; titre: string; indice?: string }) {
   const styles = useStyles(createStyles);
@@ -51,6 +67,11 @@ const createStyles = (colors: Palette) => StyleSheet.create({
   kpiLabel: { fontSize: 11, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
   kpiValeur: { fontSize: 24, fontWeight: '700', color: colors.text },
   kpiUnite: { fontSize: 13, fontWeight: '600', color: colors.textMuted },
+  hero: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.lg },
+  heroIcone: { width: 48, height: 48, borderRadius: 14, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },
+  heroPetit: { fontSize: 12, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.6 },
+  heroTitre: { fontSize: 20, fontWeight: '800', color: colors.text },
+  heroSous: { fontSize: 13, color: colors.primary, fontWeight: '600' },
   titreLigne: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   titre: { flexShrink: 1, fontSize: 15, fontWeight: '600', color: colors.text },
   indice: { fontSize: 12, color: colors.textMuted },

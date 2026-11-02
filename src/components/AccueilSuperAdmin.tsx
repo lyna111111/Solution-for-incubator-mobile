@@ -5,9 +5,10 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useOuvrir } from '@/hooks/useOuvrir';
 import { adminGet } from '@/admin/api';
 import { getErrorMessage } from '@/api/client';
+import { useAuthStore } from '@/store/auth';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
-import { Kpi, TitreGraphique } from './DashboardUi';
+import { BandeauBienvenue, Kpi, TitreGraphique } from './DashboardUi';
 import { Anneau, Histogramme } from './Graphiques';
 import { Screen } from './Screen';
 import { Badge, Card, ErrorState, Loading } from './ui';
@@ -25,6 +26,7 @@ export function AccueilSuperAdmin() {
   const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   const colors = useColors();
+  const user = useAuthStore((s) => s.user);
   const { data, isLoading, isRefetching, error, refetch } = useQuery({
     queryKey: ['admin', 'super-dashboard'],
     queryFn: () => adminGet('dashboard/', undefined, 'superadmin'),
@@ -35,6 +37,8 @@ export function AccueilSuperAdmin() {
 
   return (
     <Screen withTopInset title="Tableau de bord" refreshing={isRefetching} onRefresh={() => void refetch()}>
+      <BandeauBienvenue titre="Super Administrateur" nom={`${user?.prenom ?? ''} ${user?.nom ?? ''}`.trim()} />
+
       <View style={styles.grille}>
         <Kpi icone="building" couleur={colors.primary} fond={colors.primarySoft} label="Total Incubateurs"
           valeur={data.total_incubateurs} route="/incubateurs" />

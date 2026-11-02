@@ -9,7 +9,7 @@ import { getErrorMessage } from '@/api/client';
 import { useAuthStore } from '@/store/auth';
 import { gradient, type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
-import { Kpi, TitreGraphique } from './DashboardUi';
+import { BandeauBienvenue, Kpi, TitreGraphique } from './DashboardUi';
 import { Anneau, HistogrammeEmpile } from './Graphiques';
 import { Screen } from './Screen';
 import { Card, ErrorState, Loading } from './ui';
@@ -51,16 +51,8 @@ export function AccueilAdmin() {
 
   return (
     <Screen withTopInset title="Tableau de bord" refreshing={isRefetching} onRefresh={() => void refetch()}>
-      <LinearGradient colors={gradient.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
-        <View style={styles.heroIcone}><FontAwesome5 name="rocket" size={20} color="#fff" /></View>
-        <View style={{ flex: 1, gap: 2 }}>
-          <Text style={styles.heroPetit}>Bienvenue</Text>
-          <Text style={styles.heroTitre} numberOfLines={2}>
-            {user?.type === 'Admin principal' ? 'Administrateur principal' : user?.type}
-          </Text>
-          <Text style={styles.heroSous} numberOfLines={2}>{user?.prenom} {user?.nom} · {user?.incubateur?.nom}</Text>
-        </View>
-      </LinearGradient>
+      <BandeauBienvenue titre={(user?.type === 'Admin principal' ? 'Administrateur principal' : user?.type) ?? ''}
+        nom={`${user?.prenom ?? ''} ${user?.nom ?? ''}`.trim()} detail={user?.incubateur?.nom} />
 
       <View style={styles.grille}>
         <Kpi icone="users" couleur={colors.primary} fond={colors.primarySoft} label="Inscrits" valeur={t.utilisateurs}
@@ -149,11 +141,6 @@ export function AccueilAdmin() {
 }
 
 const createStyles = (colors: Palette) => StyleSheet.create({
-  hero: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.lg, borderRadius: radius.lg },
-  heroIcone: { width: 48, height: 48, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.22)', alignItems: 'center', justifyContent: 'center' },
-  heroPetit: { fontSize: 12, color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase', letterSpacing: 0.6 },
-  heroTitre: { fontSize: 20, fontWeight: '800', color: '#fff' },
-  heroSous: { fontSize: 13, color: 'rgba(255,255,255,0.9)' },
   grille: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   documents: { flexDirection: 'row', gap: spacing.sm },
   document: { flex: 1, alignItems: 'center', gap: 4, backgroundColor: colors.background, borderRadius: radius.md, paddingVertical: spacing.md },
