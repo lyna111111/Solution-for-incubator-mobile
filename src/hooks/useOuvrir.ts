@@ -1,24 +1,20 @@
 import { type Href, router, usePathname } from 'expo-router';
-
-import { useRetour } from '@/store/retour';
+import { useRef } from 'react';
 
 /**
- * Ouvre une page en retenant d'où l'on vient : depuis l'Accueil ou le Profil, le retour y ramène ; depuis une
- * page du Menu, le retour ramène à la page précédente de la pile. À utiliser à la place de `router.push`
- * dans les composants affichés dans plusieurs onglets.
+ * Ouvre une page : l'historique est tenu par le routeur (voir `navigation/retour.ts`), rien n'est mémorisé ici.
+ * À utiliser pour toute ouverture de page. Un double appui sur un lien n'ajoute qu'une seule entrée à
+ * l'historique (même lien rappuyé aussitôt, ou lien vers la page déjà affichée).
  */
 export function useOuvrir() {
   const chemin = usePathname();
-  const definir = useRetour((s) => s.definir);
+  const dernier = useRef({ cle: '', quand: 0 });
   return (href: Href) => {
-    const depuisAutreOnglet = chemin === '/' || chemin === '/profil';
-    // L'origine ne change que depuis l'Accueil / le Profil (elle est retenue) ou depuis la liste du Menu (aucune).
-    // Depuis une autre page du Menu (ex. une ligne de la liste des événements ouverte depuis l'Accueil), elle est
-    // conservée : le retour de la liste doit toujours ramener à l'Accueil.
-    if (depuisAutreOnglet) definir(chemin);
-    else if (chemin === '/menu') definir(null);
-    // La liste du Menu est toujours la page du dessous : appuyer sur « Menu » y ramène, quelle que soit la page ouverte.
-    if (depuisAutreOnglet) router.navigate('/menu');
+    const cle = typeof href === 'string' ? href : JSON.stringify(href);
+    const maintenant = Date.now();
+    if (cle === dernier.current.cle && maintenant - dernier.current.quand < 600) return;
+    if (typeof href === 'string' && href === chemin) return;
+    dernier.current = { cle, quand: maintenant };
     router.push(href);
   };
 }

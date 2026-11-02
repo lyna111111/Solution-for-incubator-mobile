@@ -1,12 +1,13 @@
-import { router } from 'expo-router';
 
 import { adminGet } from '@/admin/api';
 import { Compteurs, LigneListe, ListeAdmin } from '@/admin/ui';
 import { StatutBadge } from '@/components/rows';
 import { View } from 'react-native';
+import { useOuvrir } from '@/hooks/useOuvrir';
 import { formatDate } from '@/utils/format';
 
 export default function GestionRequetes() {
+  const ouvrir = useOuvrir();
   return (
     <ListeAdmin
       titre="Gestion des Requêtes"
@@ -30,7 +31,7 @@ export default function GestionRequetes() {
           key={r.id}
           titre={r.objet}
           sousTitre={`${r.utilisateur?.nom ?? 'Visiteur non inscrit'} · ${r.type_requete} · ${formatDate(r.dateSoumission)}`}
-          onPress={() => router.push(`/gestion/requetes/${r.id}`)}
+          onPress={() => ouvrir(`/gestion/requetes/${r.id}`)}
           pied={<View style={{ flexDirection: 'row' }}><StatutBadge statut={r.statut} /></View>}
         />
       )}

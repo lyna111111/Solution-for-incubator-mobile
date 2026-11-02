@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -6,10 +5,12 @@ import { getErrorMessage } from '@/api/client';
 import { login } from '@/api/endpoints';
 import { AuthShell } from '@/components/AuthShell';
 import { Banner, Button, Field } from '@/components/ui';
+import { useOuvrir } from '@/hooks/useOuvrir';
 import { useAuthStore } from '@/store/auth';
 import { type Palette, spacing, useStyles } from '@/theme';
 
 export default function Connexion() {
+  const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   const signIn = useAuthStore((s) => s.signIn);
   const [email, setEmail] = useState('');
@@ -64,12 +65,12 @@ export default function Connexion() {
       <Button pill title="Se connecter" icon="arrow-right" onPress={() => void seConnecter()} loading={chargement} />
 
       <View style={styles.footer}>
-        <Pressable onPress={() => router.push('/register')}>
+        <Pressable onPress={() => ouvrir('/register')}>
           <Text style={styles.footerText}>
             Pas encore de compte ? <Text style={styles.footerStrong}>S&apos;inscrire</Text>
           </Text>
         </Pressable>
-        <Pressable onPress={() => router.push('/forgot-password')}>
+        <Pressable onPress={() => ouvrir('/forgot-password')}>
           <Text style={styles.link}>Mot de passe oublié ?</Text>
         </Pressable>
       </View>

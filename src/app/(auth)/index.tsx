@@ -1,7 +1,6 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
@@ -9,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui';
+import { useOuvrir } from '@/hooks/useOuvrir';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
 type IconName = React.ComponentProps<typeof FontAwesome5>['name'];
@@ -25,6 +25,7 @@ const ATOUTS: { icon: IconName; label: string }[] = [
 
 /** Page de bienvenue, avant la connexion : logo, présentation de la plateforme, puis accès à la connexion. */
 export default function Bienvenue() {
+  const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -97,8 +98,8 @@ export default function Bienvenue() {
           <Text style={styles.sheetTitle}>Bienvenue !</Text>
           <Text style={styles.sheetSub}>Connectez-vous pour accéder à votre espace.</Text>
 
-          <Button pill title="Se connecter" icon="arrow-right" onPress={() => router.push('/login')} />
-          <Pressable onPress={() => router.push('/register')} style={styles.inscription}>
+          <Button pill title="Se connecter" icon="arrow-right" onPress={() => ouvrir('/login')} />
+          <Pressable onPress={() => ouvrir('/register')} style={styles.inscription}>
             <Text style={styles.inscriptionTexte}>
               Pas encore de compte ? <Text style={styles.inscriptionAccent}>S&apos;inscrire</Text>
             </Text>

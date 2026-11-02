@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -7,9 +6,11 @@ import { getErrorMessage } from '@/api/client';
 import { fetchArticles } from '@/api/endpoints';
 import { Screen } from '@/components/Screen';
 import { Button, Card, ErrorState, Field, Loading } from '@/components/ui';
+import { useOuvrir } from '@/hooks/useOuvrir';
 import { type Palette, spacing, useStyles } from '@/theme';
 
 export default function Articles() {
+  const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   const [saisie, setSaisie] = useState('');
   const [recherche, setRecherche] = useState('');
@@ -40,7 +41,7 @@ export default function Articles() {
         <Text style={styles.empty}>Aucun article trouvé.</Text>
       ) : (
         data.articles.map((a) => (
-          <Pressable key={a.id} onPress={() => router.push(`/articles/${a.id}`)}>
+          <Pressable key={a.id} onPress={() => ouvrir(`/articles/${a.id}`)}>
             <Card style={{ gap: 4 }}>
               <Text style={styles.title}>{a.titre}</Text>
               <Text style={styles.meta}>{a.auteur} · {a.created_at}</Text>

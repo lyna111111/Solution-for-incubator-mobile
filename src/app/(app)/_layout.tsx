@@ -3,7 +3,6 @@ import { Tabs } from 'expo-router';
 import { ColorValue } from 'react-native';
 
 import { useNonLues } from '@/hooks/useNotifications';
-import { useRetour, viderPileMenu } from '@/store/retour';
 import { useColors } from '@/theme';
 
 type IconName = React.ComponentProps<typeof FontAwesome5>['name'];
@@ -38,19 +37,14 @@ export default function AppTabs() {
       <Tabs.Screen name="index" options={{ title: 'Accueil', tabBarIcon: icone('home') }} />
       <Tabs.Screen
         name="(menu)"
-        // « Menu » affiche toujours la liste du Menu : la pile est remise à zéro en appuyant sur l'onglet et en le quittant.
-        listeners={({ navigation }) => ({
-          tabPress: () => {
-            viderPileMenu(navigation);
-            useRetour.getState().definir(null);
-          },
-          blur: () => {
-            viderPileMenu(navigation);
-            useRetour.getState().definir(null);
-          },
-        })}
         options={{
           title: 'Menu',
+          // « Menu » affiche toujours la liste du Menu : la pile est remise à zéro en quittant l'onglet (et en
+          // appuyant dessus quand il est déjà ouvert, comportement d'origine du navigateur d'onglets).
+          popToTopOnBlur: true,
+          // Monté dès le départ : sa pile contient alors toujours la liste du Menu en premier. Sinon, ouvrir une page
+          // du Menu depuis l'Accueil créerait une pile réduite à cette page, que la remise à zéro ne peut pas vider.
+          lazy: false,
           tabBarIcon: icone('th-large'),
           tabBarBadge: nonLues > 0 ? nonLues : undefined,
           tabBarBadgeStyle: { backgroundColor: colors.unread, color: colors.text },

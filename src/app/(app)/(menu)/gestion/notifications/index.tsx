@@ -1,10 +1,11 @@
-import { router } from 'expo-router';
 
 import { adminGet } from '@/admin/api';
 import { Compteurs, LigneListe, ListeAdmin } from '@/admin/ui';
+import { useOuvrir } from '@/hooks/useOuvrir';
 import { formatDateTime } from '@/utils/format';
 
 export default function GestionNotifications() {
+  const ouvrir = useOuvrir();
   return (
     <ListeAdmin
       titre="Gestion des Notifications"
@@ -22,14 +23,14 @@ export default function GestionNotifications() {
           { label: 'Cette semaine', valeur: r.compteurs.broadcast_semaine + r.compteurs.unicast_semaine },
         ]} />
       )}
-      action={{ titre: 'Nouvelle notification', onPress: () => router.push('/gestion/notifications/nouveau') }}
+      action={{ titre: 'Nouvelle notification', onPress: () => ouvrir('/gestion/notifications/nouveau') }}
       vide="Aucune notification à afficher."
       renderItem={(n) => (
         <LigneListe
           key={n.id}
           titre={n.titre}
           sousTitre={`${n.destinataire ? `Pour ${n.destinataire} · ` : ''}${formatDateTime(n.created_at)}\n${n.message ?? ''}`}
-          onPress={() => router.push(`/gestion/notifications/${n.id}`)}
+          onPress={() => ouvrir(`/gestion/notifications/${n.id}`)}
         />
       )}
     />

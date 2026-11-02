@@ -7,6 +7,7 @@ import { getErrorMessage } from '@/api/client';
 import { fetchIncubateurs, register } from '@/api/endpoints';
 import { AuthShell } from '@/components/AuthShell';
 import { Banner, Button, Field } from '@/components/ui';
+import { reculerOuSecours } from '@/navigation/retour';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
 // Types de compte acceptés par le backend (Utilisateur.TYPE_CHOICES).
@@ -163,7 +164,7 @@ export default function Inscription() {
       />
 
       <Button pill icon="arrow-right" title="S'inscrire" onPress={() => void sInscrire()} loading={chargement} />
-      <Pressable onPress={() => router.back()} style={{ alignItems: 'center', paddingVertical: spacing.lg }}>
+      <Pressable onPress={() => reculerOuSecours('/login')} style={{ alignItems: 'center', paddingVertical: spacing.lg }}>
         <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 15 }}>Déjà un compte ? Se connecter</Text>
       </Pressable>
     </AuthShell>

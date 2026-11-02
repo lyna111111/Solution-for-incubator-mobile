@@ -1,8 +1,10 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { Text } from 'react-native';
 
 import { getErrorMessage } from '@/api/client';
+import { useOuvrir } from '@/hooks/useOuvrir';
+import { useReculer } from '@/hooks/useReculer';
 import { Dialogue } from '@/components/Dialogue';
 import { Screen } from '@/components/Screen';
 import { Button, ErrorState, Loading } from '@/components/ui';
@@ -23,6 +25,7 @@ function libelleNouveau(config: { titreSingulier: string; feminin?: boolean }): 
 
 /** Liste d'un module : recherche, filtres, pagination, bouton « Nouveau ». */
 export function ModuleList({ cle }: { cle: string }) {
+  const ouvrir = useOuvrir();
   const config = MODULES[cle];
   const racine = config.base === 'superadmin' ? `/${cle}` : `/gestion/${cle}`;
   return (
@@ -44,7 +47,7 @@ export function ModuleList({ cle }: { cle: string }) {
       filtres={config.liste.filtres}
       parametresUrl={config.liste.parametresUrl}
       entete={config.liste.entete}
-      action={{ titre: libelleNouveau(config), onPress: () => router.push(`${racine}/nouveau`) }}
+      action={{ titre: libelleNouveau(config), onPress: () => ouvrir(`${racine}/nouveau`) }}
       vide={`${config.feminin ? 'Aucune' : 'Aucun'} ${config.titreSingulier} à afficher.`}
       renderItem={(item, rafraichir) => (
         <LigneListe
@@ -52,7 +55,7 @@ export function ModuleList({ cle }: { cle: string }) {
           titre={config.liste.titre(item)}
           sousTitre={config.liste.sousTitre(item)}
           badge={config.liste.badge?.(item)}
-          onPress={() => router.push(`${racine}/${item.id}`)}
+          onPress={() => ouvrir(`${racine}/${item.id}`)}
           pied={config.liste.actions?.(item, rafraichir)}
         />
       )}
@@ -72,11 +75,12 @@ function useApresEcriture() {
 export function ModuleNew({ cle }: { cle: string }) {
   const config = MODULES[cle];
   const apres = useApresEcriture();
+  const reculer = useReculer();
 
   async function envoyer(valeurs: Record<string, any>, fichiers: Fichier[]) {
     await adminEnvoyer('post', config.creer, valeurs, fichiers, config.base);
     await apres();
-    router.back();
+    reculer();
   }
 
   return (
@@ -93,6 +97,7 @@ export function ModuleEdit({ cle }: { cle: string }) {
   const config = MODULES[cle];
   const { id } = useLocalSearchParams<{ id: string }>();
   const apres = useApresEcriture();
+  const reculer = useReculer();
   const { data, isLoading, isRefetching, error, refetch } = useQuery({
     queryKey: ['admin', cle, 'detail', id],
     queryFn: () => adminGet(config.detail.chemin(id), undefined, config.base),
@@ -106,7 +111,7 @@ export function ModuleEdit({ cle }: { cle: string }) {
   async function enregistrer(valeurs: Record<string, any>, fichiers: Fichier[]) {
     await adminEnvoyer('put', config.modifier(id), valeurs, fichiers, config.base);
     await apres();
-    router.back();
+    reculer();
   }
 
   function supprimer() {
@@ -120,7 +125,7 @@ export function ModuleEdit({ cle }: { cle: string }) {
           try {
             await adminEnvoyer('delete', config.supprimer!(id), {}, [], config.base);
             await apres();
-            router.back();
+            reculer();
           } catch (e) {
             Dialogue.alert('Suppression impossible', getErrorMessage(e));
           }

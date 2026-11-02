@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -9,11 +8,13 @@ import { Chips } from '@/components/Chips';
 import { RequeteRow } from '@/components/rows';
 import { Screen } from '@/components/Screen';
 import { Button, ErrorState, Field, Loading } from '@/components/ui';
+import { useOuvrir } from '@/hooks/useOuvrir';
 import { type Palette, spacing, useStyles } from '@/theme';
 
 type Filtre = 'all' | 'pending' | 'delivered' | 'canceled';
 
 export default function MesRequetes() {
+  const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   const [filtre, setFiltre] = useState<Filtre>('all');
   const [saisie, setSaisie] = useState('');
@@ -35,7 +36,7 @@ export default function MesRequetes() {
 
   return (
     <Screen refreshing={isRefetching} onRefresh={() => void refetch()}
-      fab={{ titre: 'Nouvelle requête', onPress: () => router.push('/requetes/nouvelle') }}>
+      fab={{ titre: 'Nouvelle requête', onPress: () => ouvrir('/requetes/nouvelle') }}>
       <Field
         label="Rechercher dans mes requêtes"
         icon="search"

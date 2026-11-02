@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { router, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useState } from 'react';
 import { Text } from 'react-native';
 
@@ -7,6 +7,7 @@ import { adminEnvoyer } from '@/admin/api';
 import type { ChampDef } from '@/admin/types';
 import { ChoixPuces, FormulaireAdmin } from '@/admin/ui';
 import { Screen } from '@/components/Screen';
+import { useReculer } from '@/hooks/useReculer';
 import { useColors } from '@/theme';
 
 const MODES = ['Diffusion à tous', 'À un utilisateur', 'À plusieurs utilisateurs'];
@@ -23,6 +24,7 @@ function champs(mode: string): ChampDef[] {
 }
 
 export default function NouvelleNotification() {
+  const reculer = useReculer();
   const colors = useColors();
   const [mode, setMode] = useState(MODES[0]);
   const queryClient = useQueryClient();
@@ -31,7 +33,7 @@ export default function NouvelleNotification() {
     const chemin = mode === MODES[0] ? 'broadcast/' : mode === MODES[1] ? 'unicast/' : 'multicast/';
     await adminEnvoyer('post', `notifications/${chemin}`, valeurs);
     await queryClient.invalidateQueries({ queryKey: ['admin'] });
-    router.back();
+    reculer();
   }
 
   return (

@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -7,6 +7,7 @@ import { adminEnvoyer, adminGet } from '@/admin/api';
 import { FormulaireAdmin, ChoixPuces } from '@/admin/ui';
 import { TYPES_DOCUMENT } from '@/admin/modules';
 import { getErrorMessage } from '@/api/client';
+import { useReculer } from '@/hooks/useReculer';
 import { DocumentsList } from '@/components/DocumentLink';
 import { StatutBadge } from '@/components/rows';
 import { Dialogue } from '@/components/Dialogue';
@@ -19,6 +20,7 @@ import { formatDateTime } from '@/utils/format';
 const STATUTS = ['Traitée', 'Rejetée', 'En attente'];
 
 export default function DetailRequeteAdmin() {
+  const reculer = useReculer();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -57,7 +59,7 @@ export default function DetailRequeteAdmin() {
     Dialogue.alert('Suppression', 'Supprimer cette requête et ses réponses ?', [
       { text: 'Annuler', style: 'cancel' },
       { text: 'Supprimer', style: 'destructive', onPress: async () => {
-        try { await adminEnvoyer('delete', `requetes/${id}/`); await apres(); router.back(); }
+        try { await adminEnvoyer('delete', `requetes/${id}/`); await apres(); reculer(); }
         catch (e) { Dialogue.alert('Suppression impossible', getErrorMessage(e)); }
       } },
     ], { ton: 'danger', icone: 'trash-alt' });

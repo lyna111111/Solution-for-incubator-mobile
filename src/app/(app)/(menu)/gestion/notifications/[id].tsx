@@ -1,17 +1,19 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text } from 'react-native';
 
 import { adminEnvoyer, adminGet } from '@/admin/api';
 import type { ChampDef } from '@/admin/types';
 import { FormulaireAdmin } from '@/admin/ui';
 import { getErrorMessage } from '@/api/client';
+import { useReculer } from '@/hooks/useReculer';
 import { Dialogue } from '@/components/Dialogue';
 import { Screen } from '@/components/Screen';
 import { Banner, Button, Card, ErrorState, Loading } from '@/components/ui';
 import { type Palette, spacing, useStyles } from '@/theme';
 
 export default function DetailNotificationAdmin() {
+  const reculer = useReculer();
   const styles = useStyles(createStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
@@ -39,14 +41,14 @@ export default function DetailNotificationAdmin() {
   async function enregistrer(valeurs: Record<string, any>) {
     await adminEnvoyer('put', `notifications/${unicast ? 'unicast' : 'broadcast'}/${id}/`, valeurs);
     await apres();
-    router.back();
+    reculer();
   }
 
   function supprimer() {
     Dialogue.alert('Suppression', 'Supprimer cette notification ?', [
       { text: 'Annuler', style: 'cancel' },
       { text: 'Supprimer', style: 'destructive', onPress: async () => {
-        try { await adminEnvoyer('delete', `notifications/${id}/`); await apres(); router.back(); }
+        try { await adminEnvoyer('delete', `notifications/${id}/`); await apres(); reculer(); }
         catch (e) { Dialogue.alert('Suppression impossible', getErrorMessage(e)); }
       } },
     ], { ton: 'danger', icone: 'trash-alt' });

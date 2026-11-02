@@ -1,11 +1,12 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { adminEnvoyer, adminGet } from '@/admin/api';
 import { SelecteurReference } from '@/admin/ui';
 import { getErrorMessage } from '@/api/client';
+import { useReculer } from '@/hooks/useReculer';
 import { Dialogue } from '@/components/Dialogue';
 import { Screen } from '@/components/Screen';
 import { Badge, Banner, Button, Card, ErrorState, Field, Loading, SectionTitle } from '@/components/ui';
@@ -20,6 +21,7 @@ const ACTIONS: Record<string, { titre: string; message: string; libelle: string;
 
 /** Fiche d'un abonnement : informations, paiements, suspension / réactivation / résiliation, renouvellement. */
 export default function AbonnementFiche() {
+  const reculer = useReculer();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -72,7 +74,7 @@ export default function AbonnementFiche() {
       await adminEnvoyer('post', `abonnements/${id}/renouveler/`,
         { nouvelle_date_fin: dateFin.trim(), ...(offreId ? { nouvelle_offre_id: offreId } : {}) }, [], 'superadmin');
       await apres();
-      router.back();
+      reculer();
     } catch (e) {
       setErreur(getErrorMessage(e));
     } finally {
