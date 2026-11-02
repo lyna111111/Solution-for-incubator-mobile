@@ -19,7 +19,7 @@ interface CalendrierProps {
   onSelectionnerJour: (jour: number | null) => void;
 }
 
-/** Calendrier mensuel : un point sous les jours qui ont un événement. */
+/** Calendrier mensuel : les jours qui ont un événement sont entourés d'un cercle. */
 export function Calendrier({
   annee,
   mois,
@@ -83,15 +83,20 @@ export function Calendrier({
                 <View
                   style={[
                     styles.day,
-                    estAujourdhui(jour) && styles.today,
+                    joursAvecEvenement.has(jour) && styles.withEvent,
                     jour === jourSelectionne && styles.selected,
                   ]}
                 >
-                  <Text style={[styles.dayText, jour === jourSelectionne && { color: '#fff', fontWeight: '700' }]}>
+                  <Text
+                    style={[
+                      styles.dayText,
+                      estAujourdhui(jour) && styles.todayText,
+                      jour === jourSelectionne && { color: '#fff', fontWeight: '700' },
+                    ]}
+                  >
                     {jour}
                   </Text>
                 </View>
-                <View style={[styles.dot, joursAvecEvenement.has(jour) && styles.dotOn]} />
               </Pressable>
             ),
           )}
@@ -114,10 +119,9 @@ const createStyles = (colors: Palette) => StyleSheet.create({
   row: { flexDirection: 'row' },
   weekday: { flex: 1, textAlign: 'center', color: colors.textMuted, fontSize: 12, paddingVertical: 4 },
   cell: { flex: 1, alignItems: 'center', paddingVertical: 2, minHeight: 40 },
-  day: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
-  today: { borderWidth: 1, borderColor: colors.primary },
+  day: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  withEvent: { borderWidth: 2, borderColor: colors.primary },
   selected: { backgroundColor: colors.primary },
   dayText: { color: colors.text, fontSize: 14 },
-  dot: { width: 5, height: 5, borderRadius: 3, marginTop: 2, backgroundColor: 'transparent' },
-  dotOn: { backgroundColor: colors.primary },
+  todayText: { color: colors.primary, fontWeight: '800' },
 });
