@@ -2,7 +2,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRef } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { useOuvrir } from '@/hooks/useOuvrir';
 import { adminGet } from '@/admin/api';
@@ -10,7 +10,7 @@ import { getErrorMessage } from '@/api/client';
 import { useAuthStore } from '@/store/auth';
 import { gradient, type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
-import { BandeauBienvenue, Kpi, TitreGraphique } from './DashboardUi';
+import { BandeauBienvenue, Kpi, TitreGraphique, VoirPlus } from './DashboardUi';
 import { Anneau, HistogrammeEmpile } from './Graphiques';
 import { Screen } from './Screen';
 import { Card, ErrorState, Loading } from './ui';
@@ -108,12 +108,7 @@ export function AccueilAdmin() {
             <View style={{ flex: 1 }}>
               <TitreGraphique icone="rocket" couleur={colors.primary} titre="Progression des projets clés" />
             </View>
-            {!!lien('projets') && (
-              <Pressable onPress={() => ouvrir('/gestion/projets')} style={styles.voirTout} hitSlop={8}>
-                <Text style={styles.voirToutTexte}>Voir tout</Text>
-                <FontAwesome5 name="arrow-right" size={11} color={colors.text} />
-              </Pressable>
-            )}
+            {!!lien('projets') && <VoirPlus onPress={() => ouvrir('/gestion/projets')} />}
           </View>
           {data.top_projets.map((p: any) => (
             <View key={p.id} style={{ gap: 6 }}>
@@ -155,11 +150,6 @@ const createStyles = (colors: Palette) => StyleSheet.create({
   documentValeur: { fontSize: 20, fontWeight: '700', color: colors.text },
   documentLabel: { fontSize: 11, color: colors.textMuted },
   entete: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  voirTout: {
-    flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md, paddingHorizontal: 10, paddingVertical: 6,
-  },
-  voirToutTexte: { fontSize: 12, fontWeight: '600', color: colors.text },
   projet: { flex: 1, fontSize: 14, fontWeight: '600', color: colors.text },
   pourcentage: { fontSize: 13, fontWeight: '700', color: colors.primary },
   piste: { height: 8, borderRadius: 4, backgroundColor: colors.border, overflow: 'hidden' },

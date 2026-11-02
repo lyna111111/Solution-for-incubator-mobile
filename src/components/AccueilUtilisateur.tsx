@@ -10,6 +10,7 @@ import { fetchAccueil, fetchMonProjet } from '@/api/endpoints';
 import { useAuthStore } from '@/store/auth';
 import { gradient, type Palette, spacing, useColors, useStyles } from '@/theme';
 
+import { VoirPlus } from './DashboardUi';
 import { ProjetModal } from './ProjetModal';
 import { EvenementRow, NotificationRow, RequeteRow } from './rows';
 import { Screen } from './Screen';
@@ -49,11 +50,7 @@ function SectionHeader({ icone, titre, onVoirTout }: { icone: IconName; titre: s
         <FontAwesome5 name={icone} size={15} color={colors.primary} />
         <Text style={styles.sectionTitle}>{titre}</Text>
       </View>
-      {onVoirTout && (
-        <Pressable onPress={onVoirTout} hitSlop={8}>
-          <Text style={styles.viewAll}>Voir tous ›</Text>
-        </Pressable>
-      )}
+      {onVoirTout && <VoirPlus onPress={onVoirTout} />}
     </View>
   );
 }
@@ -187,7 +184,6 @@ const createStyles = (colors: Palette) => StyleSheet.create({
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionLeft: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: colors.text },
-  viewAll: { fontSize: 14, color: colors.primary, fontWeight: '600' },
   detailsBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.primary,
     borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7 },
   detailsBtnText: { color: '#fff', fontSize: 13, fontWeight: '600' },

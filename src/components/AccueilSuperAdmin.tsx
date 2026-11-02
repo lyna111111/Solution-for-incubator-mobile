@@ -6,9 +6,9 @@ import { useOuvrir } from '@/hooks/useOuvrir';
 import { adminGet } from '@/admin/api';
 import { getErrorMessage } from '@/api/client';
 import { useAuthStore } from '@/store/auth';
-import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
+import { type Palette, spacing, useColors, useStyles } from '@/theme';
 
-import { BandeauBienvenue, Kpi, TitreGraphique } from './DashboardUi';
+import { BandeauBienvenue, Kpi, TitreGraphique, VoirPlus } from './DashboardUi';
 import { Anneau, Histogramme } from './Graphiques';
 import { Screen } from './Screen';
 import { Badge, Card, ErrorState, Loading } from './ui';
@@ -79,10 +79,7 @@ export function AccueilSuperAdmin() {
             <FontAwesome5 name="clock" size={15} color={colors.textMuted} />
             <Text style={styles.titre} numberOfLines={2}>Derniers Incubateurs Créés</Text>
           </View>
-          <Pressable onPress={() => ouvrir('/incubateurs')} style={styles.voirTout} hitSlop={8}>
-            <Text style={styles.voirToutTexte}>Voir tout</Text>
-            <FontAwesome5 name="arrow-right" size={11} color={colors.text} />
-          </Pressable>
+          <VoirPlus onPress={() => ouvrir('/incubateurs')} />
         </View>
         {data.derniers_incubateurs.length === 0 && <Text style={styles.vide}>Aucun incubateur enregistré</Text>}
         {data.derniers_incubateurs.map((i: any) => (
@@ -115,11 +112,6 @@ const createStyles = (colors: Palette) => StyleSheet.create({
   titre: { flexShrink: 1, fontSize: 15, fontWeight: '600', color: colors.text },
   vide: { fontSize: 13, color: colors.textMuted, textAlign: 'center', paddingVertical: spacing.md },
   entete: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  voirTout: {
-    flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md, paddingHorizontal: 10, paddingVertical: 6,
-  },
-  voirToutTexte: { fontSize: 12, fontWeight: '600', color: colors.text },
   incubateur: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   avatar: { width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   avatarTexte: { color: '#fff', fontSize: 16, fontWeight: '700' },

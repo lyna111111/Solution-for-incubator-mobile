@@ -45,6 +45,18 @@ export function BandeauBienvenue({ titre, nom, detail }: { titre: string; nom: s
   );
 }
 
+/** Bouton « Voir plus » commun à tous les accueils (administrateurs, Super Admin, utilisateurs). */
+export function VoirPlus({ onPress }: { onPress: () => void }) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress} style={styles.voirPlus} hitSlop={8}>
+      <Text style={styles.voirPlusTexte}>Voir plus</Text>
+      <FontAwesome5 name="arrow-right" size={11} color={colors.text} />
+    </Pressable>
+  );
+}
+
 /**
  * Titre d'une carte de graphique : icône colorée, titre et, si besoin, une phrase d'aide. Avec `route`, un bouton
  * « Voir plus » mène à la page qui détaille ces chiffres (à ne donner que si cette page existe et est accessible).
@@ -54,18 +66,12 @@ export function TitreGraphique({ icone, couleur, titre, indice, route }: {
 }) {
   const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
-  const colors = useColors();
   return (
     <View style={{ gap: 4 }}>
       <View style={styles.titreLigne}>
         <FontAwesome5 name={icone} size={15} color={couleur} />
         <Text style={styles.titre}>{titre}</Text>
-        {!!route && (
-          <Pressable accessibilityRole="button" onPress={() => ouvrir(route)} style={styles.voirPlus} hitSlop={8}>
-            <Text style={styles.voirPlusTexte}>Voir plus</Text>
-            <FontAwesome5 name="arrow-right" size={11} color={colors.text} />
-          </Pressable>
-        )}
+        {!!route && <VoirPlus onPress={() => ouvrir(route)} />}
       </View>
       {!!indice && <Text style={styles.indice}>{indice}</Text>}
     </View>
