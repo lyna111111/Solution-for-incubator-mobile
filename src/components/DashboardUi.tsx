@@ -44,8 +44,9 @@ export function TitreGraphique({ icone, couleur, titre, indice }: { icone: IconN
 }
 
 const createStyles = (colors: Palette) => StyleSheet.create({
-  kpi: { width: '47.5%', flexGrow: 1 },
-  kpiContenu: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md },
+  // Toutes les cartes ont la même taille : deux par ligne à largeur égale, même hauteur (la carte remplit son bouton).
+  kpi: { flexBasis: '47.5%', flexGrow: 1, flexShrink: 0 },
+  kpiContenu: { flex: 1, minHeight: 96, flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md },
   kpiIcone: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   kpiLabel: { fontSize: 11, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
   kpiValeur: { fontSize: 24, fontWeight: '700', color: colors.text },

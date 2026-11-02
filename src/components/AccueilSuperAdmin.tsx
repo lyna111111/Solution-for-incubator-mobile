@@ -42,8 +42,8 @@ export function AccueilSuperAdmin() {
           valeur={data.incubateurs_actifs} route="/incubateurs?statut=actif" />
         <Kpi icone="coins" couleur={colors.warning} fond={colors.warningSoft} label="Revenus Totaux"
           valeur={espacer(data.revenus_total ?? 0)} unite="DA" route="/paiements?statut=completed" />
-        <Kpi icone="exclamation-triangle" couleur={colors.danger} fond={colors.dangerSoft} label="Abonnements Expirés"
-          valeur={data.abonnements_annules} route="/abonnements?statut=annule" />
+        <Kpi icone="sync-alt" couleur={colors.secondary} fond={colors.primarySoft} label="Tous les Abonnements"
+          valeur={data.abonnements_total ?? 0} route="/abonnements" />
       </View>
 
       <Card style={{ gap: spacing.md }}>
