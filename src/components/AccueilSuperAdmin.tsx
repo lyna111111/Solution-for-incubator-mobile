@@ -1,4 +1,3 @@
-import { FontAwesome5 } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -8,10 +7,10 @@ import { getErrorMessage } from '@/api/client';
 import { useAuthStore } from '@/store/auth';
 import { type Palette, spacing, useColors, useStyles } from '@/theme';
 
-import { BandeauBienvenue, Kpi, TitreGraphique, VoirPlus } from './DashboardUi';
+import { BandeauBienvenue, Kpi, SectionCarte } from './DashboardUi';
 import { Anneau, Histogramme } from './Graphiques';
 import { Screen } from './Screen';
-import { Badge, Card, ErrorState, Loading } from './ui';
+import { Badge, ErrorState, Loading } from './ui';
 
 const espacer = (n: number) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
@@ -50,9 +49,7 @@ export function AccueilSuperAdmin() {
           valeur={data.abonnements_total ?? 0} route="/abonnements" />
       </View>
 
-      <Card style={{ gap: spacing.md }}>
-        <TitreGraphique icone="chart-pie" couleur={colors.primary} titre="Répartition des Plans"
-          indice="Cliquez sur un plan pour voir les abonnements correspondants" route="/abonnements" />
+      <SectionCarte icone="chart-pie" couleur={colors.primary} titre="Répartition des Plans" indice="Cliquez sur un plan pour voir les abonnements correspondants" route="/abonnements">
         {data.plans.length === 0
           ? <Text style={styles.vide}>Aucun abonnement.</Text>
           : (
@@ -62,25 +59,16 @@ export function AccueilSuperAdmin() {
               onSelect={(p) => ouvrir({ pathname: '/abonnements', params: { plan: p.cle } })}
             />
           )}
-      </Card>
+      </SectionCarte>
 
-      <Card style={{ gap: spacing.md }}>
-        <TitreGraphique icone="chart-bar" couleur={colors.secondary} titre="Revenus Mensuels (6 derniers mois)"
-          indice="Cliquez sur un mois pour voir les paiements correspondants" route="/paiements?statut=completed" />
+      <SectionCarte icone="chart-bar" couleur={colors.secondary} titre="Revenus Mensuels (6 derniers mois)" indice="Cliquez sur un mois pour voir les paiements correspondants" route="/paiements?statut=completed">
         <Histogramme
           barres={data.revenus.map((r: any) => ({ cle: r.cle, label: r.libelle, valeur: r.total }))}
           onSelect={(b) => ouvrir({ pathname: '/paiements', params: { statut: 'completed', mois: b.cle } })}
         />
-      </Card>
+      </SectionCarte>
 
-      <Card style={{ gap: spacing.md }}>
-        <View style={styles.entete}>
-          <View style={[styles.titreLigne, { flex: 1 }]}>
-            <FontAwesome5 name="clock" size={15} color={colors.textMuted} />
-            <Text style={styles.titre} numberOfLines={2}>Derniers Incubateurs Créés</Text>
-          </View>
-          <VoirPlus onPress={() => ouvrir('/incubateurs')} />
-        </View>
+      <SectionCarte icone="clock" couleur={colors.textMuted} titre="Derniers Incubateurs Créés" route="/incubateurs">
         {data.derniers_incubateurs.length === 0 && <Text style={styles.vide}>Aucun incubateur enregistré</Text>}
         {data.derniers_incubateurs.map((i: any) => (
           <Pressable key={i.id} onPress={() => ouvrir(`/incubateurs/${i.id}`)} style={styles.incubateur}>
@@ -99,7 +87,7 @@ export function AccueilSuperAdmin() {
             </View>
           </Pressable>
         ))}
-      </Card>
+      </SectionCarte>
 
       <Text style={styles.pied}>© 2026 Solution for Incubator — Super Admin</Text>
     </Screen>

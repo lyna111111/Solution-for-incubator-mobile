@@ -1,5 +1,5 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRef } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -8,12 +8,13 @@ import { useOuvrir } from '@/hooks/useOuvrir';
 import { adminGet } from '@/admin/api';
 import { getErrorMessage } from '@/api/client';
 import { useAuthStore } from '@/store/auth';
-import { gradient, type Palette, radius, spacing, useColors, useStyles } from '@/theme';
+import { gradient, type Palette, spacing, useColors, useStyles } from '@/theme';
 
-import { BandeauBienvenue, Kpi, TitreGraphique, VoirPlus } from './DashboardUi';
+import { SectionDemandes, SectionEvenements, SectionNotifications, SectionRequetes, CLE_SECTIONS } from './AccueilAdminSections';
+import { BandeauBienvenue, Kpi, Pastilles, SectionCarte } from './DashboardUi';
 import { Anneau, HistogrammeEmpile } from './Graphiques';
 import { Screen } from './Screen';
-import { Card, ErrorState, Loading } from './ui';
+import { ErrorState, Loading } from './ui';
 
 type IconName = React.ComponentProps<typeof FontAwesome5>['name'];
 
@@ -26,6 +27,7 @@ export function AccueilAdmin() {
   const styles = useStyles(createStyles);
   const colors = useColors();
   const user = useAuthStore((s) => s.user);
+  const queryClient = useQueryClient();
   // Tirer-pour-actualiser demande des chiffres recalculés (le serveur garde sinon ceux des 5 dernières minutes).
   const frais = useRef(false);
   const { data, isLoading, isRefetching, error, refetch } = useQuery({
@@ -56,60 +58,57 @@ export function AccueilAdmin() {
     { icone: 'user-shield', label: 'Dernier admin', valeur: data.derniers.administrateur, couleur: colors.danger, fond: colors.dangerSoft, route: lien('administrateurs') },
   ];
 
+  // Seules les lignes dont la page est accessible : sans aucune, la carte « Activité récente » disparaît.
+  const activiteAccessible = activite.filter((a) => a.route);
+
   return (
-    <Screen withTopInset title="Tableau de bord" refreshing={isRefetching} onRefresh={() => { frais.current = true; void refetch(); }}>
+    <Screen withTopInset title="Tableau de bord" refreshing={isRefetching} onRefresh={() => { frais.current = true; void refetch(); void queryClient.invalidateQueries({ queryKey: CLE_SECTIONS }); }}>
       <BandeauBienvenue titre={(user?.type === 'Admin principal' ? 'Administrateur principal' : user?.type) ?? ''}
         nom={`${user?.prenom ?? ''} ${user?.nom ?? ''}`.trim()} detail={user?.incubateur?.nom} />
 
+      {/* Chaque section n'est affichée que si l'administrateur a accès à la page qu'elle détaille. */}
       <View style={styles.grille}>
-        <Kpi icone="users" couleur={colors.primary} fond={colors.primarySoft} label="Inscrits" valeur={t.utilisateurs}
-          route={lien('utilisateurs')} />
-        <Kpi icone="tasks" couleur={colors.info} fond={colors.infoSoft} label="Requêtes reçues" valeur={t.requetes}
-          route={lien('requetes')} />
-        <Kpi icone="calendar-alt" couleur={colors.success} fond={colors.successSoft} label="Événements" valeur={t.evenements}
-          route={lien('evenements')} />
-        <Kpi icone="user-shield" couleur={colors.warning} fond={colors.warningSoft} label="Staff" valeur={t.administrateurs}
-          route={lien('administrateurs')} />
+        {!!lien('utilisateurs') && <Kpi icone="users" couleur={colors.primary} fond={colors.primarySoft} label="Inscrits" valeur={t.utilisateurs}
+          route={lien('utilisateurs')} />}
+        {!!lien('requetes') && <Kpi icone="tasks" couleur={colors.info} fond={colors.infoSoft} label="Requêtes reçues" valeur={t.requetes}
+          route={lien('requetes')} />}
+        {!!lien('evenements') && <Kpi icone="calendar-alt" couleur={colors.success} fond={colors.successSoft} label="Événements" valeur={t.evenements}
+          route={lien('evenements')} />}
+        {!!lien('administrateurs') && <Kpi icone="user-shield" couleur={colors.warning} fond={colors.warningSoft} label="Staff" valeur={t.administrateurs}
+          route={lien('administrateurs')} />}
       </View>
 
-      <Card style={{ gap: spacing.md }}>
-        <TitreGraphique icone="chart-pie" couleur={colors.primary} titre="Répartition des utilisateurs" route={lien('utilisateurs')} />
-        <Anneau parts={data.repartition_utilisateurs.map((r: any, i: number) => ({
-          cle: r.type, label: r.libelle, valeur: r.total, couleur: COULEURS_UTILISATEURS[i % COULEURS_UTILISATEURS.length] }))} />
-      </Card>
+      <SectionRequetes />
+      <SectionDemandes />
+      <SectionEvenements />
 
-      <Card style={{ gap: spacing.md }}>
-        <TitreGraphique icone="calendar-check" couleur={colors.secondary} titre="Événements par trimestre" route={lien('evenements')} />
-        <HistogrammeEmpile
-          series={[
-            { label: 'Workshops', couleur: '#8a3ffc' }, { label: 'Conférences', couleur: '#00c2ff' }, { label: 'Formations', couleur: '#10b981' },
-          ]}
-          barres={trimestres.labels.map((label: string, i: number) => ({
-            cle: label, label, valeurs: [trimestres.workshops[i], trimestres.conferences[i], trimestres.formations[i]] }))}
-        />
-      </Card>
+      {!!lien('utilisateurs') && (
+        <SectionCarte icone="chart-pie" couleur={colors.primary} titre="Répartition des utilisateurs" route={lien('utilisateurs')}>
+          <Anneau parts={data.repartition_utilisateurs.map((r: any, i: number) => ({
+            cle: r.type, label: r.libelle, valeur: r.total, couleur: COULEURS_UTILISATEURS[i % COULEURS_UTILISATEURS.length] }))} />
+        </SectionCarte>
+      )}
 
-      <Card style={{ gap: spacing.md }}>
-        <TitreGraphique icone="file-alt" couleur={colors.success} titre="Documents" route={lien('documents')} />
-        <View style={styles.documents}>
-          {documents.map((d) => (
-            <View key={d.label} style={styles.document}>
-              <View style={[styles.documentIcone, { backgroundColor: d.fond }]}><FontAwesome5 name={d.icone} size={14} color={d.couleur} /></View>
-              <Text style={styles.documentValeur}>{d.valeur}</Text>
-              <Text style={styles.documentLabel}>{d.label}</Text>
-            </View>
-          ))}
-        </View>
-      </Card>
+      {!!lien('evenements') && (
+        <SectionCarte icone="calendar-check" couleur={colors.secondary} titre="Événements par trimestre" route={lien('evenements')}>
+          <HistogrammeEmpile
+            series={[
+              { label: 'Workshops', couleur: '#8a3ffc' }, { label: 'Conférences', couleur: '#00c2ff' }, { label: 'Formations', couleur: '#10b981' },
+            ]}
+            barres={trimestres.labels.map((label: string, i: number) => ({
+              cle: label, label, valeurs: [trimestres.workshops[i], trimestres.conferences[i], trimestres.formations[i]] }))}
+          />
+        </SectionCarte>
+      )}
 
-      {data.top_projets.length > 0 && (
-        <Card style={{ gap: spacing.md }}>
-          <View style={styles.entete}>
-            <View style={{ flex: 1 }}>
-              <TitreGraphique icone="rocket" couleur={colors.primary} titre="Progression des projets clés" />
-            </View>
-            {!!lien('projets') && <VoirPlus onPress={() => ouvrir('/gestion/projets')} />}
-          </View>
+      {!!lien('documents') && (
+        <SectionCarte icone="file-alt" couleur={colors.success} titre="Documents" route={lien('documents')}>
+          <Pastilles valeurs={documents} />
+        </SectionCarte>
+      )}
+
+      {!!lien('projets') && data.top_projets.length > 0 && (
+        <SectionCarte icone="rocket" couleur={colors.primary} titre="Progression des projets clés" route={lien('projets')}>
           {data.top_projets.map((p: any) => (
             <View key={p.id} style={{ gap: 6 }}>
               <View style={styles.entete}>
@@ -122,33 +121,31 @@ export function AccueilAdmin() {
               </View>
             </View>
           ))}
-        </Card>
+        </SectionCarte>
       )}
 
-      <Card style={{ gap: spacing.md }}>
-        <TitreGraphique icone="history" couleur={colors.textMuted} titre="Activité récente" route={lien('statistiques')} />
-        {activite.every((a) => !a.valeur) && <Text style={styles.vide}>Aucune activité pour le moment.</Text>}
-        {activite.filter((a) => a.valeur).map((a) => (
-          <Pressable key={a.label} disabled={!a.route} onPress={() => a.route && ouvrir(a.route)} style={styles.activite}>
-            <View style={[styles.activiteIcone, { backgroundColor: a.fond }]}><FontAwesome5 name={a.icone} size={13} color={a.couleur} /></View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.activiteLabel}>{a.label}</Text>
-              <Text style={styles.activiteValeur} numberOfLines={2}>{a.valeur}</Text>
-            </View>
-          </Pressable>
-        ))}
-      </Card>
+      <SectionNotifications />
+
+      {activiteAccessible.length > 0 && (
+        <SectionCarte icone="history" couleur={colors.textMuted} titre="Activité récente" route={lien('statistiques')}>
+          {activiteAccessible.every((a) => !a.valeur) && <Text style={styles.vide}>Aucune activité pour le moment.</Text>}
+          {activiteAccessible.filter((a) => a.valeur).map((a) => (
+            <Pressable key={a.label} onPress={() => ouvrir(a.route!)} style={styles.activite}>
+              <View style={[styles.activiteIcone, { backgroundColor: a.fond }]}><FontAwesome5 name={a.icone} size={13} color={a.couleur} /></View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.activiteLabel}>{a.label}</Text>
+                <Text style={styles.activiteValeur} numberOfLines={2}>{a.valeur}</Text>
+              </View>
+            </Pressable>
+          ))}
+        </SectionCarte>
+      )}
     </Screen>
   );
 }
 
 const createStyles = (colors: Palette) => StyleSheet.create({
   grille: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-  documents: { flexDirection: 'row', gap: spacing.sm },
-  document: { flex: 1, alignItems: 'center', gap: 4, backgroundColor: colors.background, borderRadius: radius.md, paddingVertical: spacing.md },
-  documentIcone: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  documentValeur: { fontSize: 20, fontWeight: '700', color: colors.text },
-  documentLabel: { fontSize: 11, color: colors.textMuted },
   entete: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   projet: { flex: 1, fontSize: 14, fontWeight: '600', color: colors.text },
   pourcentage: { fontSize: 13, fontWeight: '700', color: colors.primary },

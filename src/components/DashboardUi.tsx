@@ -78,6 +78,39 @@ export function TitreGraphique({ icone, couleur, titre, indice, route }: {
   );
 }
 
+/**
+ * Section d'un tableau de bord : le titre (icône, titre, « Voir plus ») est à l'extérieur, au-dessus de la carte
+ * qui contient le contenu. « Voir plus » n'apparaît que si `route` est donnée.
+ */
+export function SectionCarte({ icone, couleur, titre, indice, route, children }: {
+  icone: IconName; couleur: string; titre: string; indice?: string; route?: string; children: React.ReactNode;
+}) {
+  return (
+    <View style={{ gap: spacing.md }}>
+      <TitreGraphique icone={icone} couleur={couleur} titre={titre} indice={indice} route={route} />
+      <Card style={{ gap: spacing.md }}>{children}</Card>
+    </View>
+  );
+}
+
+/** Rangée de petites pastilles de chiffres (icône, valeur, libellé) à l'intérieur d'une carte de section. */
+export function Pastilles({ valeurs }: {
+  valeurs: { label: string; valeur: number; icone: IconName; couleur: string; fond: string }[];
+}) {
+  const styles = useStyles(createStyles);
+  return (
+    <View style={styles.pastilles}>
+      {valeurs.map((d) => (
+        <View key={d.label} style={styles.pastille}>
+          <View style={[styles.pastilleIcone, { backgroundColor: d.fond }]}><FontAwesome5 name={d.icone} size={14} color={d.couleur} /></View>
+          <Text style={styles.pastilleValeur}>{d.valeur}</Text>
+          <Text style={styles.pastilleLabel} numberOfLines={1}>{d.label}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 const createStyles = (colors: Palette) => StyleSheet.create({
   // Toutes les cartes ont la même taille : deux par ligne à largeur égale, même hauteur (la carte remplit son bouton).
   kpi: { flexBasis: '47.5%', flexGrow: 1, flexShrink: 0 },
@@ -99,4 +132,9 @@ const createStyles = (colors: Palette) => StyleSheet.create({
   },
   voirPlusTexte: { fontSize: 12, fontWeight: '600', color: colors.text },
   indice: { fontSize: 12, color: colors.textMuted },
+  pastilles: { flexDirection: 'row', gap: spacing.sm },
+  pastille: { flex: 1, alignItems: 'center', gap: 4, backgroundColor: colors.background, borderRadius: radius.md, paddingVertical: spacing.md, paddingHorizontal: 4 },
+  pastilleIcone: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  pastilleValeur: { fontSize: 20, fontWeight: '700', color: colors.text },
+  pastilleLabel: { fontSize: 11, color: colors.textMuted },
 });
