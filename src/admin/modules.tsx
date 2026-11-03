@@ -1,12 +1,13 @@
-import { StyleSheet, View } from 'react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { getErrorMessage } from '@/api/client';
 import { Dialogue } from '@/components/Dialogue';
 import { Button } from '@/components/ui';
-import { spacing } from '@/theme';
+import { radius, spacing, useColors } from '@/theme';
 
 import { adminEnvoyer } from './api';
-import type { ModuleDef } from './types';
+import type { ContexteListe, ModuleDef } from './types';
 import { Compteurs } from './ui';
 import { MODULES_SUPER } from './modulesSuper';
 
@@ -51,6 +52,24 @@ function ActionsDemande({ item, rafraichir }: { item: any; rafraichir: () => voi
   );
 }
 
+/** Bandeau bien visible : des demandes d'inscription attendent une réponse (la liste s'ouvre sur les actifs). */
+function BandeauDemandes({ nombre, ctx }: { nombre: number; ctx: ContexteListe }) {
+  const colors = useColors();
+  if (nombre <= 0 || ctx.filtres.etat === 'En attente') return null;
+  return (
+    <Pressable
+      onPress={() => ctx.choisirFiltre('etat', 'En attente')}
+      style={[styles.bandeau, { backgroundColor: colors.warningSoft, borderColor: colors.warning }]}
+    >
+      <FontAwesome5 name="user-clock" size={18} color={colors.warning} />
+      <Text style={[styles.bandeauTexte, { color: colors.text }]}>
+        {nombre} {nombre > 1 ? "demandes d'inscription attendent" : "demande d'inscription attend"} votre réponse
+      </Text>
+      <Text style={{ color: colors.primary, fontWeight: '700' }}>Voir</Text>
+    </Pressable>
+  );
+}
+
 export const MODULES: Record<string, ModuleDef> = {
   utilisateurs: {
     cle: 'utilisateurs',
@@ -70,11 +89,14 @@ export const MODULES: Record<string, ModuleDef> = {
       titre: (u) => `${u.prenom} ${u.nom}`,
       sousTitre: (u) => `${u.email}${u.matricule ? ` · ${u.matricule}` : ''}`,
       badge: (u) => u.type,
-      entete: (r) => (
-        <Compteurs valeurs={[
-          { label: 'Total', valeur: r.compteurs.total }, { label: 'Étudiants', valeur: r.compteurs.etudiants },
-          { label: 'Porteurs', valeur: r.compteurs.porteurs_de_projet }, { label: 'Demandes', valeur: r.compteurs.demandes },
-        ]} />
+      entete: (r, ctx) => (
+        <>
+          <BandeauDemandes nombre={r.compteurs.demandes} ctx={ctx} />
+          <Compteurs valeurs={[
+            { label: 'Total', valeur: r.compteurs.total }, { label: 'Étudiants', valeur: r.compteurs.etudiants },
+            { label: 'Porteurs', valeur: r.compteurs.porteurs_de_projet }, { label: 'Demandes', valeur: r.compteurs.demandes },
+          ]} />
+        </>
       ),
       actions: (u, rafraichir) => <ActionsDemande item={u} rafraichir={rafraichir} />,
     },
@@ -248,4 +270,6 @@ export const MODULES: Record<string, ModuleDef> = {
 
 const styles = StyleSheet.create({
   actions: { flexDirection: 'row', gap: spacing.sm },
+  bandeau: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderWidth: 1, borderRadius: radius.lg, padding: spacing.md },
+  bandeauTexte: { flex: 1, fontSize: 14, fontWeight: '600' },
 });

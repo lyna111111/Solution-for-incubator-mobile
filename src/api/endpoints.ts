@@ -41,8 +41,8 @@ export async function login(email: string, mdp: string): Promise<LoginResponse> 
 }
 
 export async function register(payload: RegisterPayload): Promise<string> {
-  // L'inscription utilise la route existante du backend (publique, inchangée).
-  const { data } = await api.post<{ message: string }>('/auth/register/', payload);
+  // Même inscription que le site : crée le compte et envoie l'e-mail de confirmation.
+  const { data } = await api.post<{ message: string }>('/mobile/auth/register/', payload);
   return data.message;
 }
 

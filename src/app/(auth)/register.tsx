@@ -20,8 +20,26 @@ const TYPES = [
   'MembreCommissionTechnique',
 ];
 
+// Le formulaire est découpé en 3 étapes courtes.
+const ETAPES = [
+  { titre: 'Qui êtes-vous ?', sousTitre: 'Vos informations personnelles' },
+  { titre: 'Votre profil', sousTitre: 'Incubateur et type de compte' },
+  { titre: 'Sécurité', sousTitre: 'Choisissez votre mot de passe' },
+];
+
 export default function Inscription() {
-  const reculer = useReculer({ secours: '/login', android: true });
+  const [etape, setEtape] = useState(0);
+  // Le retour (flèche, bouton Android) revient d'abord à l'étape précédente avant de quitter la page.
+  const reculer = useReculer({
+    secours: '/login',
+    android: true,
+    avant: () => {
+      if (etape === 0) return false;
+      setErreur('');
+      setEtape(etape - 1);
+      return true;
+    },
+  });
   const remplacer = useRemplacer();
   const styles = useStyles(createStyles);
   const colors = useColors();
@@ -44,23 +62,35 @@ export default function Inscription() {
 
   const maj = (champ: keyof typeof form) => (valeur: string) => setForm((f) => ({ ...f, [champ]: valeur }));
 
+  /** Vérifie les champs de l'étape affichée ; renvoie le message d'erreur, ou '' si tout est bon. */
+  function verifier(numero: number) {
+    if (numero === 0 && (!form.nom.trim() || !form.prenom.trim() || !form.email.trim())) {
+      return 'Nom, prénom et email sont obligatoires.';
+    }
+    if (numero === 1 && !incubateurId) return 'Choisissez votre incubateur.';
+    if (numero === 2) {
+      if (form.mdp.length < 8) return 'Le mot de passe doit contenir au moins 8 caractères.';
+      if (form.mdp !== form.mdp_confirmation) return 'Les mots de passe ne correspondent pas.';
+    }
+    return '';
+  }
+
+  function suivant() {
+    const probleme = verifier(etape);
+    setErreur(probleme);
+    if (!probleme) setEtape(etape + 1);
+  }
+
   async function sInscrire() {
-    if (!incubateurId) {
-      setErreur('Choisissez votre incubateur.');
-      return;
+    for (let i = 0; i < ETAPES.length; i++) {
+      const probleme = verifier(i);
+      if (probleme) {
+        setEtape(i);
+        setErreur(probleme);
+        return;
+      }
     }
-    if (!form.nom.trim() || !form.prenom.trim() || !form.email.trim()) {
-      setErreur('Nom, prénom et email sont obligatoires.');
-      return;
-    }
-    if (form.mdp.length < 8) {
-      setErreur('Le mot de passe doit contenir au moins 8 caractères.');
-      return;
-    }
-    if (form.mdp !== form.mdp_confirmation) {
-      setErreur('Les mots de passe ne correspondent pas.');
-      return;
-    }
+    if (!incubateurId) return;
     setErreur('');
     setChargement(true);
     try {
@@ -97,83 +127,161 @@ export default function Inscription() {
     );
   }
 
+  const derniere = etape === ETAPES.length - 1;
+
   return (
-    <AuthShell title="Inscription" subtitle="Rejoignez la plateforme">
+    <AuthShell title={ETAPES[etape].titre} subtitle={ETAPES[etape].sousTitre}>
+      <View style={styles.progression}>
+        <View style={styles.barres}>
+          {ETAPES.map((e, i) => (
+            <View key={e.titre} style={[styles.barre, i <= etape && styles.barreActive]} />
+          ))}
+        </View>
+        <Text style={styles.progressionTexte}>
+          Étape {etape + 1} sur {ETAPES.length}
+        </Text>
+      </View>
+
       {!!erreur && <Banner message={erreur} />}
 
-      <Field label="Nom *" icon="user" value={form.nom} onChangeText={maj('nom')} autoCapitalize="words" />
-      <Field label="Prénom *" icon="user" value={form.prenom} onChangeText={maj('prenom')} autoCapitalize="words" />
-      <Field
-        label="Email *"
-        icon="envelope"
-        value={form.email}
-        onChangeText={maj('email')}
-        autoCapitalize="none"
-        autoCorrect={false}
-        keyboardType="email-address"
+      {etape === 0 && (
+        <>
+          <Field
+            label="Nom *"
+            icon="user"
+            value={form.nom}
+            onChangeText={maj('nom')}
+            autoCapitalize="words"
+            placeholder="Votre nom"
+          />
+          <Field
+            label="Prénom *"
+            icon="user"
+            value={form.prenom}
+            onChangeText={maj('prenom')}
+            autoCapitalize="words"
+            placeholder="Votre prénom"
+          />
+          <Field
+            label="Email *"
+            icon="envelope"
+            value={form.email}
+            onChangeText={maj('email')}
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="email-address"
+            textContentType="emailAddress"
+            placeholder="votre@email.com"
+          />
+        </>
+      )}
+
+      {etape === 1 && (
+        <>
+          <Text style={styles.label}>Incubateur *</Text>
+          <Text style={[styles.aide, { marginBottom: spacing.sm }]}>
+            L&apos;administrateur de l&apos;incubateur choisi validera votre inscription.
+          </Text>
+          <View style={styles.chips}>
+            {incubateurs.isLoading && <Text style={styles.aide}>Chargement des incubateurs...</Text>}
+            {!!incubateurs.error && (
+              <Pressable onPress={() => void incubateurs.refetch()}>
+                <Text style={styles.aide}>{getErrorMessage(incubateurs.error)} Appuyez pour réessayer.</Text>
+              </Pressable>
+            )}
+            {(incubateurs.data ?? []).map((inc) => (
+              <Pressable
+                key={inc.slug}
+                onPress={() => setIncubateurId(inc.id ?? null)}
+                style={[styles.chip, incubateurId === inc.id && styles.chipActive]}
+              >
+                <Text style={[styles.chipText, incubateurId === inc.id && styles.chipTextActive]}>{inc.nom}</Text>
+              </Pressable>
+            ))}
+          </View>
+
+          <Text style={styles.label}>Type de compte *</Text>
+          <View style={styles.chips}>
+            {TYPES.map((t) => (
+              <Pressable
+                key={t}
+                onPress={() => maj('type')(t)}
+                style={[styles.chip, form.type === t && styles.chipActive]}
+              >
+                <Text style={[styles.chipText, form.type === t && styles.chipTextActive]}>{t}</Text>
+              </Pressable>
+            ))}
+          </View>
+
+          <Field
+            label="Matricule"
+            icon="id-card"
+            value={form.matricule}
+            onChangeText={maj('matricule')}
+            autoCapitalize="characters"
+            placeholder="Ex : 20231234"
+          />
+          <Field
+            label="Département"
+            value={form.departement}
+            onChangeText={maj('departement')}
+            placeholder="Ex : Informatique"
+          />
+          <Field label="Faculté" value={form.faculte} onChangeText={maj('faculte')} placeholder="Ex : Sciences et technologies" />
+        </>
+      )}
+
+      {etape === 2 && (
+        <>
+          <Field
+            label="Mot de passe * (8 caractères minimum)"
+            icon="lock"
+            value={form.mdp}
+            onChangeText={maj('mdp')}
+            secureTextEntry
+            autoCapitalize="none"
+            placeholder="••••••••"
+          />
+          <Field
+            label="Confirmer le mot de passe *"
+            icon="lock"
+            value={form.mdp_confirmation}
+            onChangeText={maj('mdp_confirmation')}
+            secureTextEntry
+            autoCapitalize="none"
+            placeholder="Retapez le mot de passe"
+            onSubmitEditing={() => void sInscrire()}
+          />
+        </>
+      )}
+
+      <Button
+        pill
+        icon={derniere ? 'check' : 'arrow-right'}
+        title={derniere ? "S'inscrire" : 'Suivant'}
+        onPress={derniere ? () => void sInscrire() : suivant}
+        loading={chargement}
       />
-      <Field label="Matricule" icon="id-card" value={form.matricule} onChangeText={maj('matricule')} autoCapitalize="characters" />
-      <Field label="Département" value={form.departement} onChangeText={maj('departement')} />
-      <Field label="Faculté" value={form.faculte} onChangeText={maj('faculte')} />
-
-      <Text style={styles.label}>Incubateur *</Text>
-      <View style={styles.chips}>
-        {incubateurs.isLoading && <Text style={styles.aide}>Chargement des incubateurs...</Text>}
-        {!!incubateurs.error && (
-          <Pressable onPress={() => void incubateurs.refetch()}>
-            <Text style={styles.aide}>{getErrorMessage(incubateurs.error)} Appuyez pour réessayer.</Text>
-          </Pressable>
-        )}
-        {(incubateurs.data ?? []).map((inc) => (
-          <Pressable
-            key={inc.slug}
-            onPress={() => setIncubateurId(inc.id ?? null)}
-            style={[styles.chip, incubateurId === inc.id && styles.chipActive]}
-          >
-            <Text style={[styles.chipText, incubateurId === inc.id && styles.chipTextActive]}>{inc.nom}</Text>
-          </Pressable>
-        ))}
-      </View>
-
-      <Text style={styles.label}>Type de compte *</Text>
-      <View style={styles.chips}>
-        {TYPES.map((t) => (
-          <Pressable
-            key={t}
-            onPress={() => maj('type')(t)}
-            style={[styles.chip, form.type === t && styles.chipActive]}
-          >
-            <Text style={[styles.chipText, form.type === t && styles.chipTextActive]}>{t}</Text>
-          </Pressable>
-        ))}
-      </View>
-
-      <Field
-        label="Mot de passe * (8 caractères minimum)"
-        icon="lock"
-        value={form.mdp}
-        onChangeText={maj('mdp')}
-        secureTextEntry
-        autoCapitalize="none"
-      />
-      <Field
-        label="Confirmer le mot de passe *"
-        icon="lock"
-        value={form.mdp_confirmation}
-        onChangeText={maj('mdp_confirmation')}
-        secureTextEntry
-        autoCapitalize="none"
-      />
-
-      <Button pill icon="arrow-right" title="S'inscrire" onPress={() => void sInscrire()} loading={chargement} />
-      <Pressable onPress={reculer} style={{ alignItems: 'center', paddingVertical: spacing.lg }}>
-        <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 15 }}>Déjà un compte ? Se connecter</Text>
-      </Pressable>
+      {etape > 0 && (
+        <Pressable onPress={reculer} style={{ alignItems: 'center', paddingTop: spacing.lg }}>
+          <Text style={{ color: colors.textMuted, fontWeight: '600', fontSize: 15 }}>Retour</Text>
+        </Pressable>
+      )}
+      {etape === 0 && (
+        <Pressable onPress={reculer} style={{ alignItems: 'center', paddingVertical: spacing.lg }}>
+          <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 15 }}>Déjà un compte ? Se connecter</Text>
+        </Pressable>
+      )}
     </AuthShell>
   );
 }
 
 const createStyles = (colors: Palette) => StyleSheet.create({
+  progression: { marginBottom: spacing.lg, gap: 6 },
+  barres: { flexDirection: 'row', gap: 6 },
+  barre: { flex: 1, height: 5, borderRadius: 3, backgroundColor: colors.border },
+  barreActive: { backgroundColor: colors.primary },
+  progressionTexte: { color: colors.textMuted, fontSize: 12, fontWeight: '600', textAlign: 'center' },
   label: { fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 6 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
   chip: {

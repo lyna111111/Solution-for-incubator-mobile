@@ -1,5 +1,5 @@
 import { type Href, useNavigation, useRoute } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { BackHandler } from 'react-native';
 
 import { type Navigation, reculer, type Route } from '@/navigation/retour';
@@ -8,11 +8,23 @@ import { type Navigation, reculer, type Route } from '@/navigation/retour';
  * Bouton retour d'Android pour la page affichée : même fonction que la flèche (voir `navigation/retour.ts`).
  * Les écouteurs sont appelés du dernier au premier ; seule la page affichée répond.
  */
-export function useRetourAndroid(navigation: Navigation, route: Route, secours: Href, actif = true) {
+export function useRetourAndroid(
+  navigation: Navigation,
+  route: Route,
+  secours: Href,
+  actif = true,
+  avant?: () => boolean,
+) {
+  // Toujours la dernière version du rappel, sans réabonner l'écouteur à chaque rendu.
+  const avantRef = useRef(avant);
+  useEffect(() => {
+    avantRef.current = avant;
+  }, [avant]);
   useEffect(() => {
     if (!actif) return;
     const abonnement = BackHandler.addEventListener('hardwareBackPress', () => {
       if (!navigation.isFocused()) return false;
+      if (avantRef.current?.()) return true;
       reculer(navigation, route, secours);
       return true;
     });
@@ -25,12 +37,21 @@ export function useRetourAndroid(navigation: Navigation, route: Route, secours: 
  * enregistrement, une suppression), lien « retour ». À utiliser à la place de `router.back()`.
  *
  * - `secours` : où aller hors du Menu quand il n'y a aucune page précédente (lien direct, actualisation).
+ * - `avant` : rappel appelé d'abord ; s'il renvoie `true`, le retour est déjà pris en charge (ex. étape précédente
+ *   d'un formulaire en plusieurs étapes) et la page n'est pas quittée.
  * - `android` : branche aussi le bouton retour d'Android sur cette page (inutile dans le Menu, où la flèche de
  *   l'en-tête le fait déjà).
  */
-export function useReculer({ secours = '/menu', android = false }: { secours?: Href; android?: boolean } = {}) {
+export function useReculer({
+  secours = '/menu',
+  android = false,
+  avant,
+}: { secours?: Href; android?: boolean; avant?: () => boolean } = {}) {
   const navigation = useNavigation() as unknown as Navigation;
   const route = useRoute();
-  useRetourAndroid(navigation, route, secours, android);
-  return () => reculer(navigation, route, secours);
+  useRetourAndroid(navigation, route, secours, android, avant);
+  return () => {
+    if (avant?.()) return;
+    reculer(navigation, route, secours);
+  };
 }

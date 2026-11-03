@@ -44,6 +44,12 @@ export interface ChampDef {
   source?: string;
 }
 
+/** Ce que la liste donne à son en-tête : filtres actifs et moyen d'en changer un. */
+export interface ContexteListe {
+  filtres: Record<string, string>;
+  choisirFiltre: (param: string, valeur: string) => void;
+}
+
 export interface FiltreDef {
   param: string;
   options: { value: string; label: string }[];
@@ -73,7 +79,7 @@ export interface ModuleDef {
     titre: (x: any) => string;
     sousTitre: (x: any) => string;
     badge?: (x: any) => string | null;
-    entete?: (reponse: any) => ReactNode;
+    entete?: (reponse: any, ctx: ContexteListe) => ReactNode;
     actions?: (x: any, rafraichir: () => void) => ReactNode;
   };
   detail: { chemin: (id: string) => string; cle?: string };

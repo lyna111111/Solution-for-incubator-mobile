@@ -14,7 +14,7 @@ import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 import type { Pagination } from '@/types';
 
 import { adminGet, type BaseApi } from './api';
-import type { ChampDef, Fichier, FiltreDef } from './types';
+import type { ChampDef, ContexteListe, Fichier, FiltreDef } from './types';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- données des écrans de gestion décrites par la config de chaque module */
 
@@ -28,7 +28,7 @@ interface ListeAdminProps {
   placeholderRecherche?: string;
   filtres?: FiltreDef[];
   parametresUrl?: { param: string; libelle: string }[];
-  entete?: (reponse: any) => ReactNode;
+  entete?: (reponse: any, ctx: ContexteListe) => ReactNode;
   renderItem: (item: any, rafraichir: () => void) => ReactNode;
   action?: { titre: string; onPress: () => void };
   vide: string;
@@ -78,7 +78,10 @@ export function ListeAdmin({
   return (
     <Screen refreshing={requete.isRefetching} onRefresh={() => void requete.refetch()} fab={action}>
       <Stack.Screen options={{ title: titre }} />
-      {entete?.(requete.data)}
+      {entete?.(requete.data, {
+        filtres: tousFiltres,
+        choisirFiltre: (param, valeur) => { setValeursFiltres((x) => ({ ...x, [param]: valeur })); setPage(1); },
+      })}
 
       {placeholderRecherche !== undefined && (
         <Field
