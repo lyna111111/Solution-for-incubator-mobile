@@ -1,8 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { useOuvrir } from '@/hooks/useOuvrir';
+import { useAllerOnglet, useOuvrir } from '@/hooks/useOuvrir';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
 import { Card } from './ui';
@@ -34,9 +33,10 @@ export function Kpi({ icone, couleur, fond, label, valeur, unite, route }: {
 export function BandeauBienvenue({ titre, nom, detail }: { titre: string; nom: string; detail?: string | null }) {
   const styles = useStyles(createStyles);
   const colors = useColors();
+  const allerOnglet = useAllerOnglet();
   return (
     // Le Profil est un onglet : on y passe directement, sans l'empiler sur l'Accueil.
-    <Pressable accessibilityRole="button" accessibilityLabel="Ouvrir mon profil" onPress={() => router.navigate('/profil')}>
+    <Pressable accessibilityRole="button" accessibilityLabel="Ouvrir mon profil" onPress={() => allerOnglet('/profil')}>
       <Card style={styles.hero}>
         <View style={styles.heroIcone}><FontAwesome5 name="rocket" size={20} color={colors.primary} /></View>
         <View style={{ flex: 1, gap: 2 }}>

@@ -19,7 +19,8 @@ export type TypeChamp =
   | 'fichiers'
   | 'utilisateur'
   | 'utilisateurs'
-  | 'reference';
+  | 'reference'
+  | 'couleur';
 
 export interface ChampDef {
   nom: string;

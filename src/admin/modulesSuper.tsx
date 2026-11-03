@@ -118,6 +118,10 @@ function ActionsSuperAdmin({ item, rafraichir }: { item: any; rafraichir: () => 
   );
 }
 
+/** Couleurs du système, proposées par défaut à la création d'un incubateur. */
+const COULEUR_PRIMAIRE_DEFAUT = '#8a3ffc';
+const COULEUR_SECONDAIRE_DEFAUT = '#00c2ff';
+
 const optionnel = (champs: ChampDef[]) => champs.map((c) => ({ ...c, requis: false }));
 
 const CHAMPS_INCUBATEUR: ChampDef[] = [
@@ -128,8 +132,8 @@ const CHAMPS_INCUBATEUR: ChampDef[] = [
   { nom: 'adresse', label: 'Adresse', type: 'textarea' },
   { nom: 'offre_id', label: 'Offre', type: 'reference', source: 'offres/', cleListe: 'offres',
     libelleOption: (o) => `${o.nom} — ${formaterDA(o.prix)}/an` },
-  { nom: 'couleur_primaire', label: 'Couleur principale', type: 'text', placeholder: '#8a3ffc' },
-  { nom: 'couleur_secondaire', label: 'Couleur secondaire', type: 'text', placeholder: '#00c2ff' },
+  { nom: 'couleur_primaire', label: 'Couleur principale', type: 'couleur' },
+  { nom: 'couleur_secondaire', label: 'Couleur secondaire', type: 'couleur' },
   { nom: 'max_projets', label: 'Limite de projets', type: 'nombre', placeholder: '-1 = illimité' },
   { nom: 'max_utilisateurs', label: "Limite d'utilisateurs", type: 'nombre', placeholder: '-1 = illimité' },
   { nom: 'admin_nom', label: "Nom de l'administrateur principal", type: 'text', placeholder: 'Prénom Nom' },
@@ -172,6 +176,8 @@ export const MODULES_SUPER: Record<string, ModuleDef> = {
       max_projets: String(i.max_projets ?? ''), max_utilisateurs: String(i.max_utilisateurs ?? ''),
       admin_nom: i.admin_nom, admin_email: i.admin_email,
     }),
+    // Palette du système proposée d'office ; la personne la change ensuite à sa convenance.
+    valeursCreation: () => ({ couleur_primaire: COULEUR_PRIMAIRE_DEFAUT, couleur_secondaire: COULEUR_SECONDAIRE_DEFAUT }),
     creer: 'incubateurs/',
     modifier: (id) => `incubateurs/${id}/`,
     supprimer: (id) => `incubateurs/${id}/`,

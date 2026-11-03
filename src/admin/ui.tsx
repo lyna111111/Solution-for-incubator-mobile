@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import * as DocumentPicker from 'expo-document-picker';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { ReactNode, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { getErrorMessage } from '@/api/client';
 import { Chips } from '@/components/Chips';
@@ -296,6 +296,45 @@ export function SelecteurFichiers({
   );
 }
 
+// ── Choix d'une couleur ──────────────────────────────────────────────────────
+
+/** Palette proposée pour les couleurs d'un incubateur (la première est la couleur du système). */
+export const PALETTE_COULEURS = [
+  '#8a3ffc', '#00c2ff', '#4f46e5', '#2563eb', '#14b8a6',
+  '#10b981', '#f59e0b', '#f97316', '#ef4444', '#ec4899', '#334155',
+];
+
+const HEX = /^#[0-9a-fA-F]{6}$/;
+
+/** Pastilles de la palette + code hexadécimal modifiable : la couleur par défaut est déjà choisie, la personne peut en changer. */
+function SelecteurCouleur({ valeur, onChange }: { valeur: string; onChange: (v: string) => void }) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
+  const valide = HEX.test(valeur);
+  const saisir = (texte: string) => onChange(`#${texte.replace(/[^0-9a-fA-F]/g, '').slice(0, 6)}`);
+  return (
+    <View style={{ gap: spacing.sm }}>
+      <View style={styles.pastilles}>
+        {PALETTE_COULEURS.map((c) => {
+          const choisie = valeur.toLowerCase() === c;
+          return (
+            <Pressable key={c} onPress={() => onChange(c)} accessibilityRole="button" accessibilityLabel={`Couleur ${c}`}
+              style={[styles.pastille, { backgroundColor: c }, choisie && { borderColor: colors.text }]}>
+              {choisie && <FontAwesome5 name="check" size={13} color="#fff" />}
+            </Pressable>
+          );
+        })}
+      </View>
+      <View style={styles.codeLigne}>
+        <View style={[styles.apercu, { backgroundColor: valide ? valeur : colors.border }]} />
+        <TextInput value={valeur} onChangeText={saisir} autoCapitalize="none" autoCorrect={false} maxLength={7}
+          placeholder="#8a3ffc" placeholderTextColor="#94a3b8" style={styles.codeSaisie} />
+      </View>
+      <Text style={styles.aide}>{valide ? 'Choisissez une couleur de la palette ou saisissez votre code (#RRGGBB).' : 'Code incomplet : 6 caractères attendus après le #.'}</Text>
+    </View>
+  );
+}
+
 // ── Formulaire générique piloté par une liste de champs ──────────────────────
 
 interface FormulaireProps {
@@ -370,6 +409,14 @@ export function FormulaireAdmin({ champs, mode, valeursInitiales = {}, libelle, 
               <Text style={styles.label}>{etiquette}</Text>
               <SelecteurUtilisateurs source={c.source ?? ''} valeur={ids} multiple={c.type === 'utilisateurs'}
                 onChange={(v) => maj(c.nom)(c.type === 'utilisateurs' ? v : v[0] ?? '')} />
+            </View>
+          );
+        }
+        if (c.type === 'couleur') {
+          return (
+            <View key={c.nom} style={{ marginBottom: spacing.md }}>
+              <Text style={styles.label}>{etiquette}</Text>
+              <SelecteurCouleur valeur={String(valeurs[c.nom] ?? '')} onChange={maj(c.nom)} />
             </View>
           );
         }
@@ -453,4 +500,10 @@ const createStyles = (colors: Palette) => StyleSheet.create({
   barreEntete: { flexDirection: 'row', justifyContent: 'space-between' },
   barrePiste: { height: 10, borderRadius: 5, backgroundColor: colors.border, overflow: 'hidden' },
   barre: { height: 10, borderRadius: 5 },
+  pastilles: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  pastille: { width: 38, height: 38, borderRadius: 19, borderWidth: 2, borderColor: 'transparent', alignItems: 'center', justifyContent: 'center' },
+  codeLigne: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  apercu: { width: 44, height: 44, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border },
+  codeSaisie: { flex: 1, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, borderRadius: radius.md,
+    paddingHorizontal: spacing.md, paddingVertical: 10, fontSize: 16, color: colors.text, textTransform: 'lowercase' },
 });

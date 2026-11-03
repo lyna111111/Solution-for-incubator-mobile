@@ -23,6 +23,14 @@ export function useOuvrir() {
 }
 
 /**
+ * Passe à un onglet de la barre du bas (Accueil, Menu, Profil) sans empiler de page : à utiliser pour un lien
+ * vers un onglet, comme le bandeau « Bienvenue » qui ouvre le Profil.
+ */
+export function useAllerOnglet() {
+  return (href: Href) => router.navigate(href);
+}
+
+/**
  * Remplace la page affichée (ex. formulaire de création -> fiche créée) : le formulaire quitte l'historique, et la
  * nouvelle page garde l'onglet d'origine du formulaire (Accueil, Profil) pour que son retour y ramène aussi.
  */
