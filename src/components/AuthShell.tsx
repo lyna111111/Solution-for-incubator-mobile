@@ -19,8 +19,13 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
     <LinearGradient colors={colors.authFond} style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }}>
         <ThemeToggle style={styles.theme} />
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        {/* Android est en bord à bord : le système ne redimensionne plus la fenêtre, donc « padding » aussi. */}
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+          <ScrollView
+            contentContainerStyle={styles.content}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+          >
             <View style={styles.card}>
               <View style={styles.header}>
                 <Image source={require('../../assets/logo.png')} style={styles.logo} contentFit="cover" />

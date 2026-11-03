@@ -67,12 +67,8 @@ export default function Bienvenue() {
             <Image source={require('../../../assets/logo.png')} style={styles.logo} contentFit="cover" />
           </Animated.View>
 
-          <Text style={styles.brand}>Solution</Text>
-          <Text style={styles.brandSub}>for Incubator</Text>
-
           <Text style={styles.headline}>
-            Transformez votre{'\n'}
-            <Text style={styles.headlineAccent}>incubateur</Text> 🚀
+            <Text style={styles.headlineAccent}>Incubateur</Text> 🚀
           </Text>
           {!court && (
             <Text style={styles.lead}>
@@ -129,10 +125,8 @@ const createStyles = (colors: Palette) => StyleSheet.create({
     marginBottom: spacing.md,
   },
   logo: { width: 88, height: 88, borderRadius: 24 },
-  brand: { color: '#fff', fontSize: 28, fontWeight: '800', lineHeight: 32 },
-  brandSub: { color: colors.secondary, fontSize: 15, fontWeight: '700', letterSpacing: 0.6, marginBottom: spacing.lg },
 
-  headline: { color: '#fff', fontSize: 28, fontWeight: '800', lineHeight: 35, textAlign: 'center' },
+  headline: { color: '#fff', fontSize: 28, fontWeight: '800', lineHeight: 35, textAlign: 'center', marginTop: spacing.lg },
   headlineAccent: { color: colors.secondary },
   lead: { color: 'rgba(255,255,255,0.78)', fontSize: 15, lineHeight: 22, textAlign: 'center', marginTop: spacing.md },
 
