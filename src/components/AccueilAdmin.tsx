@@ -2,7 +2,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRef } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useOuvrir } from '@/hooks/useOuvrir';
 import { adminGet } from '@/admin/api';
@@ -48,12 +48,12 @@ export function AccueilAdmin() {
     { label: 'Requêtes', valeur: data.documents.requete, icone: 'tasks', couleur: colors.info, fond: colors.infoSoft },
     { label: 'Réponses', valeur: data.documents.reponse, icone: 'reply', couleur: colors.success, fond: colors.successSoft },
   ];
-  const activite: { icone: IconName; label: string; valeur?: string | null; couleur: string; fond: string }[] = [
-    { icone: 'user-plus', label: 'Dernier inscrit', valeur: data.derniers.utilisateur, couleur: colors.primary, fond: colors.primarySoft },
-    { icone: 'tasks', label: 'Dernière requête', valeur: data.derniers.requete, couleur: colors.info, fond: colors.infoSoft },
-    { icone: 'calendar-alt', label: 'Dernier événement', valeur: data.derniers.evenement, couleur: colors.success, fond: colors.successSoft },
-    { icone: 'file-alt', label: 'Dernier document', valeur: data.derniers.document, couleur: colors.warning, fond: colors.warningSoft },
-    { icone: 'user-shield', label: 'Dernier admin', valeur: data.derniers.administrateur, couleur: colors.danger, fond: colors.dangerSoft },
+  const activite: { icone: IconName; label: string; valeur?: string | null; couleur: string; fond: string; route?: string }[] = [
+    { icone: 'user-plus', label: 'Dernier inscrit', valeur: data.derniers.utilisateur, couleur: colors.primary, fond: colors.primarySoft, route: lien('utilisateurs') },
+    { icone: 'tasks', label: 'Dernière requête', valeur: data.derniers.requete, couleur: colors.info, fond: colors.infoSoft, route: lien('requetes') },
+    { icone: 'calendar-alt', label: 'Dernier événement', valeur: data.derniers.evenement, couleur: colors.success, fond: colors.successSoft, route: lien('evenements') },
+    { icone: 'file-alt', label: 'Dernier document', valeur: data.derniers.document, couleur: colors.warning, fond: colors.warningSoft, route: lien('documents') },
+    { icone: 'user-shield', label: 'Dernier admin', valeur: data.derniers.administrateur, couleur: colors.danger, fond: colors.dangerSoft, route: lien('administrateurs') },
   ];
 
   return (
@@ -126,16 +126,16 @@ export function AccueilAdmin() {
       )}
 
       <Card style={{ gap: spacing.md }}>
-        <TitreGraphique icone="history" couleur={colors.textMuted} titre="Activité récente" />
+        <TitreGraphique icone="history" couleur={colors.textMuted} titre="Activité récente" route={lien('statistiques')} />
         {activite.every((a) => !a.valeur) && <Text style={styles.vide}>Aucune activité pour le moment.</Text>}
         {activite.filter((a) => a.valeur).map((a) => (
-          <View key={a.label} style={styles.activite}>
+          <Pressable key={a.label} disabled={!a.route} onPress={() => a.route && ouvrir(a.route)} style={styles.activite}>
             <View style={[styles.activiteIcone, { backgroundColor: a.fond }]}><FontAwesome5 name={a.icone} size={13} color={a.couleur} /></View>
             <View style={{ flex: 1 }}>
               <Text style={styles.activiteLabel}>{a.label}</Text>
               <Text style={styles.activiteValeur} numberOfLines={2}>{a.valeur}</Text>
             </View>
-          </View>
+          </Pressable>
         ))}
       </Card>
     </Screen>

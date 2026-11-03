@@ -132,8 +132,8 @@ export function HistogrammeEmpile({ barres, series }: { barres: BarreEmpilee[]; 
   const styles = useStyles(createStyles);
   const colors = useColors();
   const [largeur, setLargeur] = useState(0);
-  const hauteur = 220;
-  const marge = { haut: 10, bas: 28, gauche: 34, droite: 8 };
+  const hauteur = 230;
+  const marge = { haut: 10, bas: 42, gauche: 34, droite: 8 };
 
   const totaux = barres.map((b) => b.valeurs.reduce((a, v) => a + v, 0));
   const ticks = graduations(Math.max(0, ...totaux), 5, true);
@@ -167,7 +167,11 @@ export function HistogrammeEmpile({ barres, series }: { barres: BarreEmpilee[]; 
                         height={y(dessous) - y(dessous + v)} fill={series[k].couleur} />
                     );
                   })}
-                  <SvgText x={x0 + colonne / 2} y={hauteur - 8} fontSize={11} fill={colors.textMuted} textAnchor="middle">{b.label}</SvgText>
+                  {/* « T1 2025 » sur deux lignes : sur 8 colonnes, une seule ligne ferait se toucher les années. */}
+                  {b.label.split(' ').map((ligne, k, lignes) => (
+                    <SvgText key={k} x={x0 + colonne / 2} y={hauteur - 8 - (lignes.length - 1 - k) * 14} fontSize={11}
+                      fill={colors.textMuted} textAnchor="middle">{ligne}</SvgText>
+                  ))}
                 </G>
               );
             })}
