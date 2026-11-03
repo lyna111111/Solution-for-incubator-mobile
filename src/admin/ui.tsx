@@ -7,6 +7,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { getErrorMessage } from '@/api/client';
 import { Chips } from '@/components/Chips';
+import { Kpi } from '@/components/DashboardUi';
 import { Screen } from '@/components/Screen';
 import { Banner, Button, Card, ErrorState, Field, Loading } from '@/components/ui';
 import { useParametres } from '@/hooks/useOuvrir';
@@ -151,17 +152,58 @@ export function LigneListe({
   );
 }
 
-/** Petites tuiles de chiffres ; `couleur` (facultative) teinte le liseré et la valeur. */
-export function Compteurs({ valeurs }: { valeurs: { label: string; valeur: number | string; couleur?: string }[] }) {
+type IconeFa = React.ComponentProps<typeof FontAwesome5>['name'];
+type Teinte = 'primary' | 'info' | 'success' | 'warning' | 'danger';
+
+// Icône et teinte du système choisies d'après le libellé (sans accents, en minuscules) ; le premier motif qui correspond l'emporte.
+const ICONES_COMPTEUR: [RegExp, IconeFa, Teinte][] = [
+  [/inactif|expire|rejet|annule/, 'times-circle', 'danger'],
+  [/attente|demande/, 'hourglass-half', 'warning'],
+  [/fin </, 'hourglass-end', 'warning'],
+  [/essai/, 'flask', 'warning'],
+  [/traite|complete|actif/, 'check-circle', 'success'],
+  [/revenu/, 'coins', 'success'],
+  [/etudiant/, 'user-graduate', 'info'],
+  [/porteur/, 'rocket', 'primary'],
+  [/venir/, 'calendar-plus', 'info'],
+  [/aujourd/, 'calendar-day', 'success'],
+  [/passe/, 'history', 'info'],
+  [/semaine/, 'calendar-week', 'success'],
+  [/ce mois|renouvel/, 'sync-alt', 'info'],
+  [/diffusion/, 'bullhorn', 'primary'],
+  [/personnelle/, 'user', 'info'],
+  [/progression/, 'chart-line', 'info'],
+  [/evenement/, 'calendar-alt', 'primary'],
+  [/requete/, 'tasks', 'info'],
+  [/reponse/, 'reply', 'success'],
+  [/article/, 'newspaper', 'warning'],
+  [/projet/, 'rocket', 'primary'],
+  [/total/, 'layer-group', 'primary'],
+];
+const TEINTES: Teinte[] = ['primary', 'info', 'success', 'warning', 'danger'];
+// Marques d'accent (U+0300 à U+036F) laissées par la décomposition NFD.
+const ACCENTS = new RegExp(`[${String.fromCharCode(0x300)}-${String.fromCharCode(0x36f)}]`, 'g');
+
+/**
+ * Cartes de chiffres des pages de gestion : même style que celles des accueils (icône colorée, libellé, valeur), deux par
+ * ligne. L'icône et la couleur viennent du libellé ; `icone` / `couleur` (une couleur du système) les imposent au besoin.
+ */
+export function Compteurs({ valeurs }: { valeurs: { label: string; valeur: number | string; couleur?: string; icone?: IconeFa }[] }) {
   const styles = useStyles(createStyles);
+  const colors = useColors();
+  const soft = { primary: colors.primarySoft, info: colors.infoSoft, success: colors.successSoft, warning: colors.warningSoft, danger: colors.dangerSoft };
   return (
     <View style={styles.compteurs}>
-      {valeurs.map((v) => (
-        <View key={v.label} style={[styles.compteur, !!v.couleur && { borderTopWidth: 3, borderTopColor: v.couleur }]}>
-          <Text style={[styles.compteurValeur, !!v.couleur && { color: v.couleur }]}>{v.valeur}</Text>
-          <Text style={styles.compteurLabel}>{v.label}</Text>
-        </View>
-      ))}
+      {valeurs.map((v, i) => {
+        const libelle = v.label.normalize('NFD').replace(ACCENTS, '').toLowerCase();
+        const trouve = ICONES_COMPTEUR.find(([motif]) => motif.test(libelle));
+        const imposee = v.couleur ? TEINTES.find((t) => colors[t] === v.couleur) : undefined;
+        const teinte = imposee ?? trouve?.[2] ?? TEINTES[i % TEINTES.length];
+        return (
+          <Kpi key={v.label} icone={v.icone ?? trouve?.[1] ?? 'chart-bar'} couleur={colors[teinte]} fond={soft[teinte]}
+            label={v.label} valeur={v.valeur} compact />
+        );
+      })}
     </View>
   );
 }
@@ -489,9 +531,6 @@ const createStyles = (colors: Palette) => StyleSheet.create({
   badge: { backgroundColor: colors.primarySoft, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4 },
   badgeText: { fontSize: 12, fontWeight: '700', color: colors.primaryDark },
   compteurs: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  compteur: { flexGrow: 1, minWidth: '22%', backgroundColor: colors.card, borderRadius: radius.md, padding: spacing.md, alignItems: 'center' },
-  compteurValeur: { fontSize: 22, fontWeight: '800', color: colors.primary },
-  compteurLabel: { fontSize: 11, color: colors.textMuted, textAlign: 'center' },
   puces: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   puce: { borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, borderRadius: radius.pill, paddingHorizontal: 14, paddingVertical: 8 },
   puceActive: { backgroundColor: colors.primary, borderColor: colors.primary },

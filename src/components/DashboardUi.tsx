@@ -9,18 +9,22 @@ import { Card } from './ui';
 type IconName = React.ComponentProps<typeof FontAwesome5>['name'];
 
 /** Carte de chiffre des tableaux de bord (`.sa-kpi-card` du site) : mène à la page concernée si `route` est donnée. */
-export function Kpi({ icone, couleur, fond, label, valeur, unite, route }: {
+export function Kpi({ icone, couleur, fond, label, valeur, unite, route, compact }: {
   icone: IconName; couleur: string; fond: string; label: string; valeur: string | number; unite?: string; route?: string;
+  /** Version réduite (pages de gestion) : même style, icône, marges et chiffre plus petits. */
+  compact?: boolean;
 }) {
   const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   return (
     <Pressable disabled={!route} onPress={() => route && ouvrir(route)} style={styles.kpi}>
-      <Card style={styles.kpiContenu}>
-        <View style={[styles.kpiIcone, { backgroundColor: fond }]}><FontAwesome5 name={icone} size={20} color={couleur} /></View>
-        <View style={{ flex: 1, gap: 4 }}>
-          <Text style={styles.kpiLabel} numberOfLines={2}>{label}</Text>
-          <Text style={styles.kpiValeur} adjustsFontSizeToFit numberOfLines={1}>
+      <Card style={[styles.kpiContenu, compact && styles.kpiContenuPetit]}>
+        <View style={[styles.kpiIcone, compact && styles.kpiIconePetit, { backgroundColor: fond }]}>
+          <FontAwesome5 name={icone} size={compact ? 14 : 20} color={couleur} />
+        </View>
+        <View style={{ flex: 1, gap: compact ? 2 : 4 }}>
+          <Text style={[styles.kpiLabel, compact && styles.kpiLabelPetit]} numberOfLines={2}>{label}</Text>
+          <Text style={[styles.kpiValeur, compact && styles.kpiValeurPetit]} adjustsFontSizeToFit numberOfLines={1}>
             {valeur}{unite ? <Text style={styles.kpiUnite}> {unite}</Text> : null}
           </Text>
         </View>
@@ -123,6 +127,10 @@ const createStyles = (colors: Palette) => StyleSheet.create({
   kpiIcone: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   kpiLabel: { fontSize: 11, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
   kpiValeur: { fontSize: 24, fontWeight: '700', color: colors.text },
+  kpiContenuPetit: { minHeight: 64, gap: spacing.sm, padding: spacing.sm },
+  kpiIconePetit: { width: 32, height: 32, borderRadius: 9 },
+  kpiLabelPetit: { fontSize: 10 },
+  kpiValeurPetit: { fontSize: 18 },
   kpiUnite: { fontSize: 13, fontWeight: '600', color: colors.textMuted },
   hero: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.lg },
   heroIcone: { width: 48, height: 48, borderRadius: 14, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },

@@ -9,7 +9,6 @@ import { type Palette, spacing, useColors, useStyles } from '@/theme';
 import { formatDate, formatDateTime } from '@/utils/format';
 
 import { Pastilles, SectionCarte } from './DashboardUi';
-import { StatutBadge } from './rows';
 import { Badge } from './ui';
 
 /** Nombre de lignes affichées dans chaque liste de l'accueil (la liste complète est derrière « Voir plus »). */
@@ -21,6 +20,22 @@ export const CLE_SECTIONS = ['admin', 'accueil'] as const;
 /** Vrai si le type d'administrateur donne accès à ce module (sinon la section n'est pas affichée). */
 function useAcces(module: string): boolean {
   return useAuthStore((s) => !!s.user?.modules?.includes(module));
+}
+
+/** Demandes d'inscription en attente (même requête que la section : un seul appel réseau, partagé avec les cartes du haut). */
+export function useDemandes() {
+  const acces = useAcces('utilisateurs');
+  return useQuery({
+    queryKey: [...CLE_SECTIONS, 'demandes'], queryFn: () => adminGet('utilisateurs/', { etat: 'En attente' }), enabled: acces,
+  });
+}
+
+/** Événements à venir (même requête que la section « Prochains événements »). */
+export function useEvenementsAVenir() {
+  const acces = useAcces('evenements');
+  return useQuery({
+    queryKey: [...CLE_SECTIONS, 'evenements'], queryFn: () => adminGet('evenements/', { periode: 'avenir' }), enabled: acces,
+  });
 }
 
 /** Une ligne cliquable d'une liste de l'accueil : titre, détail, élément à droite et flèche. */
@@ -49,40 +64,12 @@ function SousTitre({ children }: { children: string }) {
   return <Text style={styles.sousTitre}>{children}</Text>;
 }
 
-/** Requêtes : répartition par statut et dernières requêtes reçues. */
-export function SectionRequetes() {
-  const ouvrir = useOuvrir();
-  const colors = useColors();
-  const acces = useAcces('requetes');
-  const { data } = useQuery({ queryKey: [...CLE_SECTIONS, 'requetes'], queryFn: () => adminGet('requetes/'), enabled: acces });
-  if (!acces || !data) return null;
-  const c = data.compteurs;
-  return (
-    <SectionCarte icone="tasks" couleur={colors.info} titre="Requêtes" route="/gestion/requetes">
-      <Pastilles valeurs={[
-        { label: 'En attente', valeur: c.en_attente, icone: 'hourglass-half', couleur: colors.warning, fond: colors.warningSoft },
-        { label: 'Traitées', valeur: c.traitees, icone: 'check-circle', couleur: colors.success, fond: colors.successSoft },
-        { label: 'Rejetées', valeur: c.rejetees, icone: 'times-circle', couleur: colors.danger, fond: colors.dangerSoft },
-      ]} />
-      <SousTitre>Dernières requêtes reçues</SousTitre>
-      {data.requetes.length === 0 && <Vide message="Aucune requête reçue." />}
-      {data.requetes.slice(0, MAX).map((r: any) => (
-        <Ligne key={r.id} titre={r.objet}
-          detail={`${r.utilisateur?.nom ?? 'Utilisateur supprimé'} · ${formatDate(r.dateSoumission)}`}
-          droite={<StatutBadge statut={r.statut} />} onPress={() => ouvrir(`/gestion/requetes/${r.id}`)} />
-      ))}
-    </SectionCarte>
-  );
-}
-
 /** Événements : à venir / aujourd'hui / passés et prochains événements. */
 export function SectionEvenements() {
   const ouvrir = useOuvrir();
   const colors = useColors();
   const acces = useAcces('evenements');
-  const { data } = useQuery({
-    queryKey: [...CLE_SECTIONS, 'evenements'], queryFn: () => adminGet('evenements/', { periode: 'avenir' }), enabled: acces,
-  });
+  const { data } = useEvenementsAVenir();
   if (!acces || !data) return null;
   const c = data.compteurs;
   return (
@@ -98,32 +85,6 @@ export function SectionEvenements() {
           detail={[formatDate(e.date), e.heure_debut, e.lieu].filter(Boolean).join(' · ')}
           droite={<Badge label={e.type} fond={colors.primarySoft} texte={colors.primaryDark} />}
           onPress={() => ouvrir(`/gestion/evenements/${e.id}`)} />
-      ))}
-    </SectionCarte>
-  );
-}
-
-/** Demandes d'inscription en attente d'une réponse. */
-export function SectionDemandes() {
-  const ouvrir = useOuvrir();
-  const colors = useColors();
-  const acces = useAcces('utilisateurs');
-  const { data } = useQuery({
-    queryKey: [...CLE_SECTIONS, 'demandes'], queryFn: () => adminGet('utilisateurs/', { etat: 'En attente' }), enabled: acces,
-  });
-  if (!acces || !data) return null;
-  const demandes: any[] = data.utilisateurs ?? [];
-  return (
-    <SectionCarte icone="user-clock" couleur={colors.warning} titre="Demandes d'inscription" route="/gestion/utilisateurs">
-      <Pastilles valeurs={[
-        { label: 'En attente', valeur: data.compteurs?.demandes ?? demandes.length, icone: 'user-clock', couleur: colors.warning, fond: colors.warningSoft },
-        { label: 'Inscrits', valeur: data.compteurs?.total ?? 0, icone: 'users', couleur: colors.primary, fond: colors.primarySoft },
-      ]} />
-      {demandes.length === 0 && <Vide message="Aucune demande en attente." />}
-      {demandes.slice(0, MAX).map((u) => (
-        <Ligne key={u.id} titre={`${u.prenom} ${u.nom}`} detail={u.email}
-          droite={u.type ? <Badge label={u.type} fond={colors.primarySoft} texte={colors.primaryDark} /> : undefined}
-          onPress={() => ouvrir(`/gestion/utilisateurs/${u.id}`)} />
       ))}
     </SectionCarte>
   );

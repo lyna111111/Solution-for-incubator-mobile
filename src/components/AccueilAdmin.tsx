@@ -10,7 +10,7 @@ import { getErrorMessage } from '@/api/client';
 import { useAuthStore } from '@/store/auth';
 import { gradient, type Palette, spacing, useColors, useStyles } from '@/theme';
 
-import { SectionDemandes, SectionEvenements, SectionNotifications, SectionRequetes, CLE_SECTIONS } from './AccueilAdminSections';
+import { SectionEvenements, SectionNotifications, CLE_SECTIONS, useDemandes, useEvenementsAVenir } from './AccueilAdminSections';
 import { BandeauBienvenue, Kpi, Pastilles, SectionCarte } from './DashboardUi';
 import { Anneau, HistogrammeEmpile } from './Graphiques';
 import { Screen } from './Screen';
@@ -30,6 +30,8 @@ export function AccueilAdmin() {
   const queryClient = useQueryClient();
   // Tirer-pour-actualiser demande des chiffres recalculés (le serveur garde sinon ceux des 5 dernières minutes).
   const frais = useRef(false);
+  const { data: demandes } = useDemandes();
+  const { data: evenements } = useEvenementsAVenir();
   const { data, isLoading, isRefetching, error, refetch } = useQuery({
     queryKey: ['admin', 'dashboard'],
     queryFn: () => {
@@ -70,16 +72,31 @@ export function AccueilAdmin() {
       <View style={styles.grille}>
         {!!lien('utilisateurs') && <Kpi icone="users" couleur={colors.primary} fond={colors.primarySoft} label="Inscrits" valeur={t.utilisateurs}
           route={lien('utilisateurs')} />}
+        {!!lien('utilisateurs') && <Kpi icone="user-clock" couleur={colors.warning} fond={colors.warningSoft} label="Inscrits en attente"
+          valeur={demandes ? (demandes.compteurs?.demandes ?? demandes.utilisateurs?.length ?? 0) : '…'} route={lien('utilisateurs')} />}
         {!!lien('requetes') && <Kpi icone="tasks" couleur={colors.info} fond={colors.infoSoft} label="Requêtes reçues" valeur={t.requetes}
           route={lien('requetes')} />}
-        {!!lien('evenements') && <Kpi icone="calendar-alt" couleur={colors.success} fond={colors.successSoft} label="Événements" valeur={t.evenements}
-          route={lien('evenements')} />}
-        {!!lien('administrateurs') && <Kpi icone="user-shield" couleur={colors.warning} fond={colors.warningSoft} label="Staff" valeur={t.administrateurs}
-          route={lien('administrateurs')} />}
+        {!!lien('evenements') && <Kpi icone="calendar-alt" couleur={colors.success} fond={colors.successSoft} label="Événements à venir"
+          valeur={evenements ? (evenements.compteurs?.a_venir ?? 0) : '…'} route={lien('evenements')} />}
       </View>
 
-      <SectionRequetes />
-      <SectionDemandes />
+      {!!lien('projets') && data.top_projets.length > 0 && (
+        <SectionCarte icone="rocket" couleur={colors.primary} titre="Progression des projets clés" route={lien('projets')}>
+          {data.top_projets.map((p: any) => (
+            <View key={p.id} style={{ gap: 6 }}>
+              <View style={styles.entete}>
+                <Text style={styles.projet} numberOfLines={1}>{p.intitule}</Text>
+                <Text style={styles.pourcentage}>{p.progression}%</Text>
+              </View>
+              <View style={styles.piste}>
+                <LinearGradient colors={gradient.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                  style={{ height: 8, borderRadius: 4, width: `${Math.min(100, p.progression)}%` }} />
+              </View>
+            </View>
+          ))}
+        </SectionCarte>
+      )}
+
       <SectionEvenements />
 
       {!!lien('utilisateurs') && (
@@ -104,23 +121,6 @@ export function AccueilAdmin() {
       {!!lien('documents') && (
         <SectionCarte icone="file-alt" couleur={colors.success} titre="Documents" route={lien('documents')}>
           <Pastilles valeurs={documents} />
-        </SectionCarte>
-      )}
-
-      {!!lien('projets') && data.top_projets.length > 0 && (
-        <SectionCarte icone="rocket" couleur={colors.primary} titre="Progression des projets clés" route={lien('projets')}>
-          {data.top_projets.map((p: any) => (
-            <View key={p.id} style={{ gap: 6 }}>
-              <View style={styles.entete}>
-                <Text style={styles.projet} numberOfLines={1}>{p.intitule}</Text>
-                <Text style={styles.pourcentage}>{p.progression}%</Text>
-              </View>
-              <View style={styles.piste}>
-                <LinearGradient colors={gradient.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                  style={{ height: 8, borderRadius: 4, width: `${Math.min(100, p.progression)}%` }} />
-              </View>
-            </View>
-          ))}
         </SectionCarte>
       )}
 
