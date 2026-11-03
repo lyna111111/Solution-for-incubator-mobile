@@ -15,7 +15,7 @@ import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 import type { Pagination } from '@/types';
 
 import { adminGet, type BaseApi } from './api';
-import type { ChampDef, ContexteListe, Fichier, FiltreDef } from './types';
+import type { ChampDef, ContexteListe, Fichier, FiltreDef, IconeChamp } from './types';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- données des écrans de gestion décrites par la config de chaque module */
 
@@ -389,10 +389,55 @@ interface FormulaireProps {
   libelle: string;
   /** Espace de l'API des listes de choix (champs « reference »). */
   base?: BaseApi;
+  /** Présente le formulaire comme une carte d'identité (photo à gauche, nom, prénom, email et matricule à droite, le reste en dessous). */
+  identite?: boolean;
   onSubmit: (valeurs: Record<string, any>, fichiers: Fichier[]) => Promise<void>;
 }
 
-export function FormulaireAdmin({ champs, mode, valeursInitiales = {}, libelle, base = 'admin', onSubmit }: FormulaireProps) {
+/** Icône par défaut d'un champ selon son type quand le module n'en donne pas. */
+function iconeChamp(c: ChampDef): IconeChamp {
+  if (c.icone) return c.icone;
+  switch (c.type) {
+    case 'password': return 'lock';
+    case 'date': return 'calendar-alt';
+    case 'time': return 'clock';
+    case 'nombre': return 'hashtag';
+    case 'textarea': return 'align-left';
+    case 'couleur': return 'palette';
+    case 'fichiers': return 'paperclip';
+    case 'utilisateur': case 'utilisateurs': return 'user-friends';
+    case 'reference': return 'link';
+    case 'choix': return 'list-ul';
+    default: return 'pen';
+  }
+}
+
+/** Libellé d'un champ qui n'est pas une saisie de texte, avec son icône (les saisies ont l'icône dans le champ). */
+function Etiquette({ texte, icone }: { texte: string; icone: IconeChamp }) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
+  return (
+    <View style={styles.etiquette}>
+      <FontAwesome5 name={icone} size={13} color={colors.primary} style={{ width: 18, textAlign: 'center' }} />
+      <Text style={[styles.label, { marginBottom: 0 }]}>{texte}</Text>
+    </View>
+  );
+}
+
+/** Photo de la personne ; sans photo, silhouette grise comme sur Instagram ou Facebook. */
+function PhotoIdentite() {
+  const styles = useStyles(createStyles);
+  return (
+    <View style={styles.photo} accessibilityLabel="Pas de photo">
+      <FontAwesome5 name="user" solid size={84} color="#f1f3f6" style={styles.photoSilhouette} />
+    </View>
+  );
+}
+
+/** Champs placés à droite de la photo dans la présentation « carte d'identité ». */
+const PRINCIPAUX = ['nom', 'prenom', 'email', 'matricule'];
+
+export function FormulaireAdmin({ champs, mode, valeursInitiales = {}, libelle, base = 'admin', identite, onSubmit }: FormulaireProps) {
   const styles = useStyles(createStyles);
   const visibles = champs.filter((c) => (mode === 'creation' ? !c.modification : !c.creation));
   const [valeurs, setValeurs] = useState<Record<string, any>>(valeursInitiales);
@@ -424,15 +469,12 @@ export function FormulaireAdmin({ champs, mode, valeursInitiales = {}, libelle, 
     }
   }
 
-  return (
-    <View style={{ gap: spacing.xs }}>
-      {!!erreur && <Banner message={erreur} />}
-      {visibles.map((c) => {
+  const lignes = visibles.map((c) => {
         const etiquette = c.requis ? `${c.label} *` : c.label;
         if (c.type === 'choix') {
           return (
             <View key={c.nom} style={{ marginBottom: spacing.md }}>
-              <Text style={styles.label}>{etiquette}</Text>
+              <Etiquette texte={etiquette} icone={iconeChamp(c)} />
               <ChoixPuces options={c.options ?? []} valeur={String(valeurs[c.nom] ?? '')} onChoisir={maj(c.nom)} libelles={c.libelles} />
             </View>
           );
@@ -440,7 +482,7 @@ export function FormulaireAdmin({ champs, mode, valeursInitiales = {}, libelle, 
         if (c.type === 'reference') {
           return (
             <View key={c.nom} style={{ marginBottom: spacing.md }}>
-              <Text style={styles.label}>{etiquette}</Text>
+              <Etiquette texte={etiquette} icone={iconeChamp(c)} />
               <SelecteurReference base={base} source={c.source ?? ''} cleListe={c.cleListe ?? ''}
                 libelle={c.libelleOption ?? ((x) => String(x.nom))} valeur={String(valeurs[c.nom] ?? '')} onChange={maj(c.nom)} />
             </View>
@@ -451,7 +493,7 @@ export function FormulaireAdmin({ champs, mode, valeursInitiales = {}, libelle, 
           const ids: number[] = Array.isArray(brut) ? brut.map(Number) : brut ? [Number(brut)] : [];
           return (
             <View key={c.nom} style={{ marginBottom: spacing.md }}>
-              <Text style={styles.label}>{etiquette}</Text>
+              <Etiquette texte={etiquette} icone={iconeChamp(c)} />
               <SelecteurUtilisateurs source={c.source ?? ''} valeur={ids} multiple={c.type === 'utilisateurs'}
                 onChange={(v) => maj(c.nom)(c.type === 'utilisateurs' ? v : v[0] ?? '')} />
             </View>
@@ -460,7 +502,7 @@ export function FormulaireAdmin({ champs, mode, valeursInitiales = {}, libelle, 
         if (c.type === 'couleur') {
           return (
             <View key={c.nom} style={{ marginBottom: spacing.md }}>
-              <Text style={styles.label}>{etiquette}</Text>
+              <Etiquette texte={etiquette} icone={iconeChamp(c)} />
               <SelecteurCouleur valeur={String(valeurs[c.nom] ?? '')} onChange={maj(c.nom)} />
             </View>
           );
@@ -468,7 +510,7 @@ export function FormulaireAdmin({ champs, mode, valeursInitiales = {}, libelle, 
         if (c.type === 'fichiers') {
           return (
             <View key={c.nom} style={{ marginBottom: spacing.md }}>
-              <Text style={styles.label}>{etiquette}</Text>
+              <Etiquette texte={etiquette} icone={iconeChamp(c)} />
               <SelecteurFichiers champ={c.nom} fichiers={fichiers} multiple={!!c.multiple}
                 onChange={setFichiers} onErreur={setErreur} />
             </View>
@@ -478,6 +520,8 @@ export function FormulaireAdmin({ champs, mode, valeursInitiales = {}, libelle, 
           <Field
             key={c.nom}
             label={etiquette}
+            icon={iconeChamp(c)}
+            compact={!!identite && PRINCIPAUX.includes(c.nom)}
             value={String(valeurs[c.nom] ?? '')}
             onChangeText={maj(c.nom)}
             secureTextEntry={c.type === 'password'}
@@ -487,7 +531,21 @@ export function FormulaireAdmin({ champs, mode, valeursInitiales = {}, libelle, 
             placeholder={c.placeholder ?? (c.type === 'date' ? 'AAAA-MM-JJ' : c.type === 'time' ? 'HH:MM' : undefined)}
           />
         );
-      })}
+  });
+
+  return (
+    <View style={{ gap: spacing.xs }}>
+      {!!erreur && <Banner message={erreur} />}
+      {identite ? (
+        // Style carte d'identité : photo à gauche, nom, prénom, email et matricule à droite, les autres champs en dessous.
+        <Card style={styles.identite}>
+          <View style={styles.identiteEntete}>
+            <PhotoIdentite />
+            <View style={{ flex: 1 }}>{lignes.filter((_, i) => PRINCIPAUX.includes(visibles[i].nom))}</View>
+          </View>
+          {lignes.filter((_, i) => !PRINCIPAUX.includes(visibles[i].nom))}
+        </Card>
+      ) : lignes}
       <Button pill title={libelle} onPress={() => void valider()} loading={envoi} />
     </View>
   );
@@ -528,6 +586,11 @@ const createStyles = (colors: Palette) => StyleSheet.create({
   sous: { fontSize: 13, color: colors.textMuted },
   aide: { fontSize: 12, color: colors.textMuted },
   label: { fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 6 },
+  etiquette: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
+  identite: { marginBottom: spacing.md },
+  identiteEntete: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  photo: { width: 112, height: 134, alignSelf: 'center', borderRadius: 14, backgroundColor: '#cfd4dc', overflow: 'hidden', alignItems: 'center', justifyContent: 'flex-end' },
+  photoSilhouette: { marginBottom: -8 },
   badge: { backgroundColor: colors.primarySoft, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4 },
   badgeText: { fontSize: 12, fontWeight: '700', color: colors.primaryDark },
   compteurs: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },

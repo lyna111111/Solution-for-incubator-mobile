@@ -78,9 +78,11 @@ interface FieldProps extends TextInputProps {
   error?: string;
   /** Icône à gauche du champ (comme les champs de connexion du site). */
   icon?: IconName;
+  /** Champ réduit : sans libellé au-dessus (le libellé sert de texte indicatif), plus bas et moins espacé. */
+  compact?: boolean;
 }
 
-export function Field({ label, error, icon, secureTextEntry, style, ...props }: FieldProps) {
+export function Field({ label, error, icon, compact, secureTextEntry, style, ...props }: FieldProps) {
   const styles = useStyles(createStyles);
   const colors = useColors();
   // Œil afficher/masquer, comme sur la page de connexion du site.
@@ -88,13 +90,15 @@ export function Field({ label, error, icon, secureTextEntry, style, ...props }: 
   const estMotDePasse = !!secureTextEntry;
 
   return (
-    <View style={{ marginBottom: spacing.md }}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={[styles.inputWrap, !!error && { borderColor: colors.danger }, props.multiline && { alignItems: 'flex-start' }]}>
+    <View style={{ marginBottom: compact ? spacing.sm : spacing.md }}>
+      {!compact && <Text style={styles.label}>{label}</Text>}
+      <View style={[styles.inputWrap, compact && { minHeight: 44 }, !!error && { borderColor: colors.danger }, props.multiline && { alignItems: 'flex-start' }]}>
         {!!icon && <FontAwesome5 name={icon} size={15} color={colors.textMuted} style={styles.inputIcon} />}
         <TextInput
           placeholderTextColor="#94a3b8"
+          accessibilityLabel={label}
           {...props}
+          {...(compact ? { placeholder: label } : {})}
           secureTextEntry={estMotDePasse && masque}
           style={[styles.input, props.multiline && styles.inputMulti, style]}
         />

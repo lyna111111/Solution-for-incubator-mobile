@@ -86,7 +86,7 @@ export function ModuleNew({ cle }: { cle: string }) {
   return (
     <Screen>
       <Stack.Screen options={{ title: libelleNouveau(config) }} />
-      <FormulaireAdmin champs={config.champs} mode="creation" libelle="Créer" base={config.base}
+      <FormulaireAdmin champs={config.champs} mode="creation" libelle="Créer" base={config.base} identite={config.carteIdentite}
         valeursInitiales={config.valeursCreation?.()} onSubmit={envoyer} />
     </Screen>
   );
@@ -143,6 +143,7 @@ export function ModuleEdit({ cle }: { cle: string }) {
         valeursInitiales={config.valeursInitiales(item)}
         libelle="Enregistrer"
         base={config.base}
+        identite={config.carteIdentite}
         onSubmit={enregistrer}
       />
       {config.supprimer && (

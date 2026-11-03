@@ -1,4 +1,7 @@
+import type { FontAwesome5 } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
+
+export type IconeChamp = React.ComponentProps<typeof FontAwesome5>['name'];
 
 /** Fichier choisi sur le téléphone, envoyé en multipart sous le nom de champ `champ`. */
 export interface Fichier {
@@ -38,6 +41,8 @@ export interface ChampDef {
   modification?: boolean;
   aide?: string;
   placeholder?: string;
+  /** Icône devant le champ ; sinon une icône par défaut selon le type du champ. */
+  icone?: IconeChamp;
   /** fichiers : plusieurs fichiers possibles. */
   multiple?: boolean;
   /** utilisateur(s) : chemin (sous /mobile/admin/) de la liste des utilisateurs à choisir. */
@@ -84,6 +89,8 @@ export interface ModuleDef {
   };
   detail: { chemin: (id: string) => string; cle?: string };
   champs: ChampDef[];
+  /** Formulaire présenté comme une carte d'identité (photo à gauche, informations à droite puis vers le bas). */
+  carteIdentite?: boolean;
   valeursInitiales: (item: any) => Record<string, any>;
   /** Valeurs proposées à l'ouverture du formulaire de création (ex. date du jour). */
   valeursCreation?: () => Record<string, any>;
