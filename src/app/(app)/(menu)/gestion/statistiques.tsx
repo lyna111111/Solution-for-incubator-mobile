@@ -8,7 +8,7 @@ import { Barres } from '@/admin/ui';
 import { getErrorMessage } from '@/api/client';
 import { Chips } from '@/components/Chips';
 import { Screen } from '@/components/Screen';
-import { Card, ErrorState, Loading, SectionTitle } from '@/components/ui';
+import { Card, ErrorState, Loading, SectionTitle, LigneIcone } from '@/components/ui';
 import { type Palette, spacing, useColors, useStyles } from '@/theme';
 
 const PERIODES = [
@@ -60,9 +60,9 @@ export default function Statistiques() {
       {f && (
         <Card style={{ gap: spacing.md }}>
           <SectionTitle icon="filter">Période choisie</SectionTitle>
-          <Text style={styles.ligne}>Nouveaux utilisateurs : <Text style={styles.gras}>{f.utilisateurs.total}</Text></Text>
-          <Text style={styles.ligne}>Requêtes : <Text style={styles.gras}>{f.requetes.total}</Text></Text>
-          <Text style={styles.ligne}>Événements : <Text style={styles.gras}>{f.evenements.total}</Text></Text>
+          <LigneIcone icone="users">Nouveaux utilisateurs : <Text style={styles.gras}>{f.utilisateurs.total}</Text></LigneIcone>
+          <LigneIcone icone="envelope-open-text">Requêtes : <Text style={styles.gras}>{f.requetes.total}</Text></LigneIcone>
+          <LigneIcone icone="calendar-alt">Événements : <Text style={styles.gras}>{f.evenements.total}</Text></LigneIcone>
           <Barres donnees={Object.entries(f.requetes.par_statut).map(([label, valeur]) => ({ label, valeur: Number(valeur) }))} />
         </Card>
       )}

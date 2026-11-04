@@ -7,7 +7,7 @@ import { fetchRequete } from '@/api/endpoints';
 import { DocumentsList } from '@/components/DocumentLink';
 import { StatutBadge } from '@/components/rows';
 import { Screen } from '@/components/Screen';
-import { Card, ErrorState, Loading, SectionTitle } from '@/components/ui';
+import { Card, ErrorState, Loading, SectionTitle, Libelle } from '@/components/ui';
 import { type Palette, spacing, useColors, useStyles } from '@/theme';
 import { formatDateTime } from '@/utils/format';
 
@@ -34,7 +34,7 @@ export default function DetailRequete() {
       </View>
 
       <Card style={{ gap: spacing.md }}>
-        <Text style={styles.label}>Votre message</Text>
+        <Libelle>Votre message</Libelle>
         <Text style={styles.body}>{data.contenu}</Text>
         <DocumentsList documents={data.documents} />
       </Card>

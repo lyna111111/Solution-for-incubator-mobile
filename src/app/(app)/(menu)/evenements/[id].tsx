@@ -1,10 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams } from 'expo-router';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { getErrorMessage } from '@/api/client';
 import { fetchEvenement } from '@/api/endpoints';
 import { DocumentsList } from '@/components/DocumentLink';
+import { iconeLibelle } from '@/components/iconeLibelle';
 import { Screen } from '@/components/Screen';
 import { Badge, Card, ErrorState, Loading, SectionTitle } from '@/components/ui';
 import { type Palette, spacing, useColors, useStyles } from '@/theme';
@@ -12,9 +14,13 @@ import { formatDate } from '@/utils/format';
 
 function Ligne({ label, valeur }: { label: string; valeur: string }) {
   const styles = useStyles(createStyles);
+  const colors = useColors();
   return (
     <View style={styles.line}>
-      <Text style={styles.lineLabel}>{label}</Text>
+      <View style={styles.lineEntete}>
+        <FontAwesome5 name={iconeLibelle(label)} size={12} color={colors.primary} style={{ width: 16, textAlign: 'center' }} />
+        <Text style={styles.lineLabel}>{label}</Text>
+      </View>
       <Text style={styles.lineValue}>{valeur}</Text>
     </View>
   );
@@ -54,7 +60,10 @@ export default function DetailEvenement() {
 
       {!!data.description && (
         <Card>
-          <Text style={styles.sectionLabel}>Description</Text>
+          <View style={[styles.lineEntete, { marginBottom: 6 }]}>
+            <FontAwesome5 name="align-left" size={12} color={colors.primary} style={{ width: 16, textAlign: 'center' }} />
+            <Text style={styles.lineLabel}>Description</Text>
+          </View>
           <Text style={styles.body}>{data.description}</Text>
         </Card>
       )}
@@ -72,8 +81,8 @@ export default function DetailEvenement() {
 const createStyles = (colors: Palette) => StyleSheet.create({
   title: { fontSize: 24, fontWeight: '800', color: colors.text },
   line: { gap: 2 },
+  lineEntete: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   lineLabel: { fontSize: 13, color: colors.textMuted, fontWeight: '600' },
   lineValue: { fontSize: 16, color: colors.text },
-  sectionLabel: { fontSize: 13, color: colors.textMuted, fontWeight: '600', marginBottom: 6 },
   body: { fontSize: 16, color: colors.text, lineHeight: 24 },
 });

@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { getErrorMessage } from '@/api/client';
 import { fetchIncubateurs, register } from '@/api/endpoints';
 import { AuthShell } from '@/components/AuthShell';
-import { Banner, Button, Field } from '@/components/ui';
+import { Banner, Button, Field, Libelle } from '@/components/ui';
 import { useRemplacer } from '@/hooks/useOuvrir';
 import { useReculer } from '@/hooks/useReculer';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
@@ -178,7 +178,7 @@ export default function Inscription() {
 
       {etape === 1 && (
         <>
-          <Text style={styles.label}>Incubateur *</Text>
+          <Libelle>Incubateur *</Libelle>
           <Text style={[styles.aide, { marginBottom: spacing.sm }]}>
             L&apos;administrateur de l&apos;incubateur choisi validera votre inscription.
           </Text>
@@ -200,7 +200,7 @@ export default function Inscription() {
             ))}
           </View>
 
-          <Text style={styles.label}>Type de compte *</Text>
+          <Libelle>Type de compte *</Libelle>
           <View style={styles.chips}>
             {TYPES.map((t) => (
               <Pressable

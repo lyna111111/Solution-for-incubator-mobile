@@ -13,6 +13,7 @@ import {
   ViewStyle,
 } from 'react-native';
 
+import { iconeLibelle } from './iconeLibelle';
 import { gradient, type Palette, radius, shadow, spacing, useColors, useStyles } from '@/theme';
 
 type IconName = React.ComponentProps<typeof FontAwesome5>['name'];
@@ -88,12 +89,21 @@ export function Field({ label, error, icon, compact, secureTextEntry, style, ...
   // Œil afficher/masquer, comme sur la page de connexion du site.
   const [masque, setMasque] = useState(true);
   const estMotDePasse = !!secureTextEntry;
+  // Avec un libellé, l'icône se place à côté de lui (choisie d'après son texte si le champ n'en donne pas) ;
+  // sans libellé (recherche, champ réduit), elle reste dans le champ.
+  const iconeLabel = !compact && !!label ? (icon ?? iconeLibelle(label)) : undefined;
+  const iconeDansChamp = iconeLabel ? undefined : icon;
 
   return (
     <View style={{ marginBottom: compact ? spacing.sm : spacing.md }}>
-      {!compact && <Text style={styles.label}>{label}</Text>}
+      {!compact && !!label && (
+        <View style={styles.labelLigne}>
+          {!!iconeLabel && <FontAwesome5 name={iconeLabel} size={13} color={colors.primary} style={styles.labelIcone} />}
+          <Text style={[styles.label, { marginBottom: 0 }]}>{label}</Text>
+        </View>
+      )}
       <View style={[styles.inputWrap, compact && { minHeight: 44 }, props.editable === false && { backgroundColor: colors.background },!!error && { borderColor: colors.danger }, props.multiline && { alignItems: 'flex-start' }]}>
-        {!!icon && <FontAwesome5 name={icon} size={15} color={colors.textMuted} style={styles.inputIcon} />}
+        {!!iconeDansChamp && <FontAwesome5 name={iconeDansChamp} size={15} color={colors.textMuted} style={styles.inputIcon} />}
         <TextInput
           placeholderTextColor="#94a3b8"
           accessibilityLabel={label}
@@ -109,6 +119,30 @@ export function Field({ label, error, icon, compact, secureTextEntry, style, ...
         )}
       </View>
       {!!error && <Text style={styles.fieldError}>{error}</Text>}
+    </View>
+  );
+}
+
+/** Libellé seul (choix, pièces jointes...) avec son icône, comme celui des champs de saisie. */
+export function Libelle({ children, icon }: { children: string; icon?: IconName }) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
+  return (
+    <View style={styles.labelLigne}>
+      <FontAwesome5 name={icon ?? iconeLibelle(children)} size={13} color={colors.primary} style={styles.labelIcone} />
+      <Text style={[styles.label, { marginBottom: 0 }]}>{children}</Text>
+    </View>
+  );
+}
+
+/** Ligne d'information (texte) précédée d'une petite icône. */
+export function LigneIcone({ icone, children }: { icone: IconName; children: ReactNode }) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
+  return (
+    <View style={styles.ligneIcone}>
+      <FontAwesome5 name={icone} size={12} color={colors.primary} style={styles.labelIcone} />
+      <Text style={styles.ligneIconeTexte}>{children}</Text>
     </View>
   );
 }
@@ -206,6 +240,10 @@ const createStyles = (colors: Palette) => StyleSheet.create({
   buttonRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   buttonText: { fontSize: 14, fontWeight: '600' },
   label: { fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 6 },
+  labelLigne: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
+  ligneIcone: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  ligneIconeTexte: { flex: 1, fontSize: 14, color: colors.textMuted },
+  labelIcone: { width: 18, textAlign: 'center' },
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',

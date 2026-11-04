@@ -9,6 +9,7 @@ import { getErrorMessage } from '@/api/client';
 import { Chips } from '@/components/Chips';
 import { Kpi } from '@/components/DashboardUi';
 import { Screen } from '@/components/Screen';
+import { iconeLibelle } from '@/components/iconeLibelle';
 import { Banner, Button, Card, ErrorState, Field, Loading } from '@/components/ui';
 import { useParametres } from '@/hooks/useOuvrir';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
@@ -436,19 +437,21 @@ interface FormulaireProps {
 /** Icône par défaut d'un champ selon son type quand le module n'en donne pas. */
 function iconeChamp(c: ChampDef): IconeChamp {
   if (c.icone) return c.icone;
+  let parType: IconeChamp = 'pen';
   switch (c.type) {
-    case 'password': return 'lock';
-    case 'date': return 'calendar-alt';
-    case 'time': return 'clock';
-    case 'nombre': return 'hashtag';
-    case 'textarea': return 'align-left';
-    case 'couleur': return 'palette';
-    case 'fichiers': return 'paperclip';
-    case 'utilisateur': case 'utilisateurs': return 'user-friends';
-    case 'reference': return 'link';
-    case 'choix': return 'list-ul';
-    default: return 'pen';
+    case 'password': parType = 'lock'; break;
+    case 'date': parType = 'calendar-alt'; break;
+    case 'time': parType = 'clock'; break;
+    case 'nombre': parType = 'hashtag'; break;
+    case 'textarea': parType = 'align-left'; break;
+    case 'couleur': parType = 'palette'; break;
+    case 'fichiers': parType = 'paperclip'; break;
+    case 'utilisateur': case 'utilisateurs': parType = 'user-friends'; break;
+    case 'reference': parType = 'link'; break;
+    case 'choix': parType = 'list-ul'; break;
   }
+  // Le libellé précise l'icône (« Téléphone », « Lieu », « Prix »...) ; sinon celle du type de champ.
+  return iconeLibelle(c.label, parType);
 }
 
 /** Libellé d'un champ qui n'est pas une saisie de texte, avec son icône (les saisies ont l'icône dans le champ). */

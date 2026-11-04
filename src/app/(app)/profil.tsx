@@ -6,16 +6,22 @@ import { getErrorMessage } from '@/api/client';
 import { changePassword, logout, updateMe } from '@/api/endpoints';
 import { Dialogue } from '@/components/Dialogue';
 import { Screen } from '@/components/Screen';
+import { FontAwesome5 } from '@expo/vector-icons';
+import { iconeLibelle } from '@/components/iconeLibelle';
 import { Banner, Button, Card, Field, SectionTitle } from '@/components/ui';
 import { useActualiserCompte } from '@/hooks/useActualiserCompte';
 import { useAuthStore } from '@/store/auth';
-import { type Palette, spacing, useStyles } from '@/theme';
+import { type Palette, spacing, useColors, useStyles } from '@/theme';
 
 function Info({ label, valeur }: { label: string; valeur: string }) {
   const styles = useStyles(createStyles);
+  const colors = useColors();
   return (
     <View style={{ gap: 2 }}>
-      <Text style={styles.infoLabel}>{label}</Text>
+      <View style={styles.infoEntete}>
+        <FontAwesome5 name={iconeLibelle(label)} size={12} color={colors.primary} style={{ width: 16, textAlign: 'center' }} />
+        <Text style={styles.infoLabel}>{label}</Text>
+      </View>
       <Text style={styles.infoValue}>{valeur || '—'}</Text>
     </View>
   );
@@ -207,6 +213,7 @@ export default function Profil() {
 
 const createStyles = (colors: Palette) => StyleSheet.create({
   name: { fontSize: 24, fontWeight: '800', color: colors.text },
+  infoEntete: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   infoLabel: { fontSize: 13, color: colors.textMuted, fontWeight: '600' },
   infoValue: { fontSize: 16, color: colors.text },
   regle: { fontSize: 12, color: colors.textMuted, marginTop: -4 },

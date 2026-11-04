@@ -7,7 +7,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { getErrorMessage } from '@/api/client';
 import { createRequete } from '@/api/endpoints';
 import { Screen } from '@/components/Screen';
-import { Banner, Button, Field } from '@/components/ui';
+import { Banner, Button, Field, Libelle } from '@/components/ui';
 import { useRemplacer } from '@/hooks/useOuvrir';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 import type { PieceJointe } from '@/types';
@@ -101,7 +101,7 @@ export default function NouvelleRequete() {
       <Field label="Sujet *" value={objet} onChangeText={setObjet} maxLength={200} placeholder="Sujet de votre requête" />
 
       <View>
-        <Text style={styles.label}>Type de requête *</Text>
+        <Libelle>Type de requête *</Libelle>
         <Choix options={TYPES} valeur={type} onChoisir={setType} />
       </View>
 
@@ -114,7 +114,7 @@ export default function NouvelleRequete() {
       />
 
       <View style={{ gap: spacing.sm }}>
-        <Text style={styles.label}>Pièce jointe (optionnelle)</Text>
+        <Libelle>Pièce jointe (optionnelle)</Libelle>
         {piece ? (
           <View style={styles.piece}>
             <FontAwesome5 name="paperclip" size={14} color={colors.primary} />
@@ -129,7 +129,7 @@ export default function NouvelleRequete() {
         <Text style={styles.aide}>PDF, Word, Excel, JPG, PNG ou GIF — 10 Mo maximum.</Text>
         {piece && (
           <View>
-            <Text style={styles.label}>Type du document *</Text>
+            <Libelle>Type du document *</Libelle>
             <Choix options={TYPES_DOCUMENT} valeur={typeDocument} onChoisir={setTypeDocument} />
           </View>
         )}

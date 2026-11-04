@@ -9,7 +9,7 @@ import { getErrorMessage } from '@/api/client';
 import { useReculer } from '@/hooks/useReculer';
 import { Dialogue } from '@/components/Dialogue';
 import { Screen } from '@/components/Screen';
-import { Badge, Banner, Button, Card, ErrorState, Field, Loading, SectionTitle } from '@/components/ui';
+import { Badge, Banner, Button, Card, ErrorState, Field, Loading, SectionTitle, Libelle, LigneIcone } from '@/components/ui';
 import { type Palette, spacing, useColors, useStyles } from '@/theme';
 import { formaterDA, formatDate } from '@/utils/format';
 
@@ -91,13 +91,13 @@ export default function AbonnementFiche() {
           <Text style={styles.titre}>{a.incubateur}</Text>
           <Badge label={a.statut_display} fond={colors.primarySoft} texte={colors.primaryDark} />
         </View>
-        <Text style={styles.ligne}>Plan : {a.plan_display} ({a.type === 'essai' ? "période d'essai" : 'annuel'})</Text>
-        <Text style={styles.ligne}>Du {formatDate(a.date_debut)} au {formatDate(a.date_fin)}</Text>
-        <Text style={styles.ligne}>
+        <LigneIcone icone="tags">Plan : {a.plan_display} ({a.type === 'essai' ? "période d'essai" : 'annuel'})</LigneIcone>
+        <LigneIcone icone="calendar-alt">Du {formatDate(a.date_debut)} au {formatDate(a.date_fin)}</LigneIcone>
+        <LigneIcone icone="hourglass-half">
           {a.jours_restants >= 0 ? `${a.jours_restants} jour(s) restant(s)` : `Expiré depuis ${-a.jours_restants} jour(s)`}
-        </Text>
-        <Text style={styles.ligne}>Montant annuel : {formaterDA(a.montant_annuel)}</Text>
-        {!!a.notes && <Text style={styles.ligne}>Notes : {a.notes}</Text>}
+        </LigneIcone>
+        <LigneIcone icone="money-bill-wave">Montant annuel : {formaterDA(a.montant_annuel)}</LigneIcone>
+        {!!a.notes && <LigneIcone icone="sticky-note">Notes : {a.notes}</LigneIcone>}
       </Card>
 
       <View style={styles.actions}>
@@ -111,7 +111,7 @@ export default function AbonnementFiche() {
         <SectionTitle icon="sync-alt">Renouveler</SectionTitle>
         {!!erreur && <Banner message={erreur} />}
         <Field label="Nouvelle date de fin *" value={dateFin} onChangeText={setDateFin} placeholder="AAAA-MM-JJ" />
-        <Text style={styles.label}>{"Changer d'offre (facultatif)"}</Text>
+        <Libelle>{"Changer d'offre (facultatif)"}</Libelle>
         <SelecteurReference base="superadmin" source={`abonnements/${id}/`} cleListe="offres"
           libelle={(o) => `${o.nom} — ${formaterDA(o.prix)}/an`} valeur={offreId} onChange={setOffreId} />
         <Button title="Renouveler" onPress={() => void renouveler()} loading={envoi} />
@@ -121,9 +121,9 @@ export default function AbonnementFiche() {
         <SectionTitle icon="credit-card">Paiements</SectionTitle>
         {data.paiements.length === 0 && <Text style={styles.ligne}>Aucun paiement enregistré.</Text>}
         {data.paiements.map((p: any) => (
-          <Text key={p.id} style={styles.ligne}>
+          <LigneIcone key={p.id} icone="receipt">
             {p.reference} · {formaterDA(p.montant)} · {p.methode_display} · {formatDate(p.date_paiement)} · {p.statut_display}
-          </Text>
+          </LigneIcone>
         ))}
       </Card>
     </Screen>
