@@ -464,11 +464,42 @@ function Etiquette({ texte, icone, couleur }: { texte: string; icone: IconeChamp
 }
 
 /** Photo de la personne ; sans photo, silhouette grise comme sur Instagram ou Facebook. */
-function PhotoIdentite() {
+function PhotoIdentite({ etiree }: { etiree?: boolean }) {
   const styles = useStyles(createStyles);
   return (
-    <View style={styles.photo} accessibilityLabel="Pas de photo">
+    <View style={[styles.photo, etiree && styles.photoEtiree]} accessibilityLabel="Pas de photo">
       <FontAwesome5 name="user" solid size={84} color="#f1f3f6" style={styles.photoSilhouette} />
+    </View>
+  );
+}
+
+/** Hauteur d'une ligne d'information : 4 lignes = le côté de la photo carrée, qui est donc exactement alignée avec elles. */
+const HAUTEUR_INFO = 34;
+
+const INFOS_IDENTITE: { cle: string; indication: string; icone: IconeChamp }[] = [
+  { cle: 'nom', indication: 'Nom', icone: 'user' },
+  { cle: 'prenom', indication: 'Prénom', icone: 'user' },
+  { cle: 'email', indication: 'Email', icone: 'envelope' },
+  { cle: 'matricule', indication: 'Matricule', icone: 'id-badge' },
+];
+
+/** Informations d'identité en consultation : une ligne par information (icône verte + valeur), sans champ de saisie ni trait. */
+function InfosIdentite({ valeurs }: { valeurs: Record<string, any> }) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
+  return (
+    <View style={{ flex: 1 }}>
+      {INFOS_IDENTITE.map((info) => {
+        const valeur = String(valeurs[info.cle] ?? '').trim();
+        return (
+          <View key={info.cle} style={styles.infoLigne}>
+            <View style={styles.infoIcone}><FontAwesome5 name={info.icone} size={12} color={colors.success} /></View>
+            <Text style={[styles.infoValeur, !valeur && { color: colors.textMuted }]} numberOfLines={1}>
+              {valeur || `${info.indication} non renseigné`}
+            </Text>
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -629,9 +660,9 @@ export function FormulaireAdmin({
         // En consultation, rien n'est touchable (pointerEvents) : on voit les informations sans pouvoir les changer.
         <View pointerEvents={lecture ? 'none' : 'auto'}>
           <Card style={styles.identite}>
-            <View style={styles.identiteEntete}>
-              <PhotoIdentite />
-              <View style={{ flex: 1 }}>{lignes.filter((_, i) => PRINCIPAUX.includes(visibles[i].nom))}</View>
+            <View style={[styles.identiteEntete, lecture && { alignItems: 'center' }]}>
+              <PhotoIdentite etiree={lecture} />
+              {lecture ? <InfosIdentite valeurs={valeurs} /> : <View style={{ flex: 1 }}>{lignes.filter((_, i) => PRINCIPAUX.includes(visibles[i].nom))}</View>}
             </View>
             {lignes.filter((_, i) => !PRINCIPAUX.includes(visibles[i].nom))}
           </Card>
@@ -694,9 +725,13 @@ const createStyles = (colors: Palette) => StyleSheet.create({
     borderRadius: radius.pill, paddingHorizontal: 14, paddingVertical: 8, marginBottom: spacing.sm,
   },
   styloTexte: { fontSize: 13, fontWeight: '700', color: colors.primaryDark },
-  identiteEntete: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  identiteEntete: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.md },
+  infoLigne: { height: HAUTEUR_INFO, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  infoIcone: { width: 26, height: 26, borderRadius: 8, backgroundColor: colors.successSoft, alignItems: 'center', justifyContent: 'center' },
+  infoValeur: { flex: 1, fontSize: 15, color: colors.text },
   photo: { width: 112, height: 134, alignSelf: 'center', borderRadius: 14, backgroundColor: '#cfd4dc', overflow: 'hidden', alignItems: 'center', justifyContent: 'flex-end' },
   photoSilhouette: { marginBottom: -8 },
+  photoEtiree: { height: 4 * HAUTEUR_INFO, width: 4 * HAUTEUR_INFO },
   badge: { backgroundColor: colors.primarySoft, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4 },
   badgeText: { fontSize: 12, fontWeight: '700', color: colors.primaryDark },
   compteurs: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
