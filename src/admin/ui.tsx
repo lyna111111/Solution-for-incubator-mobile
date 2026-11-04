@@ -680,7 +680,7 @@ export function FormulaireAdmin({
 
 // ── Graphiques simples (barres horizontales) ─────────────────────────────────
 
-export function Barres({ donnees, couleur }: { donnees: { label: string; valeur: number }[]; couleur?: string }) {
+export function Barres({ donnees, couleur }: { donnees: { label: string; valeur: number; icone?: IconeChamp }[]; couleur?: string }) {
   const styles = useStyles(createStyles);
   const colors = useColors();
   const remplissage = couleur ?? colors.primary;
@@ -690,7 +690,10 @@ export function Barres({ donnees, couleur }: { donnees: { label: string; valeur:
       {donnees.map((d) => (
         <View key={d.label} style={{ gap: 2 }}>
           <View style={styles.barreEntete}>
-            <Text style={styles.sous}>{d.label}</Text>
+            <View style={styles.barreLibelle}>
+              {!!d.icone && <FontAwesome5 name={d.icone} size={12} color={remplissage} style={{ width: 16, textAlign: 'center' }} />}
+              <Text style={styles.sous}>{d.label}</Text>
+            </View>
             <Text style={styles.titre}>{d.valeur}</Text>
           </View>
           <View style={styles.barrePiste}>
@@ -707,6 +710,7 @@ const createStyles = (colors: Palette) => StyleSheet.create({
   pager: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   imposee: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 8, backgroundColor: colors.primarySoft, borderRadius: radius.pill, paddingHorizontal: 14, paddingVertical: 8 },
   imposeeTexte: { color: colors.primaryDark, fontSize: 13, fontWeight: '700' },
+  barreLibelle: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
   pageInfo: { color: colors.textMuted, fontSize: 14 },
   ligne: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   titre: { fontSize: 15, fontWeight: '600', color: colors.text },

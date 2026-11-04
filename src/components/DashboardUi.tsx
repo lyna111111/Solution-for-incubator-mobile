@@ -1,4 +1,5 @@
 import { FontAwesome5 } from '@expo/vector-icons';
+import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useAllerOnglet, useOuvrir } from '@/hooks/useOuvrir';
@@ -9,10 +10,12 @@ import { Card } from './ui';
 type IconName = React.ComponentProps<typeof FontAwesome5>['name'];
 
 /** Carte de chiffre des tableaux de bord (`.sa-kpi-card` du site) : mène à la page concernée si `route` est donnée. */
-export function Kpi({ icone, couleur, fond, label, valeur, unite, route, compact }: {
+export function Kpi({ icone, couleur, fond, label, valeur, unite, route, compact, pied }: {
   icone: IconName; couleur: string; fond: string; label: string; valeur: string | number; unite?: string; route?: string;
   /** Version réduite (pages de gestion) : même style, icône, marges et chiffre plus petits. */
   compact?: boolean;
+  /** Ligne sous le chiffre (ex. variation par rapport a la periode precedente). */
+  pied?: ReactNode;
 }) {
   const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
@@ -27,6 +30,7 @@ export function Kpi({ icone, couleur, fond, label, valeur, unite, route, compact
           <Text style={[styles.kpiValeur, compact && styles.kpiValeurPetit]} adjustsFontSizeToFit numberOfLines={1}>
             {valeur}{unite ? <Text style={styles.kpiUnite}> {unite}</Text> : null}
           </Text>
+          {pied}
         </View>
       </Card>
     </Pressable>

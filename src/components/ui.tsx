@@ -136,12 +136,12 @@ export function Libelle({ children, icon }: { children: string; icon?: IconName 
 }
 
 /** Ligne d'information (texte) précédée d'une petite icône. */
-export function LigneIcone({ icone, children }: { icone: IconName; children: ReactNode }) {
+export function LigneIcone({ icone, children, couleur }: { icone: IconName; children: ReactNode; couleur?: string }) {
   const styles = useStyles(createStyles);
   const colors = useColors();
   return (
     <View style={styles.ligneIcone}>
-      <FontAwesome5 name={icone} size={12} color={colors.primary} style={styles.labelIcone} />
+      <FontAwesome5 name={icone} size={12} color={couleur ?? colors.primary} style={styles.labelIcone} />
       <Text style={styles.ligneIconeTexte}>{children}</Text>
     </View>
   );
@@ -163,12 +163,12 @@ export function Badge({ label, fond, texte }: { label: string; fond: string; tex
   );
 }
 
-export function SectionTitle({ children, icon }: { children: ReactNode; icon?: IconName }) {
+export function SectionTitle({ children, icon, couleur }: { children: ReactNode; icon?: IconName; couleur?: string }) {
   const styles = useStyles(createStyles);
   const colors = useColors();
   return (
     <View style={styles.sectionRow}>
-      {!!icon && <FontAwesome5 name={icon} size={15} color={colors.primary} />}
+      {!!icon && <FontAwesome5 name={icon} size={15} color={couleur ?? colors.primary} />}
       <Text style={styles.sectionTitle}>{children}</Text>
     </View>
   );
