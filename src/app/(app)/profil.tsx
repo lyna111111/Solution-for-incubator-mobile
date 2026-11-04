@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { getErrorMessage } from '@/api/client';
 import { changePassword, logout, updateMe } from '@/api/endpoints';
@@ -11,7 +11,7 @@ import { iconeLibelle } from '@/components/iconeLibelle';
 import { Banner, Button, Card, Field, SectionTitle } from '@/components/ui';
 import { useActualiserCompte } from '@/hooks/useActualiserCompte';
 import { useAuthStore } from '@/store/auth';
-import { type Palette, spacing, useColors, useStyles } from '@/theme';
+import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
 function Info({ label, valeur }: { label: string; valeur: string }) {
   const styles = useStyles(createStyles);
@@ -31,6 +31,7 @@ type Message = { type: 'success' | 'error'; texte: string } | null;
 
 export default function Profil() {
   const styles = useStyles(createStyles);
+  const colors = useColors();
   const user = useAuthStore((s) => s.user);
   const refreshToken = useAuthStore((s) => s.refreshToken);
   const setUser = useAuthStore((s) => s.setUser);
@@ -49,6 +50,8 @@ export default function Profil() {
     faculte: user?.faculte ?? '',
   });
   const [infos, setInfos] = useState<Message>(null);
+  // Comme les pages de modification : le profil s'ouvre en consultation, le stylo en haut ouvre la modification.
+  const [edition, setEdition] = useState(false);
   const [mdp, setMdp] = useState({ actuel: '', nouveau: '', confirmation: '' });
   const [messageMdp, setMessageMdp] = useState<Message>(null);
 
@@ -66,6 +69,7 @@ export default function Profil() {
     onSuccess: async (moi) => {
       await setUser(moi);
       setInfos({ type: 'success', texte: 'Profil mis à jour.' });
+      setEdition(false);
     },
     onError: (e) => setInfos({ type: 'error', texte: getErrorMessage(e) }),
   });
@@ -95,6 +99,21 @@ export default function Profil() {
     }
     setMessageMdp(null);
     changement.mutate();
+  }
+
+  function basculerEdition() {
+    // Annuler remet les informations d'origine.
+    if (edition) {
+      setForm({
+        nom: user?.nom ?? '',
+        prenom: user?.prenom ?? '',
+        email: user?.email ?? '',
+        departement: user?.departement ?? '',
+        faculte: user?.faculte ?? '',
+      });
+      setInfos(null);
+    }
+    setEdition(!edition);
   }
 
   function confirmerDeconnexion() {
@@ -134,6 +153,17 @@ export default function Profil() {
 
   return (
     <Screen withTopInset title="Mon Profil" refreshing={refreshing} onRefresh={() => void actualiserProfil()}>
+      {!estSuperAdmin && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={edition ? 'Annuler la modification' : 'Modifier mes informations'}
+          onPress={basculerEdition}
+          style={[styles.stylo, edition && { backgroundColor: colors.dangerSoft }]}
+        >
+          <FontAwesome5 name={edition ? 'times' : 'pen'} size={14} color={edition ? colors.dangerText : colors.primary} />
+          <Text style={[styles.styloTexte, edition && { color: colors.dangerText }]}>{edition ? 'Annuler' : 'Modifier'}</Text>
+        </Pressable>
+      )}
       <Text style={styles.name}>
         {user.prenom} {user.nom}
       </Text>
@@ -155,23 +185,26 @@ export default function Profil() {
         <>
           <SectionTitle icon="user-edit">Modifier mes informations</SectionTitle>
           {infos && <Banner type={infos.type} message={infos.texte} />}
-          <Field label="Nom" icon="user" value={form.nom} onChangeText={majForm('nom')} autoCapitalize="words" />
-          <Field label="Prénom" icon="user" value={form.prenom} onChangeText={majForm('prenom')} autoCapitalize="words" />
-          <Field
-            label="Email"
-            icon="envelope"
-            value={form.email}
-            onChangeText={majForm('email')}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
-          {estUtilisateur && (
-            <>
-              <Field label="Département" value={form.departement} onChangeText={majForm('departement')} />
-              <Field label="Faculté" value={form.faculte} onChangeText={majForm('faculte')} />
-            </>
-          )}
-          <Button title="Enregistrer" onPress={enregistrer} loading={enregistrement.isPending} />
+          <View pointerEvents={edition ? 'auto' : 'none'}>
+            <Field label="Nom" icon="user" editable={edition} value={form.nom} onChangeText={majForm('nom')} autoCapitalize="words" />
+            <Field label="Prénom" icon="user" editable={edition} value={form.prenom} onChangeText={majForm('prenom')} autoCapitalize="words" />
+            <Field
+              label="Email"
+              editable={edition}
+              icon="envelope"
+              value={form.email}
+              onChangeText={majForm('email')}
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
+            {estUtilisateur && (
+              <>
+                <Field label="Département" editable={edition} value={form.departement} onChangeText={majForm('departement')} />
+                <Field label="Faculté" editable={edition} value={form.faculte} onChangeText={majForm('faculte')} />
+              </>
+            )}
+          </View>
+          {edition && <Button title="Enregistrer" onPress={enregistrer} loading={enregistrement.isPending} />}
         </>
       )}
 
@@ -212,6 +245,11 @@ export default function Profil() {
 }
 
 const createStyles = (colors: Palette) => StyleSheet.create({
+  stylo: {
+    flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-end', gap: 8, backgroundColor: colors.primarySoft,
+    borderRadius: radius.pill, paddingHorizontal: 14, paddingVertical: 8,
+  },
+  styloTexte: { fontSize: 13, fontWeight: '700', color: colors.primaryDark },
   name: { fontSize: 24, fontWeight: '800', color: colors.text },
   infoEntete: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   infoLabel: { fontSize: 13, color: colors.textMuted, fontWeight: '600' },
