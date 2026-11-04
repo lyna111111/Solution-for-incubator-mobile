@@ -2,8 +2,8 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import * as DocumentPicker from 'expo-document-picker';
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { ReactNode, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ReactNode, useMemo, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { getErrorMessage } from '@/api/client';
 import { Chips } from '@/components/Chips';
@@ -15,7 +15,7 @@ import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 import type { Pagination } from '@/types';
 
 import { adminGet, type BaseApi } from './api';
-import type { ChampDef, ContexteListe, Fichier, FiltreDef, IconeChamp } from './types';
+import type { ChampDef, ContexteListe, Fichier, FiltreDef, IconeChamp, Teinte } from './types';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- données des écrans de gestion décrites par la config de chaque module */
 
@@ -153,7 +153,6 @@ export function LigneListe({
 }
 
 type IconeFa = React.ComponentProps<typeof FontAwesome5>['name'];
-type Teinte = 'primary' | 'info' | 'success' | 'warning' | 'danger';
 
 // Icône et teinte du système choisies d'après le libellé (sans accents, en minuscules) ; le premier motif qui correspond l'emporte.
 const ICONES_COMPTEUR: [RegExp, IconeFa, Teinte][] = [
@@ -258,6 +257,10 @@ export function SelecteurReference({
   );
 }
 
+/**
+ * Liste déroulante d'utilisateurs : une boîte à défilement avec tous les noms, on touche ceux à choisir (plusieurs possibles
+ * si `multiple`). Les personnes choisies s'affichent au-dessus en pastilles qu'on peut retirer.
+ */
 export function SelecteurUtilisateurs({
   source, valeur, multiple, onChange,
 }: { source: string; valeur: number[]; multiple: boolean; onChange: (v: number[]) => void }) {
@@ -271,6 +274,18 @@ export function SelecteurUtilisateurs({
   });
   // Deux routes, deux formes de réponse : { utilisateurs: [...] } ou { data: [...] }.
   const utilisateurs: { id: number; nom: string; prenom: string }[] = data?.utilisateurs ?? data?.data ?? [];
+  // Liste complète (sans recherche) : sert à retrouver le nom d'une personne choisie même si la recherche ne la montre plus.
+  // Même clé que la liste quand la recherche est vide : une seule requête.
+  const { data: toutes } = useQuery({
+    queryKey: ['admin', 'selecteur', source, ''],
+    queryFn: () => adminGet(source, { q: '' }),
+  });
+  const noms = useMemo(() => {
+    const liste: { id: number; nom: string; prenom: string }[] = [
+      ...(toutes?.utilisateurs ?? toutes?.data ?? []), ...(data?.utilisateurs ?? data?.data ?? []),
+    ];
+    return Object.fromEntries(liste.map((u) => [u.id, `${u.prenom} ${u.nom}`])) as Record<number, string>;
+  }, [toutes, data]);
 
   function basculer(id: number) {
     if (!multiple) onChange(valeur[0] === id ? [] : [id]);
@@ -279,21 +294,43 @@ export function SelecteurUtilisateurs({
 
   return (
     <View style={{ gap: spacing.sm }}>
-      <Field label="" icon="search" value={saisie} onChangeText={setSaisie} onSubmitEditing={() => setQ(saisie.trim())}
-        returnKeyType="search" placeholder="Rechercher un utilisateur..." />
+      <Field label="" icon="search" value={saisie} onChangeText={(t) => { setSaisie(t); if (!t.trim()) setQ(''); }}
+        onSubmitEditing={() => setQ(saisie.trim())} returnKeyType="search" placeholder="Rechercher un nom..." />
+      {valeur.length > 0 && (
+        <View style={styles.choisis}>
+          {valeur.map((id) => (
+            <Pressable key={id} onPress={() => basculer(id)} style={styles.choisi} hitSlop={4}>
+              <Text style={styles.choisiTexte} numberOfLines={1}>{noms[id] ?? `Utilisateur ${id}`}</Text>
+              <FontAwesome5 name="times" size={11} color={colors.primaryDark} />
+            </Pressable>
+          ))}
+        </View>
+      )}
       {isLoading && <Text style={styles.sous}>Chargement...</Text>}
       {!!error && <Banner message={getErrorMessage(error)} />}
-      {utilisateurs.map((u) => {
-        const choisi = valeur.includes(u.id);
-        return (
-          <Pressable key={u.id} onPress={() => basculer(u.id)} style={[styles.choixUtilisateur, choisi && styles.choixActif]}>
-            <FontAwesome5 name={choisi ? (multiple ? 'check-square' : 'dot-circle') : (multiple ? 'square' : 'circle')} size={16}
-              color={choisi ? colors.primary : colors.textMuted} />
-            <Text style={styles.titre}>{u.prenom} {u.nom}</Text>
-          </Pressable>
-        );
-      })}
-      {valeur.length > 0 && <Text style={styles.sous}>{valeur.length} sélectionné(s)</Text>}
+      <View style={styles.boite}>
+        <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator>
+          {utilisateurs.length === 0 && !isLoading && <Text style={[styles.sous, { padding: spacing.md }]}>Aucun utilisateur trouvé.</Text>}
+          {utilisateurs.map((u) => {
+            const choisi = valeur.includes(u.id);
+            return (
+              <Pressable key={u.id} onPress={() => basculer(u.id)} style={[styles.optionUtilisateur, choisi && styles.choixActif]}>
+                <View style={[styles.initiales, choisi && { backgroundColor: colors.primary }]}>
+                  <Text style={[styles.initialesTexte, choisi && { color: '#fff' }]}>
+                    {`${u.prenom?.[0] ?? ''}${u.nom?.[0] ?? ''}`.toUpperCase()}
+                  </Text>
+                </View>
+                <Text style={[styles.titre, { flex: 1 }]} numberOfLines={1}>{u.prenom} {u.nom}</Text>
+                <FontAwesome5 name={choisi ? (multiple ? 'check-square' : 'dot-circle') : (multiple ? 'square' : 'circle')} size={18}
+                  color={choisi ? colors.primary : colors.textMuted} />
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      </View>
+      <Text style={styles.sous}>
+        {valeur.length > 0 ? `${valeur.length} sélectionné(s)` : multiple ? 'Touchez les noms à sélectionner (plusieurs possibles).' : 'Touchez un nom pour le sélectionner.'}
+      </Text>
     </View>
   );
 }
@@ -391,6 +428,8 @@ interface FormulaireProps {
   base?: BaseApi;
   /** Présente le formulaire comme une carte d'identité (photo à gauche, nom, prénom, email et matricule à droite, le reste en dessous). */
   identite?: boolean;
+  /** Nom du champ (0 à 100) montré en haut comme une barre d'avancement colorée. */
+  avancement?: string;
   onSubmit: (valeurs: Record<string, any>, fichiers: Fichier[]) => Promise<void>;
 }
 
@@ -413,12 +452,12 @@ function iconeChamp(c: ChampDef): IconeChamp {
 }
 
 /** Libellé d'un champ qui n'est pas une saisie de texte, avec son icône (les saisies ont l'icône dans le champ). */
-function Etiquette({ texte, icone }: { texte: string; icone: IconeChamp }) {
+function Etiquette({ texte, icone, couleur }: { texte: string; icone: IconeChamp; couleur?: string }) {
   const styles = useStyles(createStyles);
   const colors = useColors();
   return (
     <View style={styles.etiquette}>
-      <FontAwesome5 name={icone} size={13} color={colors.primary} style={{ width: 18, textAlign: 'center' }} />
+      <FontAwesome5 name={icone} size={13} color={couleur ?? colors.primary} style={{ width: 18, textAlign: 'center' }} />
       <Text style={[styles.label, { marginBottom: 0 }]}>{texte}</Text>
     </View>
   );
@@ -434,17 +473,48 @@ function PhotoIdentite() {
   );
 }
 
+/** Barre d'avancement en haut d'un formulaire : le remplissage et le pourcentage changent de couleur selon l'avancement. */
+function BarreAvancement({ valeur }: { valeur: number }) {
+  const styles = useStyles(createStyles);
+  const colors = useColors();
+  const pct = Number.isFinite(valeur) ? Math.max(0, Math.min(100, Math.round(valeur))) : 0;
+  const [couleur, etat] = pct >= 100 ? [colors.success, 'Terminé']
+    : pct >= 67 ? [colors.info, 'Bien avancé']
+      : pct >= 34 ? [colors.warning, 'En cours']
+        : [colors.danger, 'Au démarrage'];
+  return (
+    <Card style={styles.avancement}>
+      <View style={styles.avancementEntete}>
+        <FontAwesome5 name="tasks" size={15} color={couleur} />
+        <Text style={styles.avancementTitre}>Avancement</Text>
+        <Text style={[styles.avancementEtat, { color: couleur }]}>{etat}</Text>
+      </View>
+      <View style={styles.avancementPiste}>
+        <View style={[styles.avancementRemplissage, { width: `${pct}%`, backgroundColor: couleur }]}>
+          {pct >= 14 && <Text style={styles.avancementPourcent}>{pct}%</Text>}
+        </View>
+      </View>
+      {pct < 14 && <Text style={[styles.avancementPourcentHors, { color: couleur }]}>{pct}%</Text>}
+    </Card>
+  );
+}
+
 /** Champs placés à droite de la photo dans la présentation « carte d'identité ». */
 const PRINCIPAUX = ['nom', 'prenom', 'email', 'matricule'];
 
-export function FormulaireAdmin({ champs, mode, valeursInitiales = {}, libelle, base = 'admin', identite, onSubmit }: FormulaireProps) {
+export function FormulaireAdmin({
+  champs, mode, valeursInitiales = {}, libelle, base = 'admin', identite, avancement, onSubmit,
+}: FormulaireProps) {
   const styles = useStyles(createStyles);
   const visibles = champs.filter((c) => (mode === 'creation' ? !c.modification : !c.creation));
   const [valeurs, setValeurs] = useState<Record<string, any>>(valeursInitiales);
   const [fichiers, setFichiers] = useState<Fichier[]>([]);
   const [erreur, setErreur] = useState('');
   const [envoi, setEnvoi] = useState(false);
-
+  // Toute page de modification s'ouvre en consultation : le stylo en haut ouvre la modification.
+  const [edition, setEdition] = useState(false);
+  const lecture = mode === 'modification' && !edition;
+  const colors = useColors();
   const maj = (nom: string) => (v: any) => setValeurs((x) => ({ ...x, [nom]: v }));
 
   async function valider() {
@@ -521,7 +591,9 @@ export function FormulaireAdmin({ champs, mode, valeursInitiales = {}, libelle, 
             key={c.nom}
             label={etiquette}
             icon={iconeChamp(c)}
-            compact={!!identite && PRINCIPAUX.includes(c.nom)}
+            // En consultation les libellés restent visibles (rien à saisir) ; en saisie ils deviennent le texte indicatif.
+            compact={!!identite && !lecture && PRINCIPAUX.includes(c.nom)}
+            editable={!lecture}
             value={String(valeurs[c.nom] ?? '')}
             onChangeText={maj(c.nom)}
             secureTextEntry={c.type === 'password'}
@@ -536,17 +608,38 @@ export function FormulaireAdmin({ champs, mode, valeursInitiales = {}, libelle, 
   return (
     <View style={{ gap: spacing.xs }}>
       {!!erreur && <Banner message={erreur} />}
+      {mode === 'modification' && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={edition ? 'Annuler la modification' : 'Modifier les informations'}
+          onPress={() => {
+            // Annuler remet les informations d'origine.
+            if (edition) { setValeurs(valeursInitiales); setFichiers([]); setErreur(''); }
+            setEdition(!edition);
+          }}
+          style={[styles.stylo, edition && { backgroundColor: colors.dangerSoft }]}
+        >
+          <FontAwesome5 name={edition ? 'times' : 'pen'} size={14} color={edition ? colors.dangerText : colors.primary} />
+          <Text style={[styles.styloTexte, edition && { color: colors.dangerText }]}>{edition ? 'Annuler' : 'Modifier'}</Text>
+        </Pressable>
+      )}
+      {!!avancement && visibles.some((c) => c.nom === avancement) && <BarreAvancement valeur={Number(valeurs[avancement])} />}
       {identite ? (
         // Style carte d'identité : photo à gauche, nom, prénom, email et matricule à droite, les autres champs en dessous.
-        <Card style={styles.identite}>
-          <View style={styles.identiteEntete}>
-            <PhotoIdentite />
-            <View style={{ flex: 1 }}>{lignes.filter((_, i) => PRINCIPAUX.includes(visibles[i].nom))}</View>
-          </View>
-          {lignes.filter((_, i) => !PRINCIPAUX.includes(visibles[i].nom))}
-        </Card>
-      ) : lignes}
-      <Button pill title={libelle} onPress={() => void valider()} loading={envoi} />
+        // En consultation, rien n'est touchable (pointerEvents) : on voit les informations sans pouvoir les changer.
+        <View pointerEvents={lecture ? 'none' : 'auto'}>
+          <Card style={styles.identite}>
+            <View style={styles.identiteEntete}>
+              <PhotoIdentite />
+              <View style={{ flex: 1 }}>{lignes.filter((_, i) => PRINCIPAUX.includes(visibles[i].nom))}</View>
+            </View>
+            {lignes.filter((_, i) => !PRINCIPAUX.includes(visibles[i].nom))}
+          </Card>
+        </View>
+      ) : (
+        <View pointerEvents={lecture ? 'none' : 'auto'}>{lignes}</View>
+      )}
+      {!lecture && <Button pill title={libelle} onPress={() => void valider()} loading={envoi} />}
     </View>
   );
 }
@@ -588,6 +681,19 @@ const createStyles = (colors: Palette) => StyleSheet.create({
   label: { fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 6 },
   etiquette: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
   identite: { marginBottom: spacing.md },
+  avancement: { gap: spacing.sm, marginBottom: spacing.md },
+  avancementEntete: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  avancementTitre: { flex: 1, fontSize: 15, fontWeight: '700', color: colors.text },
+  avancementEtat: { fontSize: 13, fontWeight: '700' },
+  avancementPiste: { height: 22, borderRadius: 11, backgroundColor: colors.border, overflow: 'hidden' },
+  avancementRemplissage: { height: 22, borderRadius: 11, justifyContent: 'center', alignItems: 'flex-end', paddingHorizontal: 8 },
+  avancementPourcent: { color: '#fff', fontSize: 12, fontWeight: '800' },
+  avancementPourcentHors: { fontSize: 12, fontWeight: '800' },
+  stylo: {
+    flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-end', gap: 8, backgroundColor: colors.primarySoft,
+    borderRadius: radius.pill, paddingHorizontal: 14, paddingVertical: 8, marginBottom: spacing.sm,
+  },
+  styloTexte: { fontSize: 13, fontWeight: '700', color: colors.primaryDark },
   identiteEntete: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   photo: { width: 112, height: 134, alignSelf: 'center', borderRadius: 14, backgroundColor: '#cfd4dc', overflow: 'hidden', alignItems: 'center', justifyContent: 'flex-end' },
   photoSilhouette: { marginBottom: -8 },
@@ -600,6 +706,16 @@ const createStyles = (colors: Palette) => StyleSheet.create({
   puceTexte: { color: colors.text, fontSize: 14 },
   puceTexteActive: { color: '#fff', fontWeight: '600' },
   choixUtilisateur: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.card, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.border },
+  boite: { maxHeight: 260, borderWidth: 1, borderColor: colors.border, borderRadius: 12, backgroundColor: colors.card, overflow: 'hidden' },
+  optionUtilisateur: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: 10, paddingHorizontal: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border,
+  },
+  initiales: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },
+  initialesTexte: { fontSize: 12, fontWeight: '800', color: colors.primary },
+  choisis: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  choisi: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.primarySoft, borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 6, maxWidth: '100%' },
+  choisiTexte: { fontSize: 13, fontWeight: '600', color: colors.primaryDark, flexShrink: 1 },
   choixActif: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
   fichier: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.primarySoft, borderRadius: radius.md, padding: spacing.md },
   barreEntete: { flexDirection: 'row', justifyContent: 'space-between' },

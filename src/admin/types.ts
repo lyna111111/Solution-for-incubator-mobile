@@ -3,6 +3,9 @@ import type { ReactNode } from 'react';
 
 export type IconeChamp = React.ComponentProps<typeof FontAwesome5>['name'];
 
+/** Couleurs du système (accueils, cartes de chiffres). */
+export type Teinte = 'primary' | 'info' | 'success' | 'warning' | 'danger';
+
 /** Fichier choisi sur le téléphone, envoyé en multipart sous le nom de champ `champ`. */
 export interface Fichier {
   champ: string;
@@ -91,6 +94,8 @@ export interface ModuleDef {
   champs: ChampDef[];
   /** Formulaire présenté comme une carte d'identité (photo à gauche, informations à droite puis vers le bas). */
   carteIdentite?: boolean;
+  /** Nom du champ (0 à 100) affiché en haut du formulaire comme une barre d'avancement colorée. */
+  avancement?: string;
   valeursInitiales: (item: any) => Record<string, any>;
   /** Valeurs proposées à l'ouverture du formulaire de création (ex. date du jour). */
   valeursCreation?: () => Record<string, any>;

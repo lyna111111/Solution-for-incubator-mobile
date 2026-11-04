@@ -92,7 +92,7 @@ export function Field({ label, error, icon, compact, secureTextEntry, style, ...
   return (
     <View style={{ marginBottom: compact ? spacing.sm : spacing.md }}>
       {!compact && <Text style={styles.label}>{label}</Text>}
-      <View style={[styles.inputWrap, compact && { minHeight: 44 }, !!error && { borderColor: colors.danger }, props.multiline && { alignItems: 'flex-start' }]}>
+      <View style={[styles.inputWrap, compact && { minHeight: 44 }, props.editable === false && { backgroundColor: colors.background },!!error && { borderColor: colors.danger }, props.multiline && { alignItems: 'flex-start' }]}>
         {!!icon && <FontAwesome5 name={icon} size={15} color={colors.textMuted} style={styles.inputIcon} />}
         <TextInput
           placeholderTextColor="#94a3b8"
