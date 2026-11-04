@@ -8,6 +8,7 @@ import { radius, spacing, useColors } from '@/theme';
 
 import { adminEnvoyer } from './api';
 import type { ContexteListe, ModuleDef } from './types';
+import { CalendrierEvenements } from './CalendrierEvenements';
 import { Compteurs } from './ui';
 import { MODULES_SUPER } from './modulesSuper';
 
@@ -212,10 +213,13 @@ export const MODULES: Record<string, ModuleDef> = {
       sousTitre: (e) => `${e.date}${e.heure_debut ? ` · ${e.heure_debut}` : ''}${e.lieu ? ` · ${e.lieu}` : ''}`,
       badge: (e) => e.type,
       entete: (r) => (
-        <Compteurs valeurs={[
-          { label: 'Total', valeur: r.compteurs.total }, { label: 'À venir', valeur: r.compteurs.a_venir },
-          { label: "Aujourd'hui", valeur: r.compteurs.aujourdhui }, { label: 'Passés', valeur: r.compteurs.passes },
-        ]} />
+        <>
+          <Compteurs valeurs={[
+            { label: 'Total', valeur: r.compteurs.total }, { label: 'À venir', valeur: r.compteurs.a_venir },
+            { label: "Aujourd'hui", valeur: r.compteurs.aujourdhui }, { label: 'Passés', valeur: r.compteurs.passes },
+          ]} />
+          <CalendrierEvenements />
+        </>
       ),
     },
     detail: { chemin: (id) => `evenements/${id}/`, cle: 'evenement' },
