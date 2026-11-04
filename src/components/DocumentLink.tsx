@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { getErrorMessage } from '@/api/client';
-import { ouvrirDocument } from '@/api/endpoints';
+import { ouvrirDocument, voirDocument } from '@/api/endpoints';
 import { Dialogue } from '@/components/Dialogue';
 import type { DocumentJoint } from '@/types';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
@@ -12,34 +12,65 @@ import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 export function DocumentLink({ document }: { document: DocumentJoint }) {
   const styles = useStyles(createStyles);
   const colors = useColors();
-  const [chargement, setChargement] = useState(false);
+  const [action, setAction] = useState<'voir' | 'telecharger' | null>(null);
 
-  async function ouvrir() {
-    setChargement(true);
+  // D'abord on peut regarder le document ; le téléchargement est un second choix, à part.
+  async function voir() {
+    setAction('voir');
+    try {
+      const affiche = await voirDocument(document);
+      if (!affiche) {
+        Dialogue.alert('Aperçu impossible', "Aucune application du téléphone ne peut afficher ce document. Vous pouvez le télécharger.");
+      }
+    } catch (e) {
+      Dialogue.alert('Aperçu impossible', getErrorMessage(e));
+    } finally {
+      setAction(null);
+    }
+  }
+
+  async function telecharger() {
+    setAction('telecharger');
     try {
       await ouvrirDocument(document);
     } catch (e) {
       Dialogue.alert('Téléchargement impossible', getErrorMessage(e));
     } finally {
-      setChargement(false);
+      setAction(null);
     }
   }
 
   return (
-    <Pressable onPress={() => void ouvrir()} disabled={chargement} style={styles.row}>
+    <View style={styles.row}>
       <FontAwesome5 name="paperclip" size={14} color={colors.primary} />
       <View style={{ flex: 1 }}>
-        <Text style={styles.titre} numberOfLines={1}>
+        <Text style={styles.titre} numberOfLines={2}>
           {document.titre}
         </Text>
         {!!document.type && <Text style={styles.type}>{document.type}</Text>}
       </View>
-      {chargement ? (
-        <ActivityIndicator color={colors.primary} />
-      ) : (
-        <FontAwesome5 name="download" size={14} color={colors.primary} />
-      )}
-    </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Voir ${document.titre}`}
+        onPress={() => void voir()}
+        disabled={action !== null}
+        style={[styles.bouton, { backgroundColor: colors.primary }]}
+      >
+        {action === 'voir' ? <ActivityIndicator size="small" color="#fff" /> : <FontAwesome5 name="eye" size={13} color="#fff" />}
+        <Text style={[styles.boutonTexte, { color: '#fff' }]}>Voir</Text>
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Télécharger ${document.titre}`}
+        onPress={() => void telecharger()}
+        disabled={action !== null}
+        style={[styles.bouton, { backgroundColor: colors.card }]}
+      >
+        {action === 'telecharger'
+          ? <ActivityIndicator size="small" color={colors.primary} />
+          : <FontAwesome5 name="download" size={13} color={colors.primaryDark} />}
+      </Pressable>
+    </View>
   );
 }
 
@@ -63,6 +94,8 @@ const createStyles = (colors: Palette) => StyleSheet.create({
     borderRadius: radius.md,
     padding: spacing.md,
   },
+  bouton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 36, minWidth: 36, paddingHorizontal: 12, borderRadius: radius.pill },
+  boutonTexte: { fontSize: 13, fontWeight: '700' },
   titre: { fontSize: 14, fontWeight: '600', color: colors.primaryDark },
   type: { fontSize: 12, color: colors.textMuted },
 });

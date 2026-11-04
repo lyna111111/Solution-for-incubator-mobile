@@ -181,22 +181,31 @@ export async function fetchArticle(id: number): Promise<Article> {
 
 // ── Documents ────────────────────────────────────────────────────────────────
 
-/**
- * Télécharge un document avec le jeton de l'utilisateur (le serveur vérifie ses droits), puis
- * ouvre la feuille de partage / d'ouverture du téléphone.
- */
-export async function ouvrirDocument(document: DocumentJoint): Promise<void> {
+/** Récupère un document avec le jeton de l'utilisateur (le serveur vérifie ses droits) dans le cache du téléphone. */
+async function recupererDocument(document: DocumentJoint): Promise<File> {
   // Un appel authentifié renouvelle le jeton s'il a expiré : le téléchargement natif, lui, ne le fait pas.
   await fetchMe();
   const { accessToken } = useAuthStore.getState();
 
   const dossier = new Directory(Paths.cache, 'documents');
   if (!dossier.exists) dossier.create();
-  const fichier = await File.downloadFileAsync(`${API_BASE_URL}${document.download_url}`, dossier, {
+  return File.downloadFileAsync(`${API_BASE_URL}${document.download_url}`, dossier, {
     idempotent: true,
     headers: { Authorization: `Bearer ${accessToken}` },
   });
+}
 
+/** Affiche le document dans la visionneuse du téléphone, sans le télécharger. Renvoie false si aucune application ne sait l'afficher. */
+export async function voirDocument(document: DocumentJoint): Promise<boolean> {
+  const fichier = await recupererDocument(document);
+  if (!(await File.canPreview(fichier))) return false;
+  await File.preview(fichier, { title: document.titre });
+  return true;
+}
+
+/** Télécharge le document, puis ouvre la feuille de partage / d'enregistrement du téléphone. */
+export async function ouvrirDocument(document: DocumentJoint): Promise<void> {
+  const fichier = await recupererDocument(document);
   if (await Sharing.isAvailableAsync()) {
     await Sharing.shareAsync(fichier.uri);
   }
