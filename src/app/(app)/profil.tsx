@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { getErrorMessage } from '@/api/client';
 import { changePassword, logout, updateMe } from '@/api/endpoints';
@@ -25,6 +25,33 @@ function Info({ label, valeur }: { label: string; valeur: string }) {
       </View>
       <Text style={styles.infoValue}>{valeur || '—'}</Text>
     </View>
+  );
+}
+
+/**
+ * Bouton de déconnexion : les couleurs de celui du menu burger (fond rouge pâle, pastille ronde rouge, texte rouge), en
+ * pilule compacte centrée (pas pleine largeur), avec une ombre douce ; il s'enfonce sous le doigt (ressort).
+ */
+function BoutonDeconnexion({ onPress }: { onPress: () => void }) {
+  const t = useT();
+  const styles = useStyles(createStyles);
+  const [echelle] = useState(() => new Animated.Value(1));
+  const appuyer = (vers: number) =>
+    Animated.spring(echelle, { toValue: vers, speed: 40, bounciness: vers === 1 ? 9 : 0, useNativeDriver: true }).start();
+  return (
+    <Animated.View style={[styles.deconnexionOmbre, { transform: [{ scale: echelle }] }]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t('Se déconnecter')}
+        onPressIn={() => appuyer(0.94)}
+        onPressOut={() => appuyer(1)}
+        onPress={onPress}
+        style={styles.deconnexion}
+      >
+        <View style={styles.deconnexionIcone}><FontAwesome5 name="sign-out-alt" size={14} color="#fff" /></View>
+        <Text style={styles.deconnexionTexte}>{t('Se déconnecter')}</Text>
+      </Pressable>
+    </Animated.View>
   );
 }
 
@@ -241,7 +268,7 @@ export default function Profil() {
       </Text>
       <Button title={t('Changer le mot de passe')} variant="secondary" onPress={changerMotDePasse} loading={changement.isPending} />
 
-      <Button title={t('Se déconnecter')} variant="danger" onPress={confirmerDeconnexion} style={{ marginTop: spacing.lg }} />
+      <BoutonDeconnexion onPress={confirmerDeconnexion} />
     </Screen>
   );
 }
@@ -256,5 +283,15 @@ const createStyles = (colors: Palette) => StyleSheet.create({
   infoEntete: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   infoLabel: { fontSize: 13, color: colors.textMuted, fontWeight: '600' },
   infoValue: { fontSize: 16, color: colors.text },
+  deconnexionOmbre: {
+    alignSelf: 'center', marginTop: spacing.lg, borderRadius: radius.pill,
+    shadowColor: colors.danger, shadowOpacity: 0.22, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 3,
+  },
+  deconnexion: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 6, paddingStart: 6, paddingEnd: spacing.lg,
+    borderRadius: radius.pill, backgroundColor: colors.dangerSoft,
+  },
+  deconnexionIcone: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.danger, alignItems: 'center', justifyContent: 'center' },
+  deconnexionTexte: { fontSize: 15, fontWeight: '700', color: colors.dangerText },
   regle: { fontSize: 12, color: colors.textMuted, marginTop: -4 },
 });
