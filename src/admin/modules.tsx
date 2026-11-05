@@ -98,9 +98,11 @@ export const MODULES: Record<string, ModuleDef> = {
       entete: (r, ctx) => (
         <>
           <BandeauDemandes nombre={r.compteurs.demandes} ctx={ctx} />
-          <Compteurs valeurs={[
-            { label: 'Total', valeur: r.compteurs.total }, { label: 'Étudiants', valeur: r.compteurs.etudiants },
-            { label: 'Porteurs', valeur: r.compteurs.porteurs_de_projet }, { label: 'Demandes', valeur: r.compteurs.demandes },
+          <Compteurs ctx={ctx} valeurs={[
+            { label: 'Total', valeur: r.compteurs.total, filtre: { etat: 'Actif', type: '' } },
+            { label: 'Étudiants', valeur: r.compteurs.etudiants, filtre: { etat: 'Actif', type: 'Etudiant' } },
+            { label: 'Porteurs', valeur: r.compteurs.porteurs_de_projet, filtre: { etat: 'Actif', type: 'PorteurDeProjet' } },
+            { label: 'Demandes', valeur: r.compteurs.demandes, filtre: { etat: 'En attente', type: '' } },
           ]} />
         </>
       ),
@@ -217,11 +219,13 @@ export const MODULES: Record<string, ModuleDef> = {
       titre: (e) => e.titre,
       sousTitre: (e) => `${e.date}${e.heure_debut ? ` · ${e.heure_debut}` : ''}${e.lieu ? ` · ${e.lieu}` : ''}`,
       badge: (e) => e.type,
-      entete: (r) => (
+      entete: (r, ctx) => (
         <>
-          <Compteurs valeurs={[
-            { label: 'Total', valeur: r.compteurs.total }, { label: 'À venir', valeur: r.compteurs.a_venir },
-            { label: "Aujourd'hui", valeur: r.compteurs.aujourdhui }, { label: 'Passés', valeur: r.compteurs.passes },
+          <Compteurs ctx={ctx} valeurs={[
+            { label: 'Total', valeur: r.compteurs.total, filtre: { periode: '' } },
+            { label: 'À venir', valeur: r.compteurs.a_venir, filtre: { periode: 'avenir' } },
+            { label: "Aujourd'hui", valeur: r.compteurs.aujourdhui, filtre: { periode: 'aujourdhui' } },
+            { label: 'Passés', valeur: r.compteurs.passes, filtre: { periode: 'passes' } },
           ]} />
           <CalendrierEvenements />
         </>

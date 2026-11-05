@@ -192,7 +192,11 @@ const ACCENTS = new RegExp(`[${String.fromCharCode(0x300)}-${String.fromCharCode
  * Cartes de chiffres des pages de gestion : même style que celles des accueils (icône colorée, libellé, valeur), deux par
  * ligne. L'icône et la couleur viennent du libellé ; `icone` / `couleur` (une couleur du système) les imposent au besoin.
  */
-export function Compteurs({ valeurs }: { valeurs: { label: string; valeur: number | string; couleur?: string; icone?: IconeFa }[] }) {
+export function Compteurs({ valeurs, ctx }: {
+  /** `filtre` : filtres de la liste que la carte applique au toucher (avec `ctx`) ; elle est « active » quand ils sont tous en place. */
+  valeurs: { label: string; valeur: number | string; couleur?: string; icone?: IconeFa; filtre?: Record<string, string> }[];
+  ctx?: ContexteListe;
+}) {
   const t = useT();
   const styles = useStyles(createStyles);
   const colors = useColors();
@@ -204,9 +208,13 @@ export function Compteurs({ valeurs }: { valeurs: { label: string; valeur: numbe
         const trouve = ICONES_COMPTEUR.find(([motif]) => motif.test(libelle));
         const imposee = v.couleur ? TEINTES.find((x) => colors[x] === v.couleur) : undefined;
         const teinte = imposee ?? trouve?.[2] ?? TEINTES[i % TEINTES.length];
+        const filtre = ctx && v.filtre ? Object.entries(v.filtre) : [];
+        const filtrable = filtre.length > 0;
         return (
           <Kpi key={v.label} icone={v.icone ?? trouve?.[1] ?? 'chart-bar'} couleur={colors[teinte]} fond={soft[teinte]}
-            label={t(v.label)} valeur={v.valeur} compact />
+            label={t(v.label)} valeur={v.valeur} compact
+            onPress={filtrable ? () => filtre.forEach(([param, valeur]) => ctx!.choisirFiltre(param, valeur)) : undefined}
+            actif={filtrable && filtre.every(([param, valeur]) => ctx!.filtres[param] === valeur)} />
         );
       })}
     </View>

@@ -21,10 +21,12 @@ export default function GestionRequetes() {
       filtres={[{ param: 'status', defaut: '', options: [
         { value: '', label: 'Toutes' }, { value: 'En attente', label: 'En attente' },
         { value: 'Traitee', label: 'Traitées' }, { value: 'Rejetee', label: 'Rejetées' }] }]}
-      entete={(r) => (
-        <Compteurs valeurs={[
-          { label: 'Total', valeur: r.compteurs.total }, { label: 'En attente', valeur: r.compteurs.en_attente },
-          { label: 'Traitées', valeur: r.compteurs.traitees }, { label: 'Rejetées', valeur: r.compteurs.rejetees },
+      entete={(r, ctx) => (
+        <Compteurs ctx={ctx} valeurs={[
+          { label: 'Total', valeur: r.compteurs.total, filtre: { status: '' } },
+          { label: 'En attente', valeur: r.compteurs.en_attente, filtre: { status: 'En attente' } },
+          { label: 'Traitées', valeur: r.compteurs.traitees, filtre: { status: 'Traitee' } },
+          { label: 'Rejetées', valeur: r.compteurs.rejetees, filtre: { status: 'Rejetee' } },
         ]} />
       )}
       vide="Aucune requête à afficher."

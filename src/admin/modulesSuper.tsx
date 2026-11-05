@@ -10,7 +10,7 @@ import { radius, spacing, useColors } from '@/theme';
 import { aujourdhui, formaterDA, formatDate } from '@/utils/format';
 
 import { adminEnvoyer } from './api';
-import type { ChampDef, ModuleDef } from './types';
+import type { ChampDef, ContexteListe, ModuleDef } from './types';
 import { Compteurs } from './ui';
 
 // Valeurs et libellés reçus du serveur (mêmes choix que les pages Super Admin du site).
@@ -48,14 +48,14 @@ function useAction(rafraichir: () => void) {
   };
 }
 
-function CompteursIncubateurs({ compteurs }: { compteurs: any }) {
+function CompteursIncubateurs({ compteurs, ctx }: { compteurs: any; ctx: ContexteListe }) {
   const colors = useColors();
   return (
-    <Compteurs valeurs={[
-      { label: 'Total', valeur: compteurs.total, couleur: colors.primary },
-      { label: 'Actifs', valeur: compteurs.actifs, couleur: colors.success },
-      { label: 'Inactifs', valeur: compteurs.inactifs, couleur: colors.danger },
-      { label: 'En essai', valeur: compteurs.essai, couleur: colors.warning },
+    <Compteurs ctx={ctx} valeurs={[
+      { label: 'Total', valeur: compteurs.total, couleur: colors.primary, filtre: { statut: '' } },
+      { label: 'Actifs', valeur: compteurs.actifs, couleur: colors.success, filtre: { statut: 'actif' } },
+      { label: 'Inactifs', valeur: compteurs.inactifs, couleur: colors.danger, filtre: { statut: 'inactif' } },
+      { label: 'En essai', valeur: compteurs.essai, couleur: colors.warning, filtre: { statut: 'essai' } },
     ]} />
   );
 }
@@ -168,7 +168,7 @@ export const MODULES_SUPER: Record<string, ModuleDef> = {
       titre: (i) => i.nom,
       sousTitre: (i) => `${tMaintenant('Plan')} ${tMaintenant(i.plan_display)}`,
       badge: (i) => (i.actif ? (i.essai ? 'Essai' : 'Actif') : 'Inactif'),
-      entete: (r) => <CompteursIncubateurs compteurs={r.compteurs} />,
+      entete: (r, ctx) => <CompteursIncubateurs compteurs={r.compteurs} ctx={ctx} />,
       actions: (i, rafraichir) => <ActionsIncubateur item={i} rafraichir={rafraichir} />,
     },
     detail: { chemin: (id) => `incubateurs/${id}/` },
@@ -245,10 +245,12 @@ export const MODULES_SUPER: Record<string, ModuleDef> = {
       titre: (p) => `${p.reference} · ${formaterDA(p.montant)}`,
       sousTitre: (p) => `${p.incubateur} · ${p.methode_display} · ${formatDate(p.date_paiement)}`,
       badge: (p) => p.statut_display,
-      entete: (r) => (
-        <Compteurs valeurs={[
-          { label: 'Revenus', valeur: formaterDA(r.resume.revenus_total) }, { label: 'Complétés', valeur: r.resume.completes },
-          { label: 'En attente', valeur: r.resume.en_attente }, { label: 'Annulés', valeur: r.resume.annules },
+      entete: (r, ctx) => (
+        <Compteurs ctx={ctx} valeurs={[
+          { label: 'Revenus', valeur: formaterDA(r.resume.revenus_total) },
+          { label: 'Complétés', valeur: r.resume.completes, filtre: { statut: 'completed' } },
+          { label: 'En attente', valeur: r.resume.en_attente, filtre: { statut: 'pending' } },
+          { label: 'Annulés', valeur: r.resume.annules, filtre: { statut: 'annule' } },
         ]} />
       ),
     },
@@ -294,9 +296,9 @@ export const MODULES_SUPER: Record<string, ModuleDef> = {
       titre: (a) => a.incubateur,
       sousTitre: (a) => `${tMaintenant(a.plan_display)} · ${tMaintenant('fin le')} ${formatDate(a.date_fin)} (${a.jours_restants >= 0 ? tMaintenant('{n} j restants', { n: a.jours_restants }) : tMaintenant('expiré depuis {n} j', { n: -a.jours_restants })})`,
       badge: (a) => a.statut_display,
-      entete: (r) => (
-        <Compteurs valeurs={[
-          { label: 'Actifs', valeur: r.compteurs.actifs }, { label: 'Expirés', valeur: r.compteurs.expires },
+      entete: (r, ctx) => (
+        <Compteurs ctx={ctx} valeurs={[
+          { label: 'Actifs', valeur: r.compteurs.actifs, filtre: { statut: 'actif' } }, { label: 'Expirés', valeur: r.compteurs.expires },
           { label: 'Fin < 30 j', valeur: r.compteurs.expirent_bientot }, { label: 'Ce mois', valeur: r.compteurs.renouvellements_mois },
         ]} />
       ),

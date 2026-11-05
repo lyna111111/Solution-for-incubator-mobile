@@ -11,8 +11,12 @@ import { Card } from './ui';
 type IconName = React.ComponentProps<typeof FontAwesome5>['name'];
 
 /** Carte de chiffre des tableaux de bord (`.sa-kpi-card` du site) : mène à la page concernée si `route` est donnée. */
-export function Kpi({ icone, couleur, fond, label, valeur, unite, route, compact, pied }: {
+export function Kpi({ icone, couleur, fond, label, valeur, unite, route, compact, pied, onPress, actif }: {
   icone: IconName; couleur: string; fond: string; label: string; valeur: string | number; unite?: string; route?: string;
+  /** Action au toucher (ex. filtrer la liste) ; prioritaire sur `route`. */
+  onPress?: () => void;
+  /** Carte actuellement sélectionnée (filtre en cours) : contour de la couleur de la carte. */
+  actif?: boolean;
   /** Version réduite (pages de gestion) : même style, icône, marges et chiffre plus petits. */
   compact?: boolean;
   /** Ligne sous le chiffre (ex. variation par rapport a la periode precedente). */
@@ -21,8 +25,9 @@ export function Kpi({ icone, couleur, fond, label, valeur, unite, route, compact
   const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   return (
-    <Pressable disabled={!route} onPress={() => route && ouvrir(route)} style={styles.kpi}>
-      <Card style={[styles.kpiContenu, compact && styles.kpiContenuPetit]}>
+    <Pressable disabled={!route && !onPress} onPress={() => (onPress ? onPress() : route && ouvrir(route))} style={styles.kpi}
+      accessibilityRole={onPress ? 'button' : undefined} accessibilityState={onPress ? { selected: !!actif } : undefined}>
+      <Card style={[styles.kpiContenu, compact && styles.kpiContenuPetit, actif && { borderColor: couleur, borderWidth: 2 }]}>
         <View style={[styles.kpiIcone, compact && styles.kpiIconePetit, { backgroundColor: fond }]}>
           <FontAwesome5 name={icone} size={compact ? 14 : 20} color={couleur} />
         </View>

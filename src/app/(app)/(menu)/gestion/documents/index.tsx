@@ -3,6 +3,9 @@ import { Compteurs, LigneListe, ListeAdmin } from '@/admin/ui';
 import { DocumentLink } from '@/components/DocumentLink';
 import { useT } from '@/i18n';
 
+/** Filtre « type de document » (paramètre `label` de l'API) appliqué par une carte de chiffres. */
+const parType = (valeur: string) => ({ ['label']: valeur });
+
 export default function GestionDocuments() {
   const t = useT();
   return (
@@ -16,11 +19,13 @@ export default function GestionDocuments() {
       filtres={[{ param: 'label', defaut: '', options: [
         { value: '', label: 'Tous' }, { value: 'Evenement', label: 'Événements' }, { value: 'Requete', label: 'Requêtes' },
         { value: 'Reponse', label: 'Réponses' }, { value: 'Article', label: 'Articles' }] }]}
-      entete={(r) => (
-        <Compteurs valeurs={[
-          { label: 'Total', valeur: r.compteurs.total }, { label: 'Événements', valeur: r.compteurs.evenement },
-          { label: 'Requêtes', valeur: r.compteurs.requete }, { label: 'Réponses', valeur: r.compteurs.reponse },
-          { label: 'Articles', valeur: r.compteurs.article },
+      entete={(r, ctx) => (
+        <Compteurs ctx={ctx} valeurs={[
+          { label: 'Total', valeur: r.compteurs.total, filtre: parType('') },
+          { label: 'Événements', valeur: r.compteurs.evenement, filtre: parType('Evenement') },
+          { label: 'Requêtes', valeur: r.compteurs.requete, filtre: parType('Requete') },
+          { label: 'Réponses', valeur: r.compteurs.reponse, filtre: parType('Reponse') },
+          { label: 'Articles', valeur: r.compteurs.article, filtre: parType('Article') },
         ]} />
       )}
       vide="Aucun document à afficher."

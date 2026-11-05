@@ -18,9 +18,10 @@ export default function GestionNotifications() {
       placeholderRecherche="Titre, message ou destinataire..."
       filtres={[{ param: 'mode', defaut: 'broadcast', options: [
         { value: 'broadcast', label: 'Diffusions' }, { value: 'unicast', label: 'Personnelles' }] }]}
-      entete={(r) => (
-        <Compteurs valeurs={[
-          { label: 'Diffusions', valeur: r.compteurs.broadcast_total }, { label: 'Personnelles', valeur: r.compteurs.unicast_total },
+      entete={(r, ctx) => (
+        <Compteurs ctx={ctx} valeurs={[
+          { label: 'Diffusions', valeur: r.compteurs.broadcast_total, filtre: { mode: 'broadcast' } },
+          { label: 'Personnelles', valeur: r.compteurs.unicast_total, filtre: { mode: 'unicast' } },
           { label: "Aujourd'hui", valeur: r.compteurs.broadcast_jour + r.compteurs.unicast_jour },
           { label: 'Cette semaine', valeur: r.compteurs.broadcast_semaine + r.compteurs.unicast_semaine },
         ]} />
