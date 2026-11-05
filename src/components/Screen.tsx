@@ -2,7 +2,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from 'expo-router';
 import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BoutonMenu } from '@/components/BoutonMenu';
@@ -32,8 +32,13 @@ interface ScreenProps {
 export function Screen({ children, refreshing = false, onRefresh, withTopInset = false, title, fab }: ScreenProps) {
   const styles = useStyles(createStyles);
   const colors = useColors();
-  // Quand les langues glissent hors de l'icône, le titre et le bouton clair / sombre s'effacent pour leur laisser la place.
+  // Quand les langues glissent hors de l'icône, le titre et le bouton clair / sombre s'effacent (sans bouger de place) :
+  // les langues s'ouvrent par-dessus, rien n'est poussé.
   const [langueOuverte, setLangueOuverte] = useState(false);
+  const [fondu] = useState(() => new Animated.Value(1));
+  useEffect(() => {
+    Animated.timing(fondu, { toValue: langueOuverte ? 0 : 1, duration: 180, useNativeDriver: true }).start();
+  }, [langueOuverte, fondu]);
   const actualiserRef = useRef(onRefresh);
   useEffect(() => {
     actualiserRef.current = onRefresh;
@@ -55,11 +60,11 @@ export function Screen({ children, refreshing = false, onRefresh, withTopInset =
       {!!title && (
         <View style={styles.topbar}>
           <View style={styles.gauche}>
-            {withTopInset ? <SelecteurLangue onOuvrirChange={setLangueOuverte} /> : null}
-            {!langueOuverte && <Text style={styles.topbarTitle} numberOfLines={1}>{title}</Text>}
+            {withTopInset ? <SelecteurLangue flottant onOuvrirChange={setLangueOuverte} /> : null}
+            <Animated.Text style={[styles.topbarTitle, { opacity: fondu }]} numberOfLines={1}>{title}</Animated.Text>
           </View>
           <View style={styles.actions}>
-            {!langueOuverte && <ThemeToggle />}
+            <Animated.View style={{ opacity: fondu }} pointerEvents={langueOuverte ? 'none' : 'auto'}><ThemeToggle /></Animated.View>
             {withTopInset ? <BoutonMenu /> : null}
           </View>
         </View>
