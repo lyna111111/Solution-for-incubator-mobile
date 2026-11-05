@@ -9,6 +9,7 @@ import { DocumentsList } from '@/components/DocumentLink';
 import { iconeLibelle } from '@/components/iconeLibelle';
 import { Screen } from '@/components/Screen';
 import { Badge, Card, ErrorState, Loading, SectionTitle } from '@/components/ui';
+import { useT } from '@/i18n';
 import { type Palette, spacing, useColors, useStyles } from '@/theme';
 import { formatDate } from '@/utils/format';
 
@@ -27,6 +28,7 @@ function Ligne({ label, valeur }: { label: string; valeur: string }) {
 }
 
 export default function DetailEvenement() {
+  const t = useT();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -43,17 +45,17 @@ export default function DetailEvenement() {
   return (
     <Screen refreshing={isRefetching} onRefresh={() => void refetch()}>
       <Text style={styles.title}>{data.titre}</Text>
-      <Badge label={data.type} fond={colors.primarySoft} texte={colors.primaryDark} />
+      <Badge label={t(data.type)} fond={colors.primarySoft} texte={colors.primaryDark} />
 
       <Card style={{ gap: spacing.md }}>
-        <Ligne label="Date" valeur={formatDate(data.date)} />
-        {!!horaire && <Ligne label="Horaire" valeur={horaire} />}
-        {!!data.lieu && <Ligne label="Lieu" valeur={data.lieu} />}
+        <Ligne label={t('Date')} valeur={formatDate(data.date)} />
+        {!!horaire && <Ligne label={t('Horaire')} valeur={horaire} />}
+        {!!data.lieu && <Ligne label={t('Lieu')} valeur={data.lieu} />}
         {data.max_participants !== null && (
           <Ligne
-            label="Participants"
+            label={t('Participants')}
             valeur={`${data.participants_actuels} / ${data.max_participants}` +
-              (data.places_restantes !== null ? ` (${data.places_restantes} places restantes)` : '')}
+              (data.places_restantes !== null ? ` (${t('{n} places restantes', { n: data.places_restantes })})` : '')}
           />
         )}
       </Card>
@@ -62,7 +64,7 @@ export default function DetailEvenement() {
         <Card>
           <View style={[styles.lineEntete, { marginBottom: 6 }]}>
             <FontAwesome5 name="align-left" size={12} color={colors.primary} style={{ width: 16, textAlign: 'center' }} />
-            <Text style={styles.lineLabel}>Description</Text>
+            <Text style={styles.lineLabel}>{t('Description')}</Text>
           </View>
           <Text style={styles.body}>{data.description}</Text>
         </Card>
@@ -70,7 +72,7 @@ export default function DetailEvenement() {
 
       {!!data.documents?.length && (
         <>
-          <SectionTitle icon="paperclip">Documents</SectionTitle>
+          <SectionTitle icon="paperclip">{t('Documents')}</SectionTitle>
           <DocumentsList documents={data.documents} />
         </>
       )}

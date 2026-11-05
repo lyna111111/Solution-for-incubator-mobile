@@ -2,6 +2,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { create } from 'zustand';
 
+import { useT } from '@/i18n';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
 type IconName = React.ComponentProps<typeof FontAwesome5>['name'];
@@ -52,6 +53,7 @@ export const Dialogue = {
 
 /** À monter une fois à la racine de l'application. */
 export function DialogueHost() {
+  const t = useT();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const courant = useDialogueStore((s) => s.actif);
@@ -76,20 +78,20 @@ export function DialogueHost() {
   return (
     <Modal visible={!!courant} transparent animationType="fade" statusBarTranslucent onRequestClose={fermer}>
       <View style={styles.fond}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={fermer} accessibilityLabel="Fermer" />
+        <Pressable style={StyleSheet.absoluteFill} onPress={fermer} accessibilityLabel={t('Fermer')} />
         {actif && (
           <View style={styles.carte}>
             <View style={styles.entete}>
               <View style={styles.titreWrap}>
                 <FontAwesome5 name={actif.icone} size={17} color={teinte} solid />
-                <Text style={[styles.titre, { color: teinte }]}>{actif.titre}</Text>
+                <Text style={[styles.titre, { color: teinte }]}>{t(actif.titre)}</Text>
               </View>
-              <Pressable onPress={fermer} hitSlop={8} style={styles.croix} accessibilityLabel="Fermer">
+              <Pressable onPress={fermer} hitSlop={8} style={styles.croix} accessibilityLabel={t('Fermer')}>
                 <FontAwesome5 name="times" size={15} color={colors.textMuted} />
               </Pressable>
             </View>
 
-            {!!actif.message && <Text style={styles.message}>{actif.message}</Text>}
+            {!!actif.message && <Text style={styles.message}>{t(actif.message)}</Text>}
 
             <View style={styles.pied}>
               {actif.boutons.map((b, i) => {
@@ -107,7 +109,7 @@ export function DialogueHost() {
                       pressed && { opacity: 0.7 },
                     ]}
                   >
-                    <Text style={[styles.boutonTexte, { color: secondaire ? colors.text : teinte }]}>{b.text}</Text>
+                    <Text style={[styles.boutonTexte, { color: secondaire ? colors.text : teinte }]}>{t(b.text)}</Text>
                   </Pressable>
                 );
               })}

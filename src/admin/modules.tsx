@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { getErrorMessage } from '@/api/client';
 import { Dialogue } from '@/components/Dialogue';
 import { Button } from '@/components/ui';
+import { tMaintenant, useT } from '@/i18n';
 import { radius, spacing, useColors } from '@/theme';
 
 import { adminEnvoyer } from './api';
@@ -20,25 +21,28 @@ export const TYPES_ADMIN = ['Admin principal', "Planificateur d'événement", 'C
 export const TYPES_EVENEMENT = ['Workshop', 'Conference', 'Seminaire', 'Formation', 'Autre'];
 export const TYPES_DOCUMENT = ['Formulaire', 'Arrêté', 'Attestation', 'Rapport', 'Article', 'Autre'];
 
-const tous = (liste: string[]) => [{ value: '', label: 'Tous' }, ...liste.map((t) => ({ value: t, label: t }))];
+const tous = (liste: string[]) => [{ value: '', label: 'Tous' }, ...liste.map((x) => ({ value: x, label: x }))];
 
 /** Boutons Accepter / Refuser d'une demande d'inscription (routes demandes/<id>/approuver|refuser). */
 function ActionsDemande({ item, rafraichir }: { item: any; rafraichir: () => void }) {
+  const t = useT();
   if (item.etat !== 'En attente') return null;
 
   function agir(action: 'approuver' | 'refuser') {
-    const libelle = action === 'approuver' ? 'accepter' : 'refuser';
-    Dialogue.alert('Demande d\'inscription', `Voulez-vous ${libelle} la demande de ${item.prenom} ${item.nom} ?`, [
-      { text: 'Annuler', style: 'cancel' },
+    const nom = `${item.prenom} ${item.nom}`;
+    Dialogue.alert(t("Demande d'inscription"), action === 'approuver'
+      ? t('Voulez-vous accepter la demande de {nom} ?', { nom })
+      : t('Voulez-vous refuser la demande de {nom} ?', { nom }), [
+      { text: t('Annuler'), style: 'cancel' },
       {
-        text: libelle.charAt(0).toUpperCase() + libelle.slice(1),
+        text: action === 'approuver' ? t('Accepter') : t('Refuser'),
         style: action === 'refuser' ? 'destructive' : 'default',
         onPress: async () => {
           try {
             await adminEnvoyer('post', `demandes/${item.id}/${action}/`);
             rafraichir();
           } catch (e) {
-            Dialogue.alert('Action impossible', getErrorMessage(e));
+            Dialogue.alert(t('Action impossible'), getErrorMessage(e));
           }
         },
       },
@@ -47,14 +51,15 @@ function ActionsDemande({ item, rafraichir }: { item: any; rafraichir: () => voi
 
   return (
     <View style={styles.actions}>
-      <Button title="Accepter" onPress={() => agir('approuver')} style={{ flex: 1 }} />
-      <Button title="Refuser" variant="danger" onPress={() => agir('refuser')} style={{ flex: 1 }} />
+      <Button title={t('Accepter')} onPress={() => agir('approuver')} style={{ flex: 1 }} />
+      <Button title={t('Refuser')} variant="danger" onPress={() => agir('refuser')} style={{ flex: 1 }} />
     </View>
   );
 }
 
 /** Bandeau bien visible : des demandes d'inscription attendent une réponse (la liste s'ouvre sur les actifs). */
 function BandeauDemandes({ nombre, ctx }: { nombre: number; ctx: ContexteListe }) {
+  const t = useT();
   const colors = useColors();
   if (nombre <= 0 || ctx.filtres.etat === 'En attente') return null;
   return (
@@ -64,9 +69,9 @@ function BandeauDemandes({ nombre, ctx }: { nombre: number; ctx: ContexteListe }
     >
       <FontAwesome5 name="user-clock" size={18} color={colors.warning} />
       <Text style={[styles.bandeauTexte, { color: colors.text }]}>
-        {nombre} {nombre > 1 ? "demandes d'inscription attendent" : "demande d'inscription attend"} votre réponse
+        {nombre > 1 ? t("{n} demandes d'inscription attendent votre réponse", { n: nombre }) : t("{n} demande d'inscription attend votre réponse", { n: nombre })}
       </Text>
-      <Text style={{ color: colors.primary, fontWeight: '700' }}>Voir</Text>
+      <Text style={{ color: colors.primary, fontWeight: '700' }}>{t('Voir')}</Text>
     </Pressable>
   );
 }
@@ -169,7 +174,7 @@ export const MODULES: Record<string, ModuleDef> = {
       recherche: 'q',
       placeholder: 'Intitulé, thème ou chef de projet...',
       titre: (p) => p.intitule,
-      sousTitre: (p) => `${p.theme} · ${p.chef_projet} · ${p.membres_count ?? 0} membre(s)`,
+      sousTitre: (p) => `${p.theme} · ${p.chef_projet} · ${tMaintenant('{n} membre(s)', { n: p.membres_count ?? 0 })}`,
       badge: (p) => `${p.progression}%`,
       entete: (r) => (
         <Compteurs valeurs={[{ label: 'Projets', valeur: r.compteurs.total }, { label: 'Progression moyenne', valeur: `${r.compteurs.progression_moyenne}%` }]} />

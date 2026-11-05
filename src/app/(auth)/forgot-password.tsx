@@ -6,9 +6,11 @@ import { requestPasswordReset } from '@/api/endpoints';
 import { AuthShell } from '@/components/AuthShell';
 import { Banner, Button, Field } from '@/components/ui';
 import { useReculer } from '@/hooks/useReculer';
+import { useT } from '@/i18n';
 import { type Palette, spacing, useStyles } from '@/theme';
 
 export default function MotDePasseOublie() {
+  const t = useT();
   const reculer = useReculer({ secours: '/login', android: true });
   const styles = useStyles(createStyles);
   const [email, setEmail] = useState('');
@@ -18,7 +20,7 @@ export default function MotDePasseOublie() {
 
   async function envoyer() {
     if (!email.trim()) {
-      setErreur('Saisissez votre adresse email.');
+      setErreur(t('Saisissez votre adresse email.'));
       return;
     }
     setErreur('');
@@ -35,32 +37,32 @@ export default function MotDePasseOublie() {
 
   return (
     <AuthShell
-      title="Mot de passe oublié"
-      subtitle="Réinitialisez votre accès en quelques secondes"
+      title={t('Mot de passe oublié')}
+      subtitle={t('Réinitialisez votre accès en quelques secondes')}
     >
       {!!erreur && <Banner message={erreur} />}
       {envoye ? (
         <Banner
           type="success"
-          message="Si un compte existe pour cette adresse, un email contenant un nouveau mot de passe vient d'être envoyé."
+          message={t("Si un compte existe pour cette adresse, un email contenant un nouveau mot de passe vient d'être envoyé.")}
         />
       ) : (
         <>
           <Field
-            label="Email professionnel"
+            label={t('Email professionnel')}
             icon="envelope"
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
             autoCorrect={false}
             keyboardType="email-address"
-            placeholder="votre@email.com"
+            placeholder={t('votre@email.com')}
           />
-          <Button pill icon="paper-plane" title="Envoyer un mot de passe temporaire" onPress={() => void envoyer()} loading={chargement} />
+          <Button pill icon="paper-plane" title={t('Envoyer un mot de passe temporaire')} onPress={() => void envoyer()} loading={chargement} />
         </>
       )}
       <Pressable onPress={reculer} style={styles.link}>
-        <Text style={styles.linkText}>Retour à la connexion</Text>
+        <Text style={styles.linkText}>{t('Retour à la connexion')}</Text>
       </Pressable>
     </AuthShell>
   );

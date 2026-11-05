@@ -10,19 +10,21 @@ import { Chips } from '@/components/Chips';
 import { EvenementRow } from '@/components/rows';
 import { Screen } from '@/components/Screen';
 import { ErrorState, Loading } from '@/components/ui';
+import { _t, useT } from '@/i18n';
 import { type Palette, useColors, useStyles } from '@/theme';
 
 // Mêmes valeurs que le filtre « Type d'événement » du site.
 const TYPES = [
-  { value: 'all', label: 'Tous' },
-  { value: 'Workshop', label: 'Workshop' },
-  { value: 'Conference', label: 'Conférence' },
-  { value: 'Seminaire', label: 'Séminaire' },
-  { value: 'Formation', label: 'Formation' },
-  { value: 'Autre', label: 'Autre' },
+  { value: 'all', label: _t('Tous') },
+  { value: 'Workshop', label: _t('Workshop') },
+  { value: 'Conference', label: _t('Conférence') },
+  { value: 'Seminaire', label: _t('Séminaire') },
+  { value: 'Formation', label: _t('Formation') },
+  { value: 'Autre', label: _t('Autre') },
 ];
 
 export default function Evenements() {
+  const t = useT();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const maintenant = new Date();
@@ -55,7 +57,7 @@ export default function Evenements() {
 
   return (
     <Screen refreshing={isRefetching} onRefresh={() => void refetch()}>
-      <Chips options={TYPES} value={type} onChange={(t) => { setType(t); setJour(null); }} />
+      <Chips options={TYPES.map((o) => ({ ...o, label: t(o.label) }))} value={type} onChange={(v) => { setType(v); setJour(null); }} />
 
       <Calendrier
         annee={annee}
@@ -69,7 +71,7 @@ export default function Evenements() {
       {liste.length === 0 ? (
         <Text style={styles.empty}>
           <FontAwesome5 name="calendar" size={14} color={colors.textMuted} />{' '}
-          {jour !== null ? 'Aucun événement ce jour-là.' : 'Aucun événement ce mois-ci.'}
+          {jour !== null ? t('Aucun événement ce jour-là.') : t('Aucun événement ce mois-ci.')}
         </Text>
       ) : (
         liste.map((e) => <EvenementRow key={e.id} evenement={e} />)

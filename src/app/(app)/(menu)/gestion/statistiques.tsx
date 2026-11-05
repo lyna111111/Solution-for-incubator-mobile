@@ -11,6 +11,7 @@ import { Chips } from '@/components/Chips';
 import { Kpi } from '@/components/DashboardUi';
 import { Screen } from '@/components/Screen';
 import { Card, ErrorState, Loading, SectionTitle, LigneIcone } from '@/components/ui';
+import { useT } from '@/i18n';
 import { type Palette, spacing, useColors, useStyles } from '@/theme';
 
 const PERIODES = [
@@ -34,6 +35,7 @@ function Variation({ valeur }: { valeur: number }) {
 }
 
 export default function Statistiques() {
+  const t = useT();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const [periode, setPeriode] = useState('');
@@ -64,52 +66,52 @@ export default function Statistiques() {
 
   return (
     <Screen refreshing={isRefetching} onRefresh={() => { frais.current = true; void refetch(); }}>
-      <Stack.Screen options={{ title: 'Statistiques Global' }} />
-      <Chips options={PERIODES} value={periode} onChange={setPeriode} />
+      <Stack.Screen options={{ title: t('Statistiques Global') }} />
+      <Chips options={PERIODES.map((o) => ({ ...o, label: t(o.label) }))} value={periode} onChange={setPeriode} />
 
       <View style={styles.grille}>
         {cartes.map((c) => (
-          <Kpi key={c.label} icone={c.icone} couleur={c.teinte} fond={c.fond} label={c.label} valeur={c.valeur}
+          <Kpi key={c.label} icone={c.icone} couleur={c.teinte} fond={c.fond} label={t(c.label)} valeur={c.valeur}
             pied={<Variation valeur={c.variation} />} />
         ))}
       </View>
 
       {f && (
         <Card style={{ gap: spacing.md }}>
-          <SectionTitle icon="filter" couleur={colors.primary}>Période choisie</SectionTitle>
-          <LigneIcone icone="users" couleur={colors.primary}>Nouveaux utilisateurs : <Text style={styles.gras}>{f.utilisateurs.total}</Text></LigneIcone>
-          <LigneIcone icone="envelope-open-text" couleur={colors.warning}>Requêtes : <Text style={styles.gras}>{f.requetes.total}</Text></LigneIcone>
-          <LigneIcone icone="calendar-alt" couleur={colors.success}>Événements : <Text style={styles.gras}>{f.evenements.total}</Text></LigneIcone>
+          <SectionTitle icon="filter" couleur={colors.primary}>{t('Période choisie')}</SectionTitle>
+          <LigneIcone icone="users" couleur={colors.primary}>{t('Nouveaux utilisateurs')} : <Text style={styles.gras}>{f.utilisateurs.total}</Text></LigneIcone>
+          <LigneIcone icone="envelope-open-text" couleur={colors.warning}>{t('Requêtes')} : <Text style={styles.gras}>{f.requetes.total}</Text></LigneIcone>
+          <LigneIcone icone="calendar-alt" couleur={colors.success}>{t('Événements')} : <Text style={styles.gras}>{f.evenements.total}</Text></LigneIcone>
           <Barres couleur={colors.warning} donnees={Object.entries(f.requetes.par_statut).map(([label, valeur]) => ({ label, valeur: Number(valeur), icone: iconeStatut(label) }))} />
         </Card>
       )}
 
       <Card style={{ gap: spacing.md }}>
-        <SectionTitle icon="chart-line" couleur={colors.primary}>Croissance des utilisateurs</SectionTitle>
+        <SectionTitle icon="chart-line" couleur={colors.primary}>{t('Croissance des utilisateurs')}</SectionTitle>
         <Barres donnees={g.utilisateurs_par_mois.map((m: any) => ({ label: m.month, valeur: m.monthly }))} />
       </Card>
 
       <Card style={{ gap: spacing.md }}>
-        <SectionTitle icon="chart-pie" couleur={colors.info}>Répartition des utilisateurs</SectionTitle>
+        <SectionTitle icon="chart-pie" couleur={colors.info}>{t('Répartition des utilisateurs')}</SectionTitle>
         <Barres couleur={colors.secondary} donnees={Object.entries(g.utilisateurs_par_type).map(([label, valeur]) => ({ label, valeur: Number(valeur), icone: 'user-tag' }))} />
       </Card>
 
       <Card style={{ gap: spacing.md }}>
-        <SectionTitle icon="tasks" couleur={colors.warning}>Requêtes par statut</SectionTitle>
+        <SectionTitle icon="tasks" couleur={colors.warning}>{t('Requêtes par statut')}</SectionTitle>
         <Barres couleur={colors.warning} donnees={g.requetes_par_statut.map((r: any) => ({ label: r.status, valeur: r.count, icone: iconeStatut(r.status) }))} />
-        <SectionTitle icon="tags" couleur={colors.warning}>Requêtes par type</SectionTitle>
+        <SectionTitle icon="tags" couleur={colors.warning}>{t('Requêtes par type')}</SectionTitle>
         <Barres couleur={colors.warning} donnees={g.requetes_par_type.map((r: any) => ({ label: r.type_requete, valeur: r.count, icone: 'tag' }))} />
       </Card>
 
       <Card style={{ gap: spacing.md }}>
-        <SectionTitle icon="calendar-alt" couleur={colors.success}>Événements par mois</SectionTitle>
+        <SectionTitle icon="calendar-alt" couleur={colors.success}>{t('Événements par mois')}</SectionTitle>
         <Barres couleur={colors.success} donnees={g.evenements_par_mois.map((m: any) => ({
           label: m.month, valeur: m.workshops.count + m.conferences.count + m.formations.count }))} />
       </Card>
 
       <Card style={{ gap: spacing.md }}>
-        <SectionTitle icon="bolt" couleur={colors.info}>Engagement des utilisateurs</SectionTitle>
-        <Chips options={ENGAGEMENT} value={engagement} onChange={setEngagement} />
+        <SectionTitle icon="bolt" couleur={colors.info}>{t('Engagement des utilisateurs')}</SectionTitle>
+        <Chips options={ENGAGEMENT.map((o) => ({ ...o, label: t(o.label) }))} value={engagement} onChange={setEngagement} />
         <Barres couleur={colors.info} donnees={[
           { label: 'Connexions', valeur: eng.connexions, icone: 'sign-in-alt' }, { label: 'Requêtes', valeur: eng.requetes, icone: 'envelope-open-text' },
           { label: 'Participations', valeur: eng.participations, icone: 'calendar-check' }, { label: 'Projets soumis', valeur: eng.projets_soumis, icone: 'rocket' },

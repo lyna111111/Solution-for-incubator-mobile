@@ -9,11 +9,13 @@ import { RequeteRow } from '@/components/rows';
 import { Screen } from '@/components/Screen';
 import { Button, ErrorState, Field, Loading } from '@/components/ui';
 import { useOuvrir } from '@/hooks/useOuvrir';
+import { useT } from '@/i18n';
 import { type Palette, spacing, useStyles } from '@/theme';
 
 type Filtre = 'all' | 'pending' | 'delivered' | 'canceled';
 
 export default function MesRequetes() {
+  const t = useT();
   const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   const [filtre, setFiltre] = useState<Filtre>('all');
@@ -36,40 +38,40 @@ export default function MesRequetes() {
 
   return (
     <Screen refreshing={isRefetching} onRefresh={() => void refetch()}
-      fab={{ titre: 'Nouvelle requête', onPress: () => ouvrir('/requetes/nouvelle') }}>
+      fab={{ titre: t('Nouvelle requête'), onPress: () => ouvrir('/requetes/nouvelle') }}>
       <Field
-        label="Rechercher dans mes requêtes"
+        label={t('Rechercher dans mes requêtes')}
         icon="search"
         value={saisie}
         onChangeText={setSaisie}
         onSubmitEditing={() => { setRecherche(saisie.trim()); setPage(1); }}
         returnKeyType="search"
         maxLength={100}
-        placeholder="Sujet..."
+        placeholder={t('Sujet...')}
       />
 
       <Chips<Filtre>
         options={[
-          { value: 'all', label: `Toutes (${c.total})` },
-          { value: 'pending', label: `En attente (${c.en_attente})` },
-          { value: 'delivered', label: `Traitées (${c.traitees})` },
-          { value: 'canceled', label: `Rejetées (${c.rejetees})` },
+          { value: 'all', label: t('Toutes ({n})', { n: c.total }) },
+          { value: 'pending', label: t('En attente ({n})', { n: c.en_attente }) },
+          { value: 'delivered', label: t('Traitées ({n})', { n: c.traitees }) },
+          { value: 'canceled', label: t('Rejetées ({n})', { n: c.rejetees }) },
         ]}
         value={filtre}
         onChange={(f) => { setFiltre(f); setPage(1); }}
       />
 
       {data.requetes.length === 0 ? (
-        <Text style={styles.empty}>Aucune requête à afficher.</Text>
+        <Text style={styles.empty}>{t('Aucune requête à afficher.')}</Text>
       ) : (
         data.requetes.map((r) => <RequeteRow key={r.id} requete={r} />)
       )}
 
       {p.nb_pages > 1 && (
         <View style={styles.pager}>
-          <Button title="‹ Précédent" variant="secondary" disabled={!p.a_precedent} onPress={() => setPage(page - 1)} style={{ flex: 1 }} />
+          <Button title={t('‹ Précédent')} variant="secondary" disabled={!p.a_precedent} onPress={() => setPage(page - 1)} style={{ flex: 1 }} />
           <Text style={styles.pageInfo}>{p.page} / {p.nb_pages}</Text>
-          <Button title="Suivant ›" variant="secondary" disabled={!p.a_suivant} onPress={() => setPage(page + 1)} style={{ flex: 1 }} />
+          <Button title={t('Suivant ›')} variant="secondary" disabled={!p.a_suivant} onPress={() => setPage(page + 1)} style={{ flex: 1 }} />
         </View>
       )}
     </Screen>

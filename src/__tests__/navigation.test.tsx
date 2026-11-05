@@ -11,6 +11,7 @@ import { useReculer } from '@/hooks/useReculer';
 import { BoutonMenu } from '@/components/BoutonMenu';
 import { pageParente } from '@/navigation/retour';
 import { useMenuStore } from '@/store/menu';
+import { useLangStore } from '@/i18n';
 
 let mockNonLues = 0;
 jest.mock('@/hooks/useNotifications', () => ({ useNonLues: () => mockNonLues }));
@@ -218,7 +219,7 @@ describe('depuis les onglets : le retour ramène à l\'onglet d\'où la page a �
 });
 
 // Le tiroir est un état global : chaque scénario repart avec le Menu fermé.
-beforeEach(() => { useMenuStore.setState({ ouvert: false }); });
+beforeEach(() => { useMenuStore.setState({ ouvert: false }); useLangStore.setState({ lang: 'fr' }); });
 
 describe('Menu latéral (tiroir à droite)', () => {
   test("le burger ouvre le tiroir par-dessus la page, sans changer de page", async () => {
@@ -228,6 +229,25 @@ describe('Menu latéral (tiroir à droite)', () => {
     expect(screen.getByText('Articles')).toBeTruthy();
     expect(screen.getByText('ACCUEIL')).toBeTruthy(); // la page reste affichée en dessous
     expect(r.getPathname()).toBe('/');
+  });
+
+  test('le choix de la langue traduit le tiroir et la barre du bas', async () => {
+    await monter('/');
+    expect(screen.getAllByText('Profil').length).toBeGreaterThan(0);
+    await ouvrirMenu();
+    await act(async () => { fireEvent.press(screen.getByLabelText('Langue')); }); // l'icône globe ouvre le choix de la langue
+    await laisserPasserAnimations();
+    await act(async () => { fireEvent.press(screen.getByLabelText('English')); });
+    await laisserPasserAnimations();
+    expect(screen.getByText('Events')).toBeTruthy();
+    expect(screen.queryByText('Événements')).toBeNull();
+    expect(screen.getAllByText('Profile').length).toBeGreaterThan(0);
+    await act(async () => { fireEvent.press(screen.getByLabelText('Language')); });
+    await laisserPasserAnimations();
+    await act(async () => { fireEvent.press(screen.getByLabelText('عربية')); });
+    await laisserPasserAnimations();
+    expect(screen.getByText('الفعاليات')).toBeTruthy();
+    expect(screen.getAllByText('الملف الشخصي').length).toBeGreaterThan(0);
   });
 
   test('un appui sur le fond du tiroir le ferme', async () => {

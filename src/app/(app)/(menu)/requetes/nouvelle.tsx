@@ -9,6 +9,7 @@ import { createRequete } from '@/api/endpoints';
 import { Screen } from '@/components/Screen';
 import { Banner, Button, Field, Libelle } from '@/components/ui';
 import { useRemplacer } from '@/hooks/useOuvrir';
+import { useT } from '@/i18n';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 import type { PieceJointe } from '@/types';
 
@@ -30,12 +31,13 @@ const MIME_AUTORISES = [
 const TAILLE_MAX = 10 * 1024 * 1024; // 10 Mo, comme le serveur
 
 function Choix({ options, valeur, onChoisir }: { options: string[]; valeur: string; onChoisir: (v: string) => void }) {
+  const t = useT();
   const styles = useStyles(createStyles);
   return (
     <View style={styles.chips}>
       {options.map((o) => (
         <Pressable key={o} onPress={() => onChoisir(o)} style={[styles.chip, valeur === o && styles.chipActive]}>
-          <Text style={[styles.chipText, valeur === o && styles.chipTextActive]}>{o}</Text>
+          <Text style={[styles.chipText, valeur === o && styles.chipTextActive]}>{t(o)}</Text>
         </Pressable>
       ))}
     </View>
@@ -43,6 +45,7 @@ function Choix({ options, valeur, onChoisir }: { options: string[]; valeur: stri
 }
 
 export default function NouvelleRequete() {
+  const t = useT();
   const remplacer = useRemplacer();
   const styles = useStyles(createStyles);
   const colors = useColors();
@@ -69,7 +72,7 @@ export default function NouvelleRequete() {
     if (resultat.canceled || !resultat.assets[0]) return;
     const f = resultat.assets[0];
     if (f.size && f.size > TAILLE_MAX) {
-      setErreur('Le fichier est trop volumineux (10 Mo maximum).');
+      setErreur(t('Le fichier est trop volumineux (10 Mo maximum).'));
       return;
     }
     setErreur('');
@@ -78,11 +81,11 @@ export default function NouvelleRequete() {
 
   function envoyer() {
     if (!objet.trim() || !type || !contenu.trim()) {
-      setErreur('Renseignez le sujet, le type et le message.');
+      setErreur(t('Renseignez le sujet, le type et le message.'));
       return;
     }
     if (piece && !typeDocument) {
-      setErreur('Précisez le type du document joint.');
+      setErreur(t('Précisez le type du document joint.'));
       return;
     }
     setErreur('');
@@ -98,23 +101,23 @@ export default function NouvelleRequete() {
     <Screen>
       {!!erreur && <Banner message={erreur} />}
 
-      <Field label="Sujet *" value={objet} onChangeText={setObjet} maxLength={200} placeholder="Sujet de votre requête" />
+      <Field label={t('Sujet *')} value={objet} onChangeText={setObjet} maxLength={200} placeholder={t('Sujet de votre requête')} />
 
       <View>
-        <Libelle>Type de requête *</Libelle>
+        <Libelle>{t('Type de requête *')}</Libelle>
         <Choix options={TYPES} valeur={type} onChoisir={setType} />
       </View>
 
       <Field
-        label="Message *"
+        label={t('Message *')}
         value={contenu}
         onChangeText={setContenu}
         multiline
-        placeholder="Décrivez votre requête en détail..."
+        placeholder={t('Décrivez votre requête en détail...')}
       />
 
       <View style={{ gap: spacing.sm }}>
-        <Libelle>Pièce jointe (optionnelle)</Libelle>
+        <Libelle>{t('Pièce jointe (optionnelle)')}</Libelle>
         {piece ? (
           <View style={styles.piece}>
             <FontAwesome5 name="paperclip" size={14} color={colors.primary} />
@@ -124,18 +127,18 @@ export default function NouvelleRequete() {
             </Pressable>
           </View>
         ) : (
-          <Button title="Joindre un fichier" icon="paperclip" variant="secondary" onPress={() => void choisirFichier()} />
+          <Button title={t('Joindre un fichier')} icon="paperclip" variant="secondary" onPress={() => void choisirFichier()} />
         )}
-        <Text style={styles.aide}>PDF, Word, Excel, JPG, PNG ou GIF — 10 Mo maximum.</Text>
+        <Text style={styles.aide}>{t('PDF, Word, Excel, JPG, PNG ou GIF — 10 Mo maximum.')}</Text>
         {piece && (
           <View>
-            <Libelle>Type du document *</Libelle>
+            <Libelle>{t('Type du document *')}</Libelle>
             <Choix options={TYPES_DOCUMENT} valeur={typeDocument} onChoisir={setTypeDocument} />
           </View>
         )}
       </View>
 
-      <Button pill title="Envoyer la requête" icon="paper-plane" onPress={envoyer} loading={envoi.isPending} />
+      <Button pill title={t('Envoyer la requête')} icon="paper-plane" onPress={envoyer} loading={envoi.isPending} />
     </Screen>
   );
 }

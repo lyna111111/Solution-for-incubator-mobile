@@ -5,6 +5,7 @@ import { Text } from 'react-native';
 import { getErrorMessage } from '@/api/client';
 import { useOuvrir } from '@/hooks/useOuvrir';
 import { useReculer } from '@/hooks/useReculer';
+import { type Traducteur, useT } from '@/i18n';
 import { Dialogue } from '@/components/Dialogue';
 import { Screen } from '@/components/Screen';
 import { Button, ErrorState, Loading } from '@/components/ui';
@@ -18,13 +19,14 @@ import { FormulaireAdmin, ListeAdmin, LigneListe } from './ui';
 /* eslint-disable @typescript-eslint/no-explicit-any -- données décrites par la config de chaque module */
 
 /** « Nouvelle offre », « Nouvel incubateur » (voyelle ou h muet), « Nouveau projet ». */
-function libelleNouveau(config: { titreSingulier: string; feminin?: boolean }): string {
+function libelleNouveau(config: { titreSingulier: string; feminin?: boolean }, t: Traducteur): string {
   const mot = config.feminin ? 'Nouvelle' : /^[aeiouyéèêh]/i.test(config.titreSingulier) ? 'Nouvel' : 'Nouveau';
-  return `${mot} ${config.titreSingulier}`;
+  return t(`${mot} ${config.titreSingulier}`);
 }
 
 /** Liste d'un module : recherche, filtres, pagination, bouton « Nouveau ». */
 export function ModuleList({ cle }: { cle: string }) {
+  const t = useT();
   const ouvrir = useOuvrir();
   const config = MODULES[cle];
   const racine = config.base === 'superadmin' ? `/${cle}` : `/gestion/${cle}`;
@@ -47,7 +49,7 @@ export function ModuleList({ cle }: { cle: string }) {
       filtres={config.liste.filtres}
       parametresUrl={config.liste.parametresUrl}
       entete={config.liste.entete}
-      action={{ titre: libelleNouveau(config), onPress: () => ouvrir(`${racine}/nouveau`) }}
+      action={{ titre: libelleNouveau(config, t), onPress: () => ouvrir(`${racine}/nouveau`) }}
       vide={`${config.feminin ? 'Aucune' : 'Aucun'} ${config.titreSingulier} à afficher.`}
       renderItem={(item, rafraichir) => (
         <LigneListe
@@ -73,6 +75,7 @@ function useApresEcriture() {
 
 /** Création d'un élément : formulaire des champs du module. */
 export function ModuleNew({ cle }: { cle: string }) {
+  const t = useT();
   const config = MODULES[cle];
   const apres = useApresEcriture();
   const reculer = useReculer();
@@ -85,7 +88,7 @@ export function ModuleNew({ cle }: { cle: string }) {
 
   return (
     <Screen>
-      <Stack.Screen options={{ title: libelleNouveau(config) }} />
+      <Stack.Screen options={{ title: libelleNouveau(config, t) }} />
       <FormulaireAdmin champs={config.champs} mode="creation" libelle="Créer" base={config.base} identite={config.carteIdentite}
         avancement={config.avancement}
         valeursInitiales={config.valeursCreation?.()} onSubmit={envoyer} />
@@ -95,6 +98,7 @@ export function ModuleNew({ cle }: { cle: string }) {
 
 /** Modification (et suppression) d'un élément existant. */
 export function ModuleEdit({ cle }: { cle: string }) {
+  const t = useT();
   const config = MODULES[cle];
   const { id } = useLocalSearchParams<{ id: string }>();
   const apres = useApresEcriture();
@@ -117,10 +121,10 @@ export function ModuleEdit({ cle }: { cle: string }) {
 
   function supprimer() {
     if (!config.supprimer) return;
-    Dialogue.alert('Suppression', config.messageSuppression, [
-      { text: 'Annuler', style: 'cancel' },
+    Dialogue.alert(t('Suppression'), t(config.messageSuppression), [
+      { text: t('Annuler'), style: 'cancel' },
       {
-        text: 'Supprimer',
+        text: t('Supprimer'),
         style: 'destructive',
         onPress: async () => {
           try {
@@ -128,7 +132,7 @@ export function ModuleEdit({ cle }: { cle: string }) {
             await apres();
             reculer();
           } catch (e) {
-            Dialogue.alert('Suppression impossible', getErrorMessage(e));
+            Dialogue.alert(t('Suppression impossible'), getErrorMessage(e));
           }
         },
       },
@@ -151,7 +155,7 @@ export function ModuleEdit({ cle }: { cle: string }) {
       {config.supprimer && (
         <>
           <Text style={{ height: spacing.sm }} />
-          <Button title="Supprimer" variant="danger" onPress={supprimer} />
+          <Button title={t('Supprimer')} variant="danger" onPress={supprimer} />
         </>
       )}
     </Screen>

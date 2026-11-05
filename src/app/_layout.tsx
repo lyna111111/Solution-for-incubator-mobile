@@ -2,10 +2,11 @@ import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { AppState } from 'react-native';
+import { AppState, View } from 'react-native';
 
 import { DialogueHost } from '@/components/Dialogue';
 import { Loading } from '@/components/ui';
+import { useEstRTL, useLangStore } from '@/i18n';
 import { useAuthStore } from '@/store/auth';
 import { useThemeStore } from '@/store/theme';
 import { memoriserVersionDuCode, rechargerCodeSiNouveau } from '@/utils/rechargerCode';
@@ -24,11 +25,16 @@ export default function RootLayout() {
   const themePret = useThemeStore((s) => s.pret);
   const hydrateTheme = useThemeStore((s) => s.hydrate);
   const sombre = useThemeStore((s) => s.mode === 'dark');
+  const languePrete = useLangStore((s) => s.pret);
+  const hydrateLangue = useLangStore((s) => s.hydrate);
+  // Arabe : toute l'application s'affiche de droite à gauche (rangées inversées, texte aligné à droite).
+  const rtl = useEstRTL();
 
   useEffect(() => {
     void hydrate();
     void hydrateTheme();
-  }, [hydrate, hydrateTheme]);
+    void hydrateLangue();
+  }, [hydrate, hydrateTheme, hydrateLangue]);
 
   // Au retour dans l'app : les données sont relues, et en développement le code l'est aussi s'il a changé.
   useEffect(() => {
@@ -42,10 +48,11 @@ export default function RootLayout() {
 
   // Évite d'afficher l'écran de connexion une fraction de seconde alors que
   // le jeton est en cours de lecture dans le stockage sécurisé.
-  if (!hydrated || !themePret) return <Loading />;
+  if (!hydrated || !themePret || !languePrete) return <Loading />;
 
   return (
     <QueryClientProvider client={queryClient}>
+      <View style={{ flex: 1, direction: rtl ? 'rtl' : 'ltr' }}>
       <StatusBar style={sombre ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Protected guard={connecte}>
@@ -56,6 +63,7 @@ export default function RootLayout() {
         </Stack.Protected>
       </Stack>
       <DialogueHost />
+      </View>
     </QueryClientProvider>
   );
 }

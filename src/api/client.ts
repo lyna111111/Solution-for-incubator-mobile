@@ -1,6 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 import { API_URL } from '@/config';
+import { tMaintenant } from '@/i18n';
 import { useAuthStore } from '@/store/auth';
 
 /** Client HTTP unique : ajoute le jeton JWT à chaque appel (l'incubateur est porté par le jeton). */
@@ -62,26 +63,27 @@ api.interceptors.response.use(
   },
 );
 
-/** Transforme une erreur réseau/DRF en message lisible en français. */
+/** Transforme une erreur réseau/DRF en message lisible, dans la langue choisie (français, anglais ou arabe). */
 export function getErrorMessage(error: unknown): string {
-  if (!axios.isAxiosError(error)) return 'Une erreur inattendue est survenue.';
+  const t = tMaintenant;
+  if (!axios.isAxiosError(error)) return t('Une erreur inattendue est survenue.');
 
   if (!error.response) {
-    return 'Impossible de joindre le serveur. Vérifiez votre connexion et l\'adresse du backend.';
+    return t("Impossible de joindre le serveur. Vérifiez votre connexion et l'adresse du backend.");
   }
 
   const { status, data } = error.response;
-  if (status === 429) return 'Trop de tentatives. Réessayez dans quelques instants.';
-  if (status >= 500) return 'Erreur du serveur. Réessayez plus tard.';
+  if (status === 429) return t('Trop de tentatives. Réessayez dans quelques instants.');
+  if (status >= 500) return t('Erreur du serveur. Réessayez plus tard.');
 
-  if (typeof data === 'string') return 'Requête refusée par le serveur.';
+  if (typeof data === 'string') return t('Requête refusée par le serveur.');
   if (data && typeof data === 'object') {
     const body = data as Record<string, unknown>;
     // API mobile : { success: false, errors: ["message", ...] }
-    if (Array.isArray(body.errors) && body.errors.length) return body.errors.map(String).join('\n');
-    if (typeof body.detail === 'string') return body.detail;
-    if (typeof body.error === 'string') return body.error;
-    if (typeof body.message === 'string') return body.message;
+    if (Array.isArray(body.errors) && body.errors.length) return body.errors.map((e) => t(String(e))).join('\n');
+    if (typeof body.detail === 'string') return t(body.detail);
+    if (typeof body.error === 'string') return t(body.error);
+    if (typeof body.message === 'string') return t(body.message);
 
     // Erreurs de validation DRF : { champ: ["message", ...] }
     const lignes: string[] = [];
@@ -91,7 +93,7 @@ export function getErrorMessage(error: unknown): string {
     }
     if (lignes.length) return lignes.join('\n');
   }
-  return 'Requête refusée par le serveur.';
+  return t('Requête refusée par le serveur.');
 }
 
 /** Les listes DRF sont soit un tableau, soit { results: [...] } si la pagination est activée. */

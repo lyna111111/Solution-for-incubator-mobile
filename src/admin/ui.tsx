@@ -12,6 +12,7 @@ import { Screen } from '@/components/Screen';
 import { iconeLibelle } from '@/components/iconeLibelle';
 import { Banner, Button, Card, ErrorState, Field, Loading } from '@/components/ui';
 import { useParametres } from '@/hooks/useOuvrir';
+import { useEstRTL, useT } from '@/i18n';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 import type { Pagination } from '@/types';
 
@@ -39,6 +40,7 @@ interface ListeAdminProps {
 export function ListeAdmin({
   titre, queryKey, charger, extraire, placeholderRecherche, filtres = [], parametresUrl = [], entete, renderItem, action, vide,
 }: ListeAdminProps) {
+  const t = useT();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const definirParametres = useParametres();
@@ -66,11 +68,11 @@ export function ListeAdmin({
     placeholderData: (precedent) => precedent,
   });
 
-  if (requete.isLoading) return <><Stack.Screen options={{ title: titre }} /><Loading /></>;
+  if (requete.isLoading) return <><Stack.Screen options={{ title: t(titre) }} /><Loading /></>;
   if (requete.error || !requete.data) {
     return (
       <>
-        <Stack.Screen options={{ title: titre }} />
+        <Stack.Screen options={{ title: t(titre) }} />
         <ErrorState message={getErrorMessage(requete.error)} onRetry={() => void requete.refetch()} />
       </>
     );
@@ -79,7 +81,7 @@ export function ListeAdmin({
 
   return (
     <Screen refreshing={requete.isRefetching} onRefresh={() => void requete.refetch()} fab={action}>
-      <Stack.Screen options={{ title: titre }} />
+      <Stack.Screen options={{ title: t(titre) }} />
       {entete?.(requete.data, {
         filtres: tousFiltres,
         choisirFiltre: (param, valeur) => { setValeursFiltres((x) => ({ ...x, [param]: valeur })); setPage(1); },
@@ -87,41 +89,41 @@ export function ListeAdmin({
 
       {placeholderRecherche !== undefined && (
         <Field
-          label="Rechercher"
+          label={t('Rechercher')}
           icon="search"
           value={saisie}
           onChangeText={setSaisie}
           onSubmitEditing={() => { setRecherche(saisie.trim()); setPage(1); }}
           returnKeyType="search"
-          placeholder={placeholderRecherche}
+          placeholder={t(placeholderRecherche)}
         />
       )}
       {imposes.map((p) => (
         <Pressable key={p.param} style={styles.imposee} onPress={() => { definirParametres({ [p.param]: '' }); setPage(1); }}>
-          <Text style={styles.imposeeTexte}>{p.libelle} : {valeursImposees[p.param]}</Text>
+          <Text style={styles.imposeeTexte}>{t(p.libelle)} : {t(valeursImposees[p.param])}</Text>
           <FontAwesome5 name="times" size={12} color={colors.primaryDark} />
         </Pressable>
       ))}
       {filtres.map((f) => (
         <Chips
           key={f.param}
-          options={f.options}
+          options={f.options.map((o) => ({ ...o, label: t(o.label) }))}
           value={valeursFiltres[f.param]}
           onChange={(v) => { setValeursFiltres((x) => ({ ...x, [f.param]: v })); setPage(1); }}
         />
       ))}
 
       {items.length === 0 ? (
-        <Text style={styles.vide}>{vide}</Text>
+        <Text style={styles.vide}>{t(vide)}</Text>
       ) : (
         items.map((item) => renderItem(item, () => void requete.refetch()))
       )}
 
       {pagination.nb_pages > 1 && (
         <View style={styles.pager}>
-          <Button title="‹ Précédent" variant="secondary" disabled={!pagination.a_precedent} onPress={() => setPage(page - 1)} style={{ flex: 1 }} />
+          <Button title={t('‹ Précédent')} variant="secondary" disabled={!pagination.a_precedent} onPress={() => setPage(page - 1)} style={{ flex: 1 }} />
           <Text style={styles.pageInfo}>{pagination.page} / {pagination.nb_pages}</Text>
-          <Button title="Suivant ›" variant="secondary" disabled={!pagination.a_suivant} onPress={() => setPage(page + 1)} style={{ flex: 1 }} />
+          <Button title={t('Suivant ›')} variant="secondary" disabled={!pagination.a_suivant} onPress={() => setPage(page + 1)} style={{ flex: 1 }} />
         </View>
       )}
     </Screen>
@@ -132,6 +134,8 @@ export function ListeAdmin({
 export function LigneListe({
   titre, sousTitre, badge, onPress, pied,
 }: { titre: string; sousTitre?: string; badge?: string | null; onPress?: () => void; pied?: ReactNode }) {
+  const t = useT();
+  const rtl = useEstRTL();
   const styles = useStyles(createStyles);
   const colors = useColors();
   return (
@@ -143,9 +147,9 @@ export function LigneListe({
             {!!sousTitre && <Text style={styles.sous} numberOfLines={2}>{sousTitre}</Text>}
           </View>
           {!!badge && (
-            <View style={styles.badge}><Text style={styles.badgeText}>{badge}</Text></View>
+            <View style={styles.badge}><Text style={styles.badgeText}>{t(badge)}</Text></View>
           )}
-          {onPress && <FontAwesome5 name="angle-right" size={18} color={colors.textMuted} />}
+          {onPress && <FontAwesome5 name={rtl ? 'angle-left' : 'angle-right'} size={18} color={colors.textMuted} />}
         </View>
         {pied}
       </Card>
@@ -189,6 +193,7 @@ const ACCENTS = new RegExp(`[${String.fromCharCode(0x300)}-${String.fromCharCode
  * ligne. L'icône et la couleur viennent du libellé ; `icone` / `couleur` (une couleur du système) les imposent au besoin.
  */
 export function Compteurs({ valeurs }: { valeurs: { label: string; valeur: number | string; couleur?: string; icone?: IconeFa }[] }) {
+  const t = useT();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const soft = { primary: colors.primarySoft, info: colors.infoSoft, success: colors.successSoft, warning: colors.warningSoft, danger: colors.dangerSoft };
@@ -197,11 +202,11 @@ export function Compteurs({ valeurs }: { valeurs: { label: string; valeur: numbe
       {valeurs.map((v, i) => {
         const libelle = v.label.normalize('NFD').replace(ACCENTS, '').toLowerCase();
         const trouve = ICONES_COMPTEUR.find(([motif]) => motif.test(libelle));
-        const imposee = v.couleur ? TEINTES.find((t) => colors[t] === v.couleur) : undefined;
+        const imposee = v.couleur ? TEINTES.find((x) => colors[x] === v.couleur) : undefined;
         const teinte = imposee ?? trouve?.[2] ?? TEINTES[i % TEINTES.length];
         return (
           <Kpi key={v.label} icone={v.icone ?? trouve?.[1] ?? 'chart-bar'} couleur={colors[teinte]} fond={soft[teinte]}
-            label={v.label} valeur={v.valeur} compact />
+            label={t(v.label)} valeur={v.valeur} compact />
         );
       })}
     </View>
@@ -213,12 +218,13 @@ export function Compteurs({ valeurs }: { valeurs: { label: string; valeur: numbe
 export function ChoixPuces({
   options, valeur, onChoisir, libelles,
 }: { options: string[]; valeur: string; onChoisir: (v: string) => void; libelles?: Record<string, string> }) {
+  const t = useT();
   const styles = useStyles(createStyles);
   return (
     <View style={styles.puces}>
       {options.map((o) => (
         <Pressable key={o} onPress={() => onChoisir(o)} style={[styles.puce, valeur === o && styles.puceActive]}>
-          <Text style={[styles.puceTexte, valeur === o && styles.puceTexteActive]}>{libelles?.[o] ?? o}</Text>
+          <Text style={[styles.puceTexte, valeur === o && styles.puceTexteActive]}>{t(libelles?.[o] ?? o)}</Text>
         </Pressable>
       ))}
     </View>
@@ -232,6 +238,7 @@ export function SelecteurReference({
   base: BaseApi; source: string; cleListe: string; libelle: (x: any) => string;
   valeur: string; onChange: (v: string) => void;
 }) {
+  const t = useT();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const { data, isLoading, error } = useQuery({
@@ -242,15 +249,15 @@ export function SelecteurReference({
 
   return (
     <View style={{ gap: spacing.sm }}>
-      {isLoading && <Text style={styles.sous}>Chargement...</Text>}
+      {isLoading && <Text style={styles.sous}>{t('Chargement...')}</Text>}
       {!!error && <Banner message={getErrorMessage(error)} />}
-      {!isLoading && !error && elements.length === 0 && <Text style={styles.sous}>Aucun choix disponible.</Text>}
+      {!isLoading && !error && elements.length === 0 && <Text style={styles.sous}>{t('Aucun choix disponible.')}</Text>}
       {elements.map((x) => {
         const choisi = String(x.id) === String(valeur);
         return (
           <Pressable key={x.id} onPress={() => onChange(choisi ? '' : String(x.id))} style={[styles.choixUtilisateur, choisi && styles.choixActif]}>
             <FontAwesome5 name={choisi ? 'dot-circle' : 'circle'} size={16} color={choisi ? colors.primary : colors.textMuted} />
-            <Text style={[styles.titre, { flex: 1 }]}>{libelle(x)}</Text>
+            <Text style={[styles.titre, { flex: 1 }]}>{t(libelle(x))}</Text>
           </Pressable>
         );
       })}
@@ -265,6 +272,7 @@ export function SelecteurReference({
 export function SelecteurUtilisateurs({
   source, valeur, multiple, onChange,
 }: { source: string; valeur: number[]; multiple: boolean; onChange: (v: number[]) => void }) {
+  const t = useT();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const [saisie, setSaisie] = useState('');
@@ -295,23 +303,23 @@ export function SelecteurUtilisateurs({
 
   return (
     <View style={{ gap: spacing.sm }}>
-      <Field label="" icon="search" value={saisie} onChangeText={(t) => { setSaisie(t); if (!t.trim()) setQ(''); }}
-        onSubmitEditing={() => setQ(saisie.trim())} returnKeyType="search" placeholder="Rechercher un nom..." />
+      <Field label="" icon="search" value={saisie} onChangeText={(v) => { setSaisie(v); if (!v.trim()) setQ(''); }}
+        onSubmitEditing={() => setQ(saisie.trim())} returnKeyType="search" placeholder={t('Rechercher un nom...')} />
       {valeur.length > 0 && (
         <View style={styles.choisis}>
           {valeur.map((id) => (
             <Pressable key={id} onPress={() => basculer(id)} style={styles.choisi} hitSlop={4}>
-              <Text style={styles.choisiTexte} numberOfLines={1}>{noms[id] ?? `Utilisateur ${id}`}</Text>
+              <Text style={styles.choisiTexte} numberOfLines={1}>{noms[id] ?? t('Utilisateur {id}', { id })}</Text>
               <FontAwesome5 name="times" size={11} color={colors.primaryDark} />
             </Pressable>
           ))}
         </View>
       )}
-      {isLoading && <Text style={styles.sous}>Chargement...</Text>}
+      {isLoading && <Text style={styles.sous}>{t('Chargement...')}</Text>}
       {!!error && <Banner message={getErrorMessage(error)} />}
       <View style={styles.boite}>
         <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator>
-          {utilisateurs.length === 0 && !isLoading && <Text style={[styles.sous, { padding: spacing.md }]}>Aucun utilisateur trouvé.</Text>}
+          {utilisateurs.length === 0 && !isLoading && <Text style={[styles.sous, { padding: spacing.md }]}>{t('Aucun utilisateur trouvé.')}</Text>}
           {utilisateurs.map((u) => {
             const choisi = valeur.includes(u.id);
             return (
@@ -330,7 +338,7 @@ export function SelecteurUtilisateurs({
         </ScrollView>
       </View>
       <Text style={styles.sous}>
-        {valeur.length > 0 ? `${valeur.length} sélectionné(s)` : multiple ? 'Touchez les noms à sélectionner (plusieurs possibles).' : 'Touchez un nom pour le sélectionner.'}
+        {valeur.length > 0 ? t('{n} sélectionné(s)', { n: valeur.length }) : multiple ? t('Touchez les noms à sélectionner (plusieurs possibles).') : t('Touchez un nom pour le sélectionner.')}
       </Text>
     </View>
   );
@@ -347,6 +355,7 @@ const TAILLE_MAX = 10 * 1024 * 1024; // 10 Mo, comme le serveur
 export function SelecteurFichiers({
   champ, fichiers, multiple, onChange, onErreur,
 }: { champ: string; fichiers: Fichier[]; multiple: boolean; onChange: (f: Fichier[]) => void; onErreur: (m: string) => void }) {
+  const t = useT();
   const styles = useStyles(createStyles);
   const colors = useColors();
   async function choisir() {
@@ -355,7 +364,7 @@ export function SelecteurFichiers({
     const nouveaux: Fichier[] = [];
     for (const f of resultat.assets) {
       if (f.size && f.size > TAILLE_MAX) {
-        onErreur(`${f.name} : fichier trop volumineux (10 Mo maximum).`);
+        onErreur(`${f.name} : ${t('fichier trop volumineux (10 Mo maximum).')}`);
         continue;
       }
       nouveaux.push({ champ, uri: f.uri, name: f.name, mimeType: f.mimeType });
@@ -373,8 +382,8 @@ export function SelecteurFichiers({
           </Pressable>
         </View>
       ))}
-      <Button title={multiple ? 'Joindre des fichiers' : 'Joindre un fichier'} icon="paperclip" variant="secondary" onPress={() => void choisir()} />
-      <Text style={styles.aide}>PDF, Word, Excel, PowerPoint, JPG, PNG ou GIF — 10 Mo maximum par fichier.</Text>
+      <Button title={multiple ? t('Joindre des fichiers') : t('Joindre un fichier')} icon="paperclip" variant="secondary" onPress={() => void choisir()} />
+      <Text style={styles.aide}>{t('PDF, Word, Excel, PowerPoint, JPG, PNG ou GIF — 10 Mo maximum par fichier.')}</Text>
     </View>
   );
 }
@@ -391,6 +400,7 @@ const HEX = /^#[0-9a-fA-F]{6}$/;
 
 /** Pastilles de la palette + code hexadécimal modifiable : la couleur par défaut est déjà choisie, la personne peut en changer. */
 function SelecteurCouleur({ valeur, onChange }: { valeur: string; onChange: (v: string) => void }) {
+  const t = useT();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const valide = HEX.test(valeur);
@@ -401,7 +411,7 @@ function SelecteurCouleur({ valeur, onChange }: { valeur: string; onChange: (v: 
         {PALETTE_COULEURS.map((c) => {
           const choisie = valeur.toLowerCase() === c;
           return (
-            <Pressable key={c} onPress={() => onChange(c)} accessibilityRole="button" accessibilityLabel={`Couleur ${c}`}
+            <Pressable key={c} onPress={() => onChange(c)} accessibilityRole="button" accessibilityLabel={`${t('Couleur')} ${c}`}
               style={[styles.pastille, { backgroundColor: c }, choisie && { borderColor: colors.text }]}>
               {choisie && <FontAwesome5 name="check" size={13} color="#fff" />}
             </Pressable>
@@ -413,7 +423,7 @@ function SelecteurCouleur({ valeur, onChange }: { valeur: string; onChange: (v: 
         <TextInput value={valeur} onChangeText={saisir} autoCapitalize="none" autoCorrect={false} maxLength={7}
           placeholder="#8a3ffc" placeholderTextColor="#94a3b8" style={styles.codeSaisie} />
       </View>
-      <Text style={styles.aide}>{valide ? 'Choisissez une couleur de la palette ou saisissez votre code (#RRGGBB).' : 'Code incomplet : 6 caractères attendus après le #.'}</Text>
+      <Text style={styles.aide}>{valide ? t('Choisissez une couleur de la palette ou saisissez votre code (#RRGGBB).') : t('Code incomplet : 6 caractères attendus après le #.')}</Text>
     </View>
   );
 }
@@ -468,9 +478,10 @@ function Etiquette({ texte, icone, couleur }: { texte: string; icone: IconeChamp
 
 /** Photo de la personne ; sans photo, silhouette grise comme sur Instagram ou Facebook. */
 function PhotoIdentite({ etiree }: { etiree?: boolean }) {
+  const t = useT();
   const styles = useStyles(createStyles);
   return (
-    <View style={[styles.photo, etiree && styles.photoEtiree]} accessibilityLabel="Pas de photo">
+    <View style={[styles.photo, etiree && styles.photoEtiree]} accessibilityLabel={t('Pas de photo')}>
       <FontAwesome5 name="user" solid size={84} color="#f1f3f6" style={styles.photoSilhouette} />
     </View>
   );
@@ -488,6 +499,7 @@ const INFOS_IDENTITE: { cle: string; indication: string; icone: IconeChamp }[] =
 
 /** Informations d'identité en consultation : une ligne par information (icône verte + valeur), sans champ de saisie ni trait. */
 function InfosIdentite({ valeurs }: { valeurs: Record<string, any> }) {
+  const t = useT();
   const styles = useStyles(createStyles);
   const colors = useColors();
   return (
@@ -498,7 +510,7 @@ function InfosIdentite({ valeurs }: { valeurs: Record<string, any> }) {
           <View key={info.cle} style={styles.infoLigne}>
             <View style={styles.infoIcone}><FontAwesome5 name={info.icone} size={12} color={colors.success} /></View>
             <Text style={[styles.infoValeur, !valeur && { color: colors.textMuted }]} numberOfLines={1}>
-              {valeur || `${info.indication} non renseigné`}
+              {valeur || t('{champ} non renseigné', { champ: t(info.indication) })}
             </Text>
           </View>
         );
@@ -509,18 +521,19 @@ function InfosIdentite({ valeurs }: { valeurs: Record<string, any> }) {
 
 /** Barre d'avancement en haut d'un formulaire : le remplissage et le pourcentage changent de couleur selon l'avancement. */
 function BarreAvancement({ valeur }: { valeur: number }) {
+  const t = useT();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const pct = Number.isFinite(valeur) ? Math.max(0, Math.min(100, Math.round(valeur))) : 0;
-  const [couleur, etat] = pct >= 100 ? [colors.success, 'Terminé']
-    : pct >= 67 ? [colors.info, 'Bien avancé']
-      : pct >= 34 ? [colors.warning, 'En cours']
-        : [colors.danger, 'Au démarrage'];
+  const [couleur, etat] = pct >= 100 ? [colors.success, t('Terminé')]
+    : pct >= 67 ? [colors.info, t('Bien avancé')]
+      : pct >= 34 ? [colors.warning, t('En cours')]
+        : [colors.danger, t('Au démarrage')];
   return (
     <Card style={styles.avancement}>
       <View style={styles.avancementEntete}>
         <FontAwesome5 name="tasks" size={15} color={couleur} />
-        <Text style={styles.avancementTitre}>Avancement</Text>
+        <Text style={styles.avancementTitre}>{t('Avancement')}</Text>
         <Text style={[styles.avancementEtat, { color: couleur }]}>{etat}</Text>
       </View>
       <View style={styles.avancementPiste}>
@@ -539,6 +552,7 @@ const PRINCIPAUX = ['nom', 'prenom', 'email', 'matricule'];
 export function FormulaireAdmin({
   champs, mode, valeursInitiales = {}, libelle, base = 'admin', identite, avancement, onSubmit,
 }: FormulaireProps) {
+  const t = useT();
   const styles = useStyles(createStyles);
   const visibles = champs.filter((c) => (mode === 'creation' ? !c.modification : !c.creation));
   const [valeurs, setValeurs] = useState<Record<string, any>>(valeursInitiales);
@@ -555,11 +569,11 @@ export function FormulaireAdmin({
     const manquants = visibles.filter((c) => c.requis && c.type !== 'fichiers' && !String(valeurs[c.nom] ?? '').trim()
       && !(Array.isArray(valeurs[c.nom]) && valeurs[c.nom].length));
     if (manquants.length) {
-      setErreur(`Champ(s) obligatoire(s) : ${manquants.map((c) => c.label).join(', ')}.`);
+      setErreur(`${t('Champ(s) obligatoire(s) :')} ${manquants.map((c) => t(c.label)).join(', ')}.`);
       return;
     }
     if (visibles.some((c) => c.requis && c.type === 'fichiers') && fichiers.length === 0) {
-      setErreur('Joignez le fichier demandé.');
+      setErreur(t('Joignez le fichier demandé.'));
       return;
     }
     setErreur('');
@@ -574,7 +588,7 @@ export function FormulaireAdmin({
   }
 
   const lignes = visibles.map((c) => {
-        const etiquette = c.requis ? `${c.label} *` : c.label;
+        const etiquette = c.requis ? `${t(c.label)} *` : t(c.label);
         if (c.type === 'choix') {
           return (
             <View key={c.nom} style={{ marginBottom: spacing.md }}>
@@ -634,7 +648,7 @@ export function FormulaireAdmin({
             multiline={c.type === 'textarea'}
             keyboardType={c.type === 'nombre' ? 'numeric' : c.type === 'time' ? 'numbers-and-punctuation' : 'default'}
             autoCapitalize={c.type === 'password' || c.nom === 'email' ? 'none' : 'sentences'}
-            placeholder={c.placeholder ?? (c.type === 'date' ? 'AAAA-MM-JJ' : c.type === 'time' ? 'HH:MM' : undefined)}
+            placeholder={c.placeholder ? t(c.placeholder) : (c.type === 'date' ? t('AAAA-MM-JJ') : c.type === 'time' ? t('HH:MM') : undefined)}
           />
         );
   });
@@ -645,7 +659,7 @@ export function FormulaireAdmin({
       {mode === 'modification' && (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={edition ? 'Annuler la modification' : 'Modifier les informations'}
+          accessibilityLabel={edition ? t('Annuler la modification') : t('Modifier les informations')}
           onPress={() => {
             // Annuler remet les informations d'origine.
             if (edition) { setValeurs(valeursInitiales); setFichiers([]); setErreur(''); }
@@ -654,7 +668,7 @@ export function FormulaireAdmin({
           style={[styles.stylo, edition && { backgroundColor: colors.dangerSoft }]}
         >
           <FontAwesome5 name={edition ? 'times' : 'pen'} size={14} color={edition ? colors.dangerText : colors.primary} />
-          <Text style={[styles.styloTexte, edition && { color: colors.dangerText }]}>{edition ? 'Annuler' : 'Modifier'}</Text>
+          <Text style={[styles.styloTexte, edition && { color: colors.dangerText }]}>{edition ? t('Annuler') : t('Modifier')}</Text>
         </Pressable>
       )}
       {!!avancement && visibles.some((c) => c.nom === avancement) && <BarreAvancement valeur={Number(valeurs[avancement])} />}
@@ -673,7 +687,7 @@ export function FormulaireAdmin({
       ) : (
         <View pointerEvents={lecture ? 'none' : 'auto'}>{lignes}</View>
       )}
-      {!lecture && <Button pill title={libelle} onPress={() => void valider()} loading={envoi} />}
+      {!lecture && <Button pill title={t(libelle)} onPress={() => void valider()} loading={envoi} />}
     </View>
   );
 }
@@ -681,6 +695,7 @@ export function FormulaireAdmin({
 // ── Graphiques simples (barres horizontales) ─────────────────────────────────
 
 export function Barres({ donnees, couleur }: { donnees: { label: string; valeur: number; icone?: IconeChamp }[]; couleur?: string }) {
+  const t = useT();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const remplissage = couleur ?? colors.primary;
@@ -692,7 +707,7 @@ export function Barres({ donnees, couleur }: { donnees: { label: string; valeur:
           <View style={styles.barreEntete}>
             <View style={styles.barreLibelle}>
               {!!d.icone && <FontAwesome5 name={d.icone} size={12} color={remplissage} style={{ width: 16, textAlign: 'center' }} />}
-              <Text style={styles.sous}>{d.label}</Text>
+              <Text style={styles.sous}>{t(d.label)}</Text>
             </View>
             <Text style={styles.titre}>{d.valeur}</Text>
           </View>

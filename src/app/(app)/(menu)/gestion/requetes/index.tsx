@@ -4,9 +4,11 @@ import { Compteurs, LigneListe, ListeAdmin } from '@/admin/ui';
 import { StatutBadge } from '@/components/rows';
 import { View } from 'react-native';
 import { useOuvrir } from '@/hooks/useOuvrir';
+import { useT } from '@/i18n';
 import { formatDate } from '@/utils/format';
 
 export default function GestionRequetes() {
+  const t = useT();
   const ouvrir = useOuvrir();
   return (
     <ListeAdmin
@@ -30,7 +32,7 @@ export default function GestionRequetes() {
         <LigneListe
           key={r.id}
           titre={r.objet}
-          sousTitre={`${r.utilisateur?.nom ?? 'Visiteur non inscrit'} · ${r.type_requete} · ${formatDate(r.dateSoumission)}`}
+          sousTitre={`${r.utilisateur?.nom ?? t('Visiteur non inscrit')} · ${t(r.type_requete)} · ${formatDate(r.dateSoumission)}`}
           onPress={() => ouvrir(`/gestion/requetes/${r.id}`)}
           pied={<View style={{ flexDirection: 'row' }}><StatutBadge statut={r.statut} /></View>}
         />

@@ -14,6 +14,7 @@ import { StatutBadge } from '@/components/rows';
 import { Dialogue } from '@/components/Dialogue';
 import { Screen } from '@/components/Screen';
 import { Badge, Banner, Button, Card, ErrorState, Loading, SectionTitle } from '@/components/ui';
+import { useT } from '@/i18n';
 import { useAuthStore } from '@/store/auth';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 import { formatDateTime } from '@/utils/format';
@@ -26,6 +27,7 @@ function initiales(nom: string): string {
 }
 
 export default function DetailRequeteAdmin() {
+  const t = useT();
   const reculer = useReculer();
   const styles = useStyles(createStyles);
   const colors = useColors();
@@ -43,7 +45,7 @@ export default function DetailRequeteAdmin() {
   if (isLoading) return <Loading />;
   if (error || !data) return <ErrorState message={getErrorMessage(error)} onRetry={() => void refetch()} />;
   const r = data.requete;
-  const expediteur: string = r.utilisateur?.nom ?? 'Visiteur non inscrit';
+  const expediteur: string = r.utilisateur?.nom ?? t('Visiteur non inscrit');
 
   async function apres() {
     await queryClient.invalidateQueries({ queryKey: ['admin'] });
@@ -52,7 +54,7 @@ export default function DetailRequeteAdmin() {
   async function repondre(valeurs: Record<string, any>, fichiers: any[]) {
     await adminEnvoyer('post', `requetes/${id}/repondre/`, valeurs, fichiers);
     await apres();
-    setMessage('Réponse envoyée.');
+    setMessage(t('Réponse envoyée.'));
     setReponseOuverte(false);
   }
 
@@ -61,23 +63,23 @@ export default function DetailRequeteAdmin() {
       await adminEnvoyer('post', `requetes/${id}/statut/`, { status: statut });
       await apres();
     } catch (e) {
-      Dialogue.alert('Changement impossible', getErrorMessage(e));
+      Dialogue.alert(t('Changement impossible'), getErrorMessage(e));
     }
   }
 
   function supprimer() {
-    Dialogue.alert('Suppression', 'Supprimer cette requête et ses réponses ?', [
-      { text: 'Annuler', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: async () => {
+    Dialogue.alert(t('Suppression'), t('Supprimer cette requête et ses réponses ?'), [
+      { text: t('Annuler'), style: 'cancel' },
+      { text: t('Supprimer'), style: 'destructive', onPress: async () => {
         try { await adminEnvoyer('delete', `requetes/${id}/`); await apres(); reculer(); }
-        catch (e) { Dialogue.alert('Suppression impossible', getErrorMessage(e)); }
+        catch (e) { Dialogue.alert(t('Suppression impossible'), getErrorMessage(e)); }
       } },
     ], { ton: 'danger', icone: 'trash-alt' });
   }
 
   return (
     <Screen refreshing={isRefetching} onRefresh={() => void refetch()}>
-      <Stack.Screen options={{ title: 'Détail de la requête' }} />
+      <Stack.Screen options={{ title: t('Détail de la requête') }} />
 
       {/* Le message tel que la personne l'a envoyé : qui, quand, sujet puis texte dans une bulle lisible. */}
       <Card style={{ gap: spacing.md }}>
@@ -85,24 +87,24 @@ export default function DetailRequeteAdmin() {
           <View style={styles.avatar}><Text style={styles.avatarTexte}>{initiales(expediteur)}</Text></View>
           <View style={{ flex: 1 }}>
             <Text style={styles.auteur} numberOfLines={1}>{expediteur}</Text>
-            <Text style={styles.meta} numberOfLines={1}>{r.utilisateur?.email ?? 'Pas de compte dans l\'application'}</Text>
+            <Text style={styles.meta} numberOfLines={1}>{r.utilisateur?.email ?? t("Pas de compte dans l'application")}</Text>
           </View>
           <StatutBadge statut={r.statut} />
         </View>
 
         <View style={styles.separateur} />
 
-        <Text style={styles.etiquette}>Objet</Text>
+        <Text style={styles.etiquette}>{t('Objet')}</Text>
         <Text style={styles.titre}>{r.objet}</Text>
         <View style={styles.ligne}>
-          <Badge label={r.type_requete} fond={colors.primarySoft} texte={colors.primaryDark} />
+          <Badge label={t(r.type_requete)} fond={colors.primarySoft} texte={colors.primaryDark} />
           <View style={styles.date}>
             <FontAwesome5 name="clock" size={12} color={colors.textMuted} />
-            <Text style={styles.meta}>Reçue le {formatDateTime(r.dateSoumission)}</Text>
+            <Text style={styles.meta}>{t('Reçue le')} {formatDateTime(r.dateSoumission)}</Text>
           </View>
         </View>
 
-        <Text style={styles.etiquette}>Message</Text>
+        <Text style={styles.etiquette}>{t('Message')}</Text>
         <View style={styles.bulle}>
           <Text style={styles.corps} selectable>{r.contenu}</Text>
         </View>
@@ -114,7 +116,7 @@ export default function DetailRequeteAdmin() {
       {r.utilisateur ? (
         reponseOuverte ? (
           <>
-            <SectionTitle icon="paper-plane">Votre réponse à {expediteur}</SectionTitle>
+            <SectionTitle icon="paper-plane">{t('Votre réponse à {nom}', { nom: expediteur })}</SectionTitle>
             <FormulaireAdmin
               key={r.reponses.length}
               mode="creation"
@@ -128,17 +130,17 @@ export default function DetailRequeteAdmin() {
               valeursInitiales={{ status: 'Traitée' }}
               onSubmit={repondre}
             />
-            <Button title="Annuler" variant="secondary" icon="times" onPress={() => setReponseOuverte(false)} />
+            <Button title={t('Annuler')} variant="secondary" icon="times" onPress={() => setReponseOuverte(false)} />
           </>
         ) : (
-          <Button title="Répondre" icon="reply" onPress={() => { setMessage(''); setReponseOuverte(true); }} />
+          <Button title={t('Répondre')} icon="reply" onPress={() => { setMessage(''); setReponseOuverte(true); }} />
         )
       ) : (
-        <Banner type="info" message="Cette personne n'a pas de compte : on ne peut pas lui répondre depuis l'application." />
+        <Banner type="info" message={t("Cette personne n'a pas de compte : on ne peut pas lui répondre depuis l'application.")} />
       )}
 
-      <SectionTitle icon="reply">Réponses ({r.reponses.length})</SectionTitle>
-      {r.reponses.length === 0 && <Text style={styles.meta}>Aucune réponse pour le moment.</Text>}
+      <SectionTitle icon="reply">{t('Réponses ({n})', { n: r.reponses.length })}</SectionTitle>
+      {r.reponses.length === 0 && <Text style={styles.meta}>{t('Aucune réponse pour le moment.')}</Text>}
       {r.reponses.map((rep: any) => (
         <Card key={rep.id} style={{ backgroundColor: colors.primarySoft, gap: spacing.sm }}>
           <Text style={styles.auteur}>{rep.administrateur}</Text>
@@ -150,12 +152,12 @@ export default function DetailRequeteAdmin() {
 
       {estPrincipal && (
         <>
-          <SectionTitle icon="exchange-alt">Changer le statut (Admin principal)</SectionTitle>
+          <SectionTitle icon="exchange-alt">{t('Changer le statut (Admin principal)')}</SectionTitle>
           <ChoixPuces options={STATUTS} valeur={r.status} onChoisir={(s) => void changerStatut(s)} />
         </>
       )}
 
-      <Button title="Supprimer la requête" variant="danger" onPress={supprimer} style={{ marginTop: spacing.lg }} />
+      <Button title={t('Supprimer la requête')} variant="danger" onPress={supprimer} style={{ marginTop: spacing.lg }} />
     </Screen>
   );
 }

@@ -7,9 +7,11 @@ import { fetchArticles } from '@/api/endpoints';
 import { Screen } from '@/components/Screen';
 import { Button, Card, ErrorState, Field, Loading } from '@/components/ui';
 import { useOuvrir } from '@/hooks/useOuvrir';
+import { useT } from '@/i18n';
 import { type Palette, spacing, useStyles } from '@/theme';
 
 export default function Articles() {
+  const t = useT();
   const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   const [saisie, setSaisie] = useState('');
@@ -28,17 +30,17 @@ export default function Articles() {
   return (
     <Screen refreshing={isRefetching} onRefresh={() => void refetch()}>
       <Field
-        label="Rechercher"
+        label={t('Rechercher')}
         icon="search"
         value={saisie}
         onChangeText={setSaisie}
         onSubmitEditing={() => { setRecherche(saisie.trim()); setPage(1); }}
         returnKeyType="search"
-        placeholder="Titre ou auteur..."
+        placeholder={t('Titre ou auteur...')}
       />
 
       {data.articles.length === 0 ? (
-        <Text style={styles.empty}>Aucun article trouvé.</Text>
+        <Text style={styles.empty}>{t('Aucun article trouvé.')}</Text>
       ) : (
         data.articles.map((a) => (
           <Pressable key={a.id} onPress={() => ouvrir(`/articles/${a.id}`)}>
@@ -52,9 +54,9 @@ export default function Articles() {
 
       {data.lastPage > 1 && (
         <View style={styles.pager}>
-          <Button title="‹ Précédent" variant="secondary" disabled={!data.hasPrevious} onPress={() => setPage(page - 1)} style={{ flex: 1 }} />
+          <Button title={t('‹ Précédent')} variant="secondary" disabled={!data.hasPrevious} onPress={() => setPage(page - 1)} style={{ flex: 1 }} />
           <Text style={styles.meta}>{data.currentPage} / {data.lastPage}</Text>
-          <Button title="Suivant ›" variant="secondary" disabled={!data.hasNext} onPress={() => setPage(page + 1)} style={{ flex: 1 }} />
+          <Button title={t('Suivant ›')} variant="secondary" disabled={!data.hasNext} onPress={() => setPage(page + 1)} style={{ flex: 1 }} />
         </View>
       )}
     </Screen>

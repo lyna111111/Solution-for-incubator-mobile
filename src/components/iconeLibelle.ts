@@ -1,5 +1,7 @@
 import type { FontAwesome5 } from '@expo/vector-icons';
 
+import { versFrancais } from '@/i18n';
+
 export type IconeLibelle = React.ComponentProps<typeof FontAwesome5>['name'];
 
 // Mot-clé du libellé -> icône. Le premier mot-clé trouvé gagne, donc les plus précis sont en tête.
@@ -59,6 +61,6 @@ const ACCENTS = new RegExp('[' + String.fromCharCode(0x300) + '-' + String.fromC
 
 /** Icône qui convient à un libellé de champ ou d'information (« Email » -> enveloppe, « Date » -> calendrier...). */
 export function iconeLibelle(libelle: string, defaut: IconeLibelle = 'pen'): IconeLibelle {
-  const texte = libelle.normalize('NFD').replace(ACCENTS, '').toLowerCase();
+  const texte = versFrancais(libelle).normalize('NFD').replace(ACCENTS, '').toLowerCase();
   return REGLES.find(([mot]) => texte.includes(mot))?.[1] ?? defaut;
 }

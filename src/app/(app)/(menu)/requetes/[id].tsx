@@ -8,10 +8,12 @@ import { DocumentsList } from '@/components/DocumentLink';
 import { StatutBadge } from '@/components/rows';
 import { Screen } from '@/components/Screen';
 import { Card, ErrorState, Loading, SectionTitle, Libelle } from '@/components/ui';
+import { useT } from '@/i18n';
 import { type Palette, spacing, useColors, useStyles } from '@/theme';
 import { formatDateTime } from '@/utils/format';
 
 export default function DetailRequete() {
+  const t = useT();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -29,19 +31,19 @@ export default function DetailRequete() {
       <View style={styles.row}>
         <StatutBadge statut={data.statut} />
         <Text style={styles.meta}>
-          {data.type_requete} · {formatDateTime(data.dateSoumission)}
+          {t(data.type_requete)} · {formatDateTime(data.dateSoumission)}
         </Text>
       </View>
 
       <Card style={{ gap: spacing.md }}>
-        <Libelle>Votre message</Libelle>
+        <Libelle>{t('Votre message')}</Libelle>
         <Text style={styles.body}>{data.contenu}</Text>
         <DocumentsList documents={data.documents} />
       </Card>
 
-      <SectionTitle icon="reply">Réponses ({data.reponses.length})</SectionTitle>
+      <SectionTitle icon="reply">{t('Réponses ({n})', { n: data.reponses.length })}</SectionTitle>
       {data.reponses.length === 0 ? (
-        <Text style={styles.meta}>Aucune réponse pour le moment.</Text>
+        <Text style={styles.meta}>{t('Aucune réponse pour le moment.')}</Text>
       ) : (
         data.reponses.map((r) => (
           <Card key={r.id} style={{ backgroundColor: colors.primarySoft, gap: spacing.sm }}>

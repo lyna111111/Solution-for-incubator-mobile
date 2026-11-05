@@ -10,6 +10,7 @@ import { useReculer } from '@/hooks/useReculer';
 import { Dialogue } from '@/components/Dialogue';
 import { Screen } from '@/components/Screen';
 import { Badge, Banner, Button, Card, ErrorState, Field, Loading, SectionTitle, Libelle, LigneIcone } from '@/components/ui';
+import { useT } from '@/i18n';
 import { type Palette, spacing, useColors, useStyles } from '@/theme';
 import { formaterDA, formatDate } from '@/utils/format';
 
@@ -21,6 +22,7 @@ const ACTIONS: Record<string, { titre: string; message: string; libelle: string;
 
 /** Fiche d'un abonnement : informations, paiements, suspension / réactivation / résiliation, renouvellement. */
 export default function AbonnementFiche() {
+  const t = useT();
   const reculer = useReculer();
   const styles = useStyles(createStyles);
   const colors = useColors();
@@ -46,17 +48,17 @@ export default function AbonnementFiche() {
 
   function agir(action: keyof typeof ACTIONS) {
     const def = ACTIONS[action];
-    Dialogue.alert(def.titre, def.message, [
-      { text: 'Annuler', style: 'cancel' },
+    Dialogue.alert(t(def.titre), t(def.message), [
+      { text: t('Annuler'), style: 'cancel' },
       {
-        text: def.libelle,
+        text: t(def.libelle),
         style: def.destructif ? 'destructive' : 'default',
         onPress: async () => {
           try {
             await adminEnvoyer('post', `abonnements/${id}/action/`, { action }, [], 'superadmin');
             await apres();
           } catch (e) {
-            Dialogue.alert('Action impossible', getErrorMessage(e));
+            Dialogue.alert(t('Action impossible'), getErrorMessage(e));
           }
         },
       },
@@ -65,7 +67,7 @@ export default function AbonnementFiche() {
 
   async function renouveler() {
     if (!dateFin.trim()) {
-      setErreur('Indiquez la nouvelle date de fin (AAAA-MM-JJ).');
+      setErreur(t('Indiquez la nouvelle date de fin (AAAA-MM-JJ).'));
       return;
     }
     setErreur('');
@@ -89,40 +91,40 @@ export default function AbonnementFiche() {
       <Card style={{ gap: spacing.sm }}>
         <View style={styles.entete}>
           <Text style={styles.titre}>{a.incubateur}</Text>
-          <Badge label={a.statut_display} fond={colors.primarySoft} texte={colors.primaryDark} />
+          <Badge label={t(a.statut_display)} fond={colors.primarySoft} texte={colors.primaryDark} />
         </View>
-        <LigneIcone icone="tags">Plan : {a.plan_display} ({a.type === 'essai' ? "période d'essai" : 'annuel'})</LigneIcone>
-        <LigneIcone icone="calendar-alt">Du {formatDate(a.date_debut)} au {formatDate(a.date_fin)}</LigneIcone>
+        <LigneIcone icone="tags">{t('Plan')} : {t(a.plan_display)} ({a.type === 'essai' ? t("période d'essai") : t('annuel')})</LigneIcone>
+        <LigneIcone icone="calendar-alt">{t('Du {debut} au {fin}', { debut: formatDate(a.date_debut), fin: formatDate(a.date_fin) })}</LigneIcone>
         <LigneIcone icone="hourglass-half">
-          {a.jours_restants >= 0 ? `${a.jours_restants} jour(s) restant(s)` : `Expiré depuis ${-a.jours_restants} jour(s)`}
+          {a.jours_restants >= 0 ? t('{n} jour(s) restant(s)', { n: a.jours_restants }) : t('Expiré depuis {n} jour(s)', { n: -a.jours_restants })}
         </LigneIcone>
-        <LigneIcone icone="money-bill-wave">Montant annuel : {formaterDA(a.montant_annuel)}</LigneIcone>
-        {!!a.notes && <LigneIcone icone="sticky-note">Notes : {a.notes}</LigneIcone>}
+        <LigneIcone icone="money-bill-wave">{t('Montant annuel')} : {formaterDA(a.montant_annuel)}</LigneIcone>
+        {!!a.notes && <LigneIcone icone="sticky-note">{t('Notes')} : {a.notes}</LigneIcone>}
       </Card>
 
       <View style={styles.actions}>
         {a.statut === 'suspendu' || a.statut === 'annule'
-          ? <Button title="Réactiver" style={{ flex: 1 }} onPress={() => agir('reactiver')} />
-          : <Button title="Suspendre" variant="secondary" style={{ flex: 1 }} onPress={() => agir('suspendre')} />}
-        {a.statut !== 'annule' && <Button title="Résilier" variant="danger" style={{ flex: 1 }} onPress={() => agir('resilier')} />}
+          ? <Button title={t('Réactiver')} style={{ flex: 1 }} onPress={() => agir('reactiver')} />
+          : <Button title={t('Suspendre')} variant="secondary" style={{ flex: 1 }} onPress={() => agir('suspendre')} />}
+        {a.statut !== 'annule' && <Button title={t('Résilier')} variant="danger" style={{ flex: 1 }} onPress={() => agir('resilier')} />}
       </View>
 
       <Card style={{ gap: spacing.sm }}>
-        <SectionTitle icon="sync-alt">Renouveler</SectionTitle>
+        <SectionTitle icon="sync-alt">{t('Renouveler')}</SectionTitle>
         {!!erreur && <Banner message={erreur} />}
-        <Field label="Nouvelle date de fin *" value={dateFin} onChangeText={setDateFin} placeholder="AAAA-MM-JJ" />
-        <Libelle>{"Changer d'offre (facultatif)"}</Libelle>
+        <Field label={t('Nouvelle date de fin *')} value={dateFin} onChangeText={setDateFin} placeholder={t('AAAA-MM-JJ')} />
+        <Libelle>{t("Changer d'offre (facultatif)")}</Libelle>
         <SelecteurReference base="superadmin" source={`abonnements/${id}/`} cleListe="offres"
-          libelle={(o) => `${o.nom} — ${formaterDA(o.prix)}/an`} valeur={offreId} onChange={setOffreId} />
-        <Button title="Renouveler" onPress={() => void renouveler()} loading={envoi} />
+          libelle={(o) => `${o.nom} — ${formaterDA(o.prix)}${t('/an')}`} valeur={offreId} onChange={setOffreId} />
+        <Button title={t('Renouveler')} onPress={() => void renouveler()} loading={envoi} />
       </Card>
 
       <Card style={{ gap: spacing.sm }}>
-        <SectionTitle icon="credit-card">Paiements</SectionTitle>
-        {data.paiements.length === 0 && <Text style={styles.ligne}>Aucun paiement enregistré.</Text>}
+        <SectionTitle icon="credit-card">{t('Paiements')}</SectionTitle>
+        {data.paiements.length === 0 && <Text style={styles.ligne}>{t('Aucun paiement enregistré.')}</Text>}
         {data.paiements.map((p: any) => (
           <LigneIcone key={p.id} icone="receipt">
-            {p.reference} · {formaterDA(p.montant)} · {p.methode_display} · {formatDate(p.date_paiement)} · {p.statut_display}
+            {p.reference} · {formaterDA(p.montant)} · {t(p.methode_display)} · {formatDate(p.date_paiement)} · {t(p.statut_display)}
           </LigneIcone>
         ))}
       </Card>

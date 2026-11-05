@@ -5,6 +5,7 @@ import { StyleSheet, Switch, Text, View } from 'react-native';
 import { getErrorMessage } from '@/api/client';
 import { Dialogue } from '@/components/Dialogue';
 import { Button } from '@/components/ui';
+import { tMaintenant, useT } from '@/i18n';
 import { radius, spacing, useColors } from '@/theme';
 import { aujourdhui, formaterDA, formatDate } from '@/utils/format';
 
@@ -24,10 +25,11 @@ const MSG_MDP = '8 caractères minimum, avec une majuscule, un chiffre et un car
 
 /** Appelle une route Super Admin avec confirmation, puis recharge les listes et le tableau de bord. */
 function useAction(rafraichir: () => void) {
+  const t = useT();
   const queryClient = useQueryClient();
   return (titre: string, message: string, chemin: string, libelle: string, destructif = false) => {
     Dialogue.alert(titre, message, [
-      { text: 'Annuler', style: 'cancel' },
+      { text: t('Annuler'), style: 'cancel' },
       {
         text: libelle,
         style: destructif ? 'destructive' : 'default',
@@ -38,7 +40,7 @@ function useAction(rafraichir: () => void) {
             rafraichir();
             if (reponse?.message) Dialogue.alert(titre, reponse.message, undefined, { ton: 'success', icone: 'check-circle' });
           } catch (e) {
-            Dialogue.alert('Action impossible', getErrorMessage(e));
+            Dialogue.alert(t('Action impossible'), getErrorMessage(e));
           }
         },
       },
@@ -62,6 +64,7 @@ const limite = (n: number) => (n < 0 ? '∞' : n);
 
 /** Pied d'une carte d'incubateur : chiffres clés à gauche, interrupteur actif / inactif à droite. */
 function ActionsIncubateur({ item, rafraichir }: { item: any; rafraichir: () => void }) {
+  const t = useT();
   const agir = useAction(rafraichir);
   const colors = useColors();
   const actif = !!item.actif;
@@ -79,18 +82,18 @@ function ActionsIncubateur({ item, rafraichir }: { item: any; rafraichir: () => 
       </View>
       {/* Interrupteur contrôlé : il ne bascule qu'après confirmation puis rechargement de la liste. */}
       <View style={styles.interrupteur}>
-        <Text style={[styles.actionTexte, { color: actif ? colors.success : colors.textMuted }]}>{actif ? 'Actif' : 'Inactif'}</Text>
+        <Text style={[styles.actionTexte, { color: actif ? colors.success : colors.textMuted }]}>{actif ? t('Actif') : t('Inactif')}</Text>
         <Switch
           value={actif}
           trackColor={{ false: colors.border, true: colors.primary }}
           thumbColor="#fff"
           onValueChange={() => agir(
-            actif ? "Désactiver l'incubateur" : "Activer l'incubateur",
+            actif ? t("Désactiver l'incubateur") : t("Activer l'incubateur"),
             actif
-              ? `${item.nom} sera désactivé et son abonnement suspendu. Ses utilisateurs ne pourront plus se connecter.`
-              : `${item.nom} sera réactivé.`,
+              ? t('{nom} sera désactivé et son abonnement suspendu. Ses utilisateurs ne pourront plus se connecter.', { nom: item.nom })
+              : t('{nom} sera réactivé.', { nom: item.nom }),
             `incubateurs/${item.id}/statut/`,
-            actif ? 'Désactiver' : 'Activer',
+            actif ? t('Désactiver') : t('Activer'),
             actif,
           )}
         />
@@ -100,18 +103,19 @@ function ActionsIncubateur({ item, rafraichir }: { item: any; rafraichir: () => 
 }
 
 function ActionsSuperAdmin({ item, rafraichir }: { item: any; rafraichir: () => void }) {
+  const t = useT();
   const agir = useAction(rafraichir);
   return (
     <View style={styles.actions}>
       <Button
-        title="Réinitialiser le mot de passe"
+        title={t('Réinitialiser le mot de passe')}
         variant="secondary"
         style={{ flex: 1 }}
         onPress={() => agir(
-          'Réinitialiser le mot de passe',
-          `Un mot de passe temporaire sera envoyé par e-mail à ${item.email}.`,
+          t('Réinitialiser le mot de passe'),
+          t('Un mot de passe temporaire sera envoyé par e-mail à {email}.', { email: item.email }),
           `superadmins/${item.id}/reinitialiser-mdp/`,
-          'Envoyer',
+          t('Envoyer'),
         )}
       />
     </View>
@@ -131,7 +135,7 @@ const CHAMPS_INCUBATEUR: ChampDef[] = [
   { nom: 'telephone', label: 'Téléphone', type: 'text' },
   { nom: 'adresse', label: 'Adresse', type: 'textarea' },
   { nom: 'offre_id', label: 'Offre', type: 'reference', source: 'offres/', cleListe: 'offres',
-    libelleOption: (o) => `${o.nom} — ${formaterDA(o.prix)}/an` },
+    libelleOption: (o) => `${o.nom} — ${formaterDA(o.prix)}${tMaintenant('/an')}` },
   { nom: 'couleur_primaire', label: 'Couleur principale', type: 'couleur' },
   { nom: 'couleur_secondaire', label: 'Couleur secondaire', type: 'couleur' },
   { nom: 'max_projets', label: 'Limite de projets', type: 'nombre', placeholder: '-1 = illimité' },
@@ -162,7 +166,7 @@ export const MODULES_SUPER: Record<string, ModuleDef> = {
         options: [{ value: '', label: 'Tous' }, { value: 'actif', label: 'Actifs' }, { value: 'inactif', label: 'Inactifs' }, { value: 'essai', label: "En essai" }],
       }],
       titre: (i) => i.nom,
-      sousTitre: (i) => `Plan ${i.plan_display}`,
+      sousTitre: (i) => `${tMaintenant('Plan')} ${tMaintenant(i.plan_display)}`,
       badge: (i) => (i.actif ? (i.essai ? 'Essai' : 'Actif') : 'Inactif'),
       entete: (r) => <CompteursIncubateurs compteurs={r.compteurs} />,
       actions: (i, rafraichir) => <ActionsIncubateur item={i} rafraichir={rafraichir} />,
@@ -196,8 +200,8 @@ export const MODULES_SUPER: Record<string, ModuleDef> = {
       chemin: 'offres/',
       cle: 'offres',
       titre: (o) => `${o.nom}${o.featured ? ' ★' : ''}`,
-      sousTitre: (o) => `${formaterDA(o.prix)} / an · ${o.max_projets < 0 ? '∞' : o.max_projets} projets · ${o.max_utilisateurs < 0 ? '∞' : o.max_utilisateurs} utilisateurs`,
-      badge: (o) => `${o.abonnes_count} abonné${o.abonnes_count > 1 ? 's' : ''}`,
+      sousTitre: (o) => `${formaterDA(o.prix)} ${tMaintenant('/ an')} · ${o.max_projets < 0 ? '∞' : o.max_projets} ${tMaintenant('projets')} · ${o.max_utilisateurs < 0 ? '∞' : o.max_utilisateurs} ${tMaintenant('utilisateurs')}`,
+      badge: (o) => tMaintenant(o.abonnes_count > 1 ? '{n} abonnés' : '{n} abonné', { n: o.abonnes_count }),
     },
     detail: { chemin: (id) => `offres/${id}/`, cle: 'offre' },
     champs: [
@@ -288,7 +292,7 @@ export const MODULES_SUPER: Record<string, ModuleDef> = {
         options: [{ value: '', label: 'Tous' }, ...STATUTS_ABONNEMENT.map((s) => ({ value: s, label: (LIBELLES_STATUT_ABONNEMENT as any)[s] }))],
       }],
       titre: (a) => a.incubateur,
-      sousTitre: (a) => `${a.plan_display} · fin le ${formatDate(a.date_fin)} (${a.jours_restants >= 0 ? `${a.jours_restants} j restants` : `expiré depuis ${-a.jours_restants} j`})`,
+      sousTitre: (a) => `${tMaintenant(a.plan_display)} · ${tMaintenant('fin le')} ${formatDate(a.date_fin)} (${a.jours_restants >= 0 ? tMaintenant('{n} j restants', { n: a.jours_restants }) : tMaintenant('expiré depuis {n} j', { n: -a.jours_restants })})`,
       badge: (a) => a.statut_display,
       entete: (r) => (
         <Compteurs valeurs={[
@@ -302,7 +306,7 @@ export const MODULES_SUPER: Record<string, ModuleDef> = {
       { nom: 'incubateur_id', label: 'Incubateur', type: 'reference', requis: true, source: 'abonnements/',
         cleListe: 'incubateurs_disponibles', libelleOption: (i) => i.nom },
       { nom: 'offre_id', label: 'Offre', type: 'reference', requis: true, source: 'abonnements/', cleListe: 'offres',
-        libelleOption: (o) => `${o.nom} — ${formaterDA(o.prix)}/an` },
+        libelleOption: (o) => `${o.nom} — ${formaterDA(o.prix)}${tMaintenant('/an')}` },
       { nom: 'date_debut', label: 'Date de début', type: 'date', requis: true },
       { nom: 'date_fin', label: 'Date de fin', type: 'date', requis: true },
       { nom: 'statut', label: 'Statut', type: 'choix', options: ['actif', 'essai'], libelles: LIBELLES_STATUT_ABONNEMENT },

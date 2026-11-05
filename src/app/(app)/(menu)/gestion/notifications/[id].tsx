@@ -10,9 +10,11 @@ import { useReculer } from '@/hooks/useReculer';
 import { Dialogue } from '@/components/Dialogue';
 import { Screen } from '@/components/Screen';
 import { Banner, Button, Card, ErrorState, Loading } from '@/components/ui';
+import { useT } from '@/i18n';
 import { type Palette, spacing, useStyles } from '@/theme';
 
 export default function DetailNotificationAdmin() {
+  const t = useT();
   const reculer = useReculer();
   const styles = useStyles(createStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -45,21 +47,21 @@ export default function DetailNotificationAdmin() {
   }
 
   function supprimer() {
-    Dialogue.alert('Suppression', 'Supprimer cette notification ?', [
-      { text: 'Annuler', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: async () => {
+    Dialogue.alert(t('Suppression'), t('Supprimer cette notification ?'), [
+      { text: t('Annuler'), style: 'cancel' },
+      { text: t('Supprimer'), style: 'destructive', onPress: async () => {
         try { await adminEnvoyer('delete', `notifications/${id}/`); await apres(); reculer(); }
-        catch (e) { Dialogue.alert('Suppression impossible', getErrorMessage(e)); }
+        catch (e) { Dialogue.alert(t('Suppression impossible'), getErrorMessage(e)); }
       } },
     ], { ton: 'danger', icone: 'trash-alt' });
   }
 
   return (
     <Screen refreshing={isRefetching} onRefresh={() => void refetch()}>
-      <Stack.Screen options={{ title: 'Notification' }} />
-      <Text style={styles.meta}>{n.type} · {n.mode}{n.destinataire ? ` · ${n.destinataire}` : ''} · {n.created_at}</Text>
+      <Stack.Screen options={{ title: t('Notification') }} />
+      <Text style={styles.meta}>{t(n.type)} · {t(n.mode)}{n.destinataire ? ` · ${n.destinataire}` : ''} · {n.created_at}</Text>
       {typeof n.read_percentage === 'number' && (
-        <Text style={styles.meta}>Lue par {n.views} utilisateur(s) ({n.read_percentage} %)</Text>
+        <Text style={styles.meta}>{t('Lue par {n} utilisateur(s) ({pct} %)', { n: n.views, pct: n.read_percentage })}</Text>
       )}
       {modifiable ? (
         <FormulaireAdmin
@@ -71,14 +73,14 @@ export default function DetailNotificationAdmin() {
         />
       ) : (
         <>
-          <Banner type="info" message="Cette notification est automatique : elle ne peut pas être modifiée, seulement supprimée." />
+          <Banner type="info" message={t('Cette notification est automatique : elle ne peut pas être modifiée, seulement supprimée.')} />
           <Card>
             <Text style={styles.titre}>{n.titre}</Text>
             <Text style={styles.corps}>{n.message}</Text>
           </Card>
         </>
       )}
-      <Button title="Supprimer" variant="danger" onPress={supprimer} style={{ marginTop: spacing.lg }} />
+      <Button title={t('Supprimer')} variant="danger" onPress={supprimer} style={{ marginTop: spacing.lg }} />
     </Screen>
   );
 }

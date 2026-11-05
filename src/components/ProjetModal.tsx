@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Badge } from '@/components/ui';
+import { useT } from '@/i18n';
 import type { ProjetUtilisateur } from '@/types';
 import { gradient, type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 import { formatDate } from '@/utils/format';
@@ -44,6 +45,7 @@ function Personne({ nom, chef }: { nom: string; chef?: boolean }) {
 export function ProjetModal({
   projet, chargement, visible, onClose,
 }: { projet: ProjetUtilisateur | undefined; chargement?: boolean; visible: boolean; onClose: () => void }) {
+  const t = useT();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const progression = Math.max(0, Math.min(100, projet?.progression ?? 0));
@@ -51,13 +53,13 @@ export function ProjetModal({
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.overlay}>
         {/* Toucher le fond ferme la fenêtre ; la fenêtre elle-même n'est pas dans ce bouton, pour que le défilement fonctionne. */}
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Fermer" />
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel={t('Fermer')} />
         <View style={styles.sheet}>
           {/* En-tête comme les autres fenêtres de l'application : titre violet, fermer, puis intitulé et thème. */}
           <View style={styles.entete}>
             <View style={styles.enteteLigne}>
-              <Text style={styles.petit}>Détails du projet</Text>
-              <Pressable onPress={onClose} hitSlop={12} accessibilityRole="button" accessibilityLabel="Fermer">
+              <Text style={styles.petit}>{t('Détails du projet')}</Text>
+              <Pressable onPress={onClose} hitSlop={12} accessibilityRole="button" accessibilityLabel={t('Fermer')}>
                 <FontAwesome5 name="times" size={20} color={colors.textMuted} />
               </Pressable>
             </View>
@@ -73,7 +75,7 @@ export function ProjetModal({
                 <View style={styles.progressionLigne}>
                   <View style={styles.blocTitre}>
                     <View style={styles.blocIcone}><FontAwesome5 name="chart-line" size={12} color={colors.primary} /></View>
-                    <Text style={styles.blocLabel}>Progression</Text>
+                    <Text style={styles.blocLabel}>{t('Progression')}</Text>
                   </View>
                   <Text style={styles.pourcentage}>{progression}%</Text>
                 </View>
@@ -83,29 +85,29 @@ export function ProjetModal({
                 </View>
               </View>
 
-              <Bloc icone="align-left" titre="Description">
-                <Text style={styles.texte}>{projet.description || 'Aucune description.'}</Text>
+              <Bloc icone="align-left" titre={t('Description')}>
+                <Text style={styles.texte}>{projet.description || t('Aucune description.')}</Text>
               </Bloc>
 
-              <Bloc icone="user-tie" titre="Chef de projet">
+              <Bloc icone="user-tie" titre={t('Chef de projet')}>
                 {projet.chef_projet ? <Personne nom={projet.chef_projet} chef /> : <Text style={styles.texte}>—</Text>}
               </Bloc>
 
-              <Bloc icone="users" titre={`Membres (${projet.membres.length})`}>
+              <Bloc icone="users" titre={t('Membres ({n})', { n: projet.membres.length })}>
                 {projet.membres.length === 0
-                  ? <Text style={styles.texte}>Aucun membre pour le moment.</Text>
+                  ? <Text style={styles.texte}>{t('Aucun membre pour le moment.')}</Text>
                   : <View style={styles.membres}>{projet.membres.map((m, i) => <Personne key={`${m}-${i}`} nom={m} />)}</View>}
               </Bloc>
 
               <View style={styles.dates}>
                 <View style={styles.date}>
                   <FontAwesome5 name="calendar-plus" size={14} color={colors.primary} />
-                  <Text style={styles.dateLabel}>Créé le</Text>
+                  <Text style={styles.dateLabel}>{t('Créé le')}</Text>
                   <Text style={styles.dateValeur}>{formatDate(projet.created_at) || '—'}</Text>
                 </View>
                 <View style={styles.date}>
                   <FontAwesome5 name="sync-alt" size={14} color={colors.primary} />
-                  <Text style={styles.dateLabel}>Dernière mise à jour</Text>
+                  <Text style={styles.dateLabel}>{t('Dernière mise à jour')}</Text>
                   <Text style={styles.dateValeur}>{formatDate(projet.updated_at) || '—'}</Text>
                 </View>
               </View>

@@ -6,10 +6,12 @@ import { getErrorMessage } from '@/api/client';
 import { changePassword, logout, updateMe } from '@/api/endpoints';
 import { Dialogue } from '@/components/Dialogue';
 import { Screen } from '@/components/Screen';
+import { SelecteurLangue } from '@/components/SelecteurLangue';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { iconeLibelle } from '@/components/iconeLibelle';
 import { Banner, Button, Card, Field, SectionTitle } from '@/components/ui';
 import { useActualiserCompte } from '@/hooks/useActualiserCompte';
+import { useT } from '@/i18n';
 import { useAuthStore } from '@/store/auth';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
@@ -30,6 +32,7 @@ function Info({ label, valeur }: { label: string; valeur: string }) {
 type Message = { type: 'success' | 'error'; texte: string } | null;
 
 export default function Profil() {
+  const t = useT();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const user = useAuthStore((s) => s.user);
@@ -68,7 +71,7 @@ export default function Profil() {
       }),
     onSuccess: async (moi) => {
       await setUser(moi);
-      setInfos({ type: 'success', texte: 'Profil mis à jour.' });
+      setInfos({ type: 'success', texte: t('Profil mis à jour.') });
       setEdition(false);
     },
     onError: (e) => setInfos({ type: 'error', texte: getErrorMessage(e) }),
@@ -78,14 +81,14 @@ export default function Profil() {
     mutationFn: () => changePassword(mdp.actuel, mdp.nouveau, mdp.confirmation),
     onSuccess: () => {
       setMdp({ actuel: '', nouveau: '', confirmation: '' });
-      setMessageMdp({ type: 'success', texte: 'Mot de passe modifié avec succès.' });
+      setMessageMdp({ type: 'success', texte: t('Mot de passe modifié avec succès.') });
     },
     onError: (e) => setMessageMdp({ type: 'error', texte: getErrorMessage(e) }),
   });
 
   function enregistrer() {
     if (!form.nom.trim() || !form.prenom.trim() || !form.email.trim()) {
-      setInfos({ type: 'error', texte: 'Le nom, le prénom et l\'email sont obligatoires.' });
+      setInfos({ type: 'error', texte: t("Le nom, le prénom et l'email sont obligatoires.") });
       return;
     }
     setInfos(null);
@@ -94,7 +97,7 @@ export default function Profil() {
 
   function changerMotDePasse() {
     if (!mdp.actuel || !mdp.nouveau) {
-      setMessageMdp({ type: 'error', texte: 'Saisissez votre mot de passe actuel et le nouveau.' });
+      setMessageMdp({ type: 'error', texte: t('Saisissez votre mot de passe actuel et le nouveau.') });
       return;
     }
     setMessageMdp(null);
@@ -117,10 +120,10 @@ export default function Profil() {
   }
 
   function confirmerDeconnexion() {
-    Dialogue.alert('Déconnexion', 'Voulez-vous vraiment vous déconnecter ?', [
-      { text: 'Annuler', style: 'cancel' },
+    Dialogue.alert(t('Déconnexion'), t('Voulez-vous vraiment vous déconnecter ?'), [
+      { text: t('Annuler'), style: 'cancel' },
       {
-        text: 'Se déconnecter',
+        text: t('Se déconnecter'),
         style: 'destructive',
         onPress: async () => {
           // On invalide le jeton côté serveur, mais on se déconnecte même s'il est injoignable.
@@ -152,16 +155,16 @@ export default function Profil() {
   if (!user) return null;
 
   return (
-    <Screen withTopInset title="Mon Profil" refreshing={refreshing} onRefresh={() => void actualiserProfil()}>
+    <Screen withTopInset title={t('Mon Profil')} refreshing={refreshing} onRefresh={() => void actualiserProfil()}>
       {!estSuperAdmin && (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={edition ? 'Annuler la modification' : 'Modifier mes informations'}
+          accessibilityLabel={edition ? t('Annuler la modification') : t('Modifier mes informations')}
           onPress={basculerEdition}
           style={[styles.stylo, edition && { backgroundColor: colors.dangerSoft }]}
         >
           <FontAwesome5 name={edition ? 'times' : 'pen'} size={14} color={edition ? colors.dangerText : colors.primary} />
-          <Text style={[styles.styloTexte, edition && { color: colors.dangerText }]}>{edition ? 'Annuler' : 'Modifier'}</Text>
+          <Text style={[styles.styloTexte, edition && { color: colors.dangerText }]}>{edition ? t('Annuler') : t('Modifier')}</Text>
         </Pressable>
       )}
       <Text style={styles.name}>
@@ -169,27 +172,27 @@ export default function Profil() {
       </Text>
 
       <Card style={{ gap: spacing.md }}>
-        <Info label="Email" valeur={user.email} />
-        {!!user.type && <Info label="Type de compte" valeur={user.type} />}
-        {estUtilisateur && <Info label="Matricule" valeur={user.matricule ?? ''} />}
-        <Info label="Incubateur" valeur={user.incubateur?.nom ?? 'Tous les incubateurs'} />
-        {estUtilisateur && <Info label="Projet" valeur={user.projet_nom ?? 'Aucun projet'} />}
+        <Info label={t('Email')} valeur={user.email} />
+        {!!user.type && <Info label={t('Type de compte')} valeur={t(user.type)} />}
+        {estUtilisateur && <Info label={t('Matricule')} valeur={user.matricule ?? ''} />}
+        <Info label={t('Incubateur')} valeur={user.incubateur?.nom ?? t('Tous les incubateurs')} />
+        {estUtilisateur && <Info label={t('Projet')} valeur={user.projet_nom ?? t('Aucun projet')} />}
       </Card>
 
       {estSuperAdmin ? (
         <Banner
           type="info"
-          message="Le nom, le prénom et l'email d'un Super Admin se modifient depuis « Les Super-Admins »."
+          message={t("Le nom, le prénom et l'email d'un Super Admin se modifient depuis « Les Super-Admins ».")}
         />
       ) : (
         <>
-          <SectionTitle icon="user-edit">Modifier mes informations</SectionTitle>
+          <SectionTitle icon="user-edit">{t('Modifier mes informations')}</SectionTitle>
           {infos && <Banner type={infos.type} message={infos.texte} />}
           <View pointerEvents={edition ? 'auto' : 'none'}>
-            <Field label="Nom" icon="user" editable={edition} value={form.nom} onChangeText={majForm('nom')} autoCapitalize="words" />
-            <Field label="Prénom" icon="user" editable={edition} value={form.prenom} onChangeText={majForm('prenom')} autoCapitalize="words" />
+            <Field label={t('Nom')} icon="user" editable={edition} value={form.nom} onChangeText={majForm('nom')} autoCapitalize="words" />
+            <Field label={t('Prénom')} icon="user" editable={edition} value={form.prenom} onChangeText={majForm('prenom')} autoCapitalize="words" />
             <Field
-              label="Email"
+              label={t('Email')}
               editable={edition}
               icon="envelope"
               value={form.email}
@@ -199,19 +202,22 @@ export default function Profil() {
             />
             {estUtilisateur && (
               <>
-                <Field label="Département" editable={edition} value={form.departement} onChangeText={majForm('departement')} />
-                <Field label="Faculté" editable={edition} value={form.faculte} onChangeText={majForm('faculte')} />
+                <Field label={t('Département')} editable={edition} value={form.departement} onChangeText={majForm('departement')} />
+                <Field label={t('Faculté')} editable={edition} value={form.faculte} onChangeText={majForm('faculte')} />
               </>
             )}
           </View>
-          {edition && <Button title="Enregistrer" onPress={enregistrer} loading={enregistrement.isPending} />}
+          {edition && <Button title={t('Enregistrer')} onPress={enregistrer} loading={enregistrement.isPending} />}
         </>
       )}
 
-      <SectionTitle icon="lock">Changer le mot de passe</SectionTitle>
+      <SectionTitle icon="globe">{t('Langue')}</SectionTitle>
+      <SelecteurLangue avecLibelle />
+
+      <SectionTitle icon="lock">{t('Changer le mot de passe')}</SectionTitle>
       {messageMdp && <Banner type={messageMdp.type} message={messageMdp.texte} />}
       <Field
-        label="Mot de passe actuel"
+        label={t('Mot de passe actuel')}
         icon="lock"
         value={mdp.actuel}
         onChangeText={majMdp('actuel')}
@@ -219,7 +225,7 @@ export default function Profil() {
         autoCapitalize="none"
       />
       <Field
-        label="Nouveau mot de passe"
+        label={t('Nouveau mot de passe')}
         icon="key"
         value={mdp.nouveau}
         onChangeText={majMdp('nouveau')}
@@ -227,7 +233,7 @@ export default function Profil() {
         autoCapitalize="none"
       />
       <Field
-        label="Confirmer le nouveau mot de passe"
+        label={t('Confirmer le nouveau mot de passe')}
         icon="key"
         value={mdp.confirmation}
         onChangeText={majMdp('confirmation')}
@@ -235,11 +241,11 @@ export default function Profil() {
         autoCapitalize="none"
       />
       <Text style={styles.regle}>
-        8 caractères minimum, avec une majuscule, un chiffre et un caractère spécial.
+        {t('8 caractères minimum, avec une majuscule, un chiffre et un caractère spécial.')}
       </Text>
-      <Button title="Changer le mot de passe" variant="secondary" onPress={changerMotDePasse} loading={changement.isPending} />
+      <Button title={t('Changer le mot de passe')} variant="secondary" onPress={changerMotDePasse} loading={changement.isPending} />
 
-      <Button title="Se déconnecter" variant="danger" onPress={confirmerDeconnexion} style={{ marginTop: spacing.lg }} />
+      <Button title={t('Se déconnecter')} variant="danger" onPress={confirmerDeconnexion} style={{ marginTop: spacing.lg }} />
     </Screen>
   );
 }

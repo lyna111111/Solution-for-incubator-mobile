@@ -5,11 +5,13 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { getErrorMessage } from '@/api/client';
 import { ouvrirDocument, voirDocument } from '@/api/endpoints';
 import { Dialogue } from '@/components/Dialogue';
+import { useT } from '@/i18n';
 import type { DocumentJoint } from '@/types';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
 /** Ligne « pièce jointe » : télécharge le fichier avec le jeton (droits vérifiés par le serveur). */
 export function DocumentLink({ document }: { document: DocumentJoint }) {
+  const t = useT();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const [action, setAction] = useState<'voir' | 'telecharger' | null>(null);
@@ -20,10 +22,10 @@ export function DocumentLink({ document }: { document: DocumentJoint }) {
     try {
       const affiche = await voirDocument(document);
       if (!affiche) {
-        Dialogue.alert('Aperçu impossible', "Aucune application du téléphone ne peut afficher ce document. Vous pouvez le télécharger.");
+        Dialogue.alert(t('Aperçu impossible'), t('Aucune application du téléphone ne peut afficher ce document. Vous pouvez le télécharger.'));
       }
     } catch (e) {
-      Dialogue.alert('Aperçu impossible', getErrorMessage(e));
+      Dialogue.alert(t('Aperçu impossible'), getErrorMessage(e));
     } finally {
       setAction(null);
     }
@@ -34,7 +36,7 @@ export function DocumentLink({ document }: { document: DocumentJoint }) {
     try {
       await ouvrirDocument(document);
     } catch (e) {
-      Dialogue.alert('Téléchargement impossible', getErrorMessage(e));
+      Dialogue.alert(t('Téléchargement impossible'), getErrorMessage(e));
     } finally {
       setAction(null);
     }
@@ -47,21 +49,21 @@ export function DocumentLink({ document }: { document: DocumentJoint }) {
         <Text style={styles.titre} numberOfLines={2}>
           {document.titre}
         </Text>
-        {!!document.type && <Text style={styles.type}>{document.type}</Text>}
+        {!!document.type && <Text style={styles.type}>{t(document.type)}</Text>}
       </View>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Voir ${document.titre}`}
+        accessibilityLabel={`${t('Voir')} ${document.titre}`}
         onPress={() => void voir()}
         disabled={action !== null}
         style={[styles.bouton, { backgroundColor: colors.primary }]}
       >
         {action === 'voir' ? <ActivityIndicator size="small" color="#fff" /> : <FontAwesome5 name="eye" size={13} color="#fff" />}
-        <Text style={[styles.boutonTexte, { color: '#fff' }]}>Voir</Text>
+        <Text style={[styles.boutonTexte, { color: '#fff' }]}>{t('Voir')}</Text>
       </Pressable>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Télécharger ${document.titre}`}
+        accessibilityLabel={`${t('Télécharger')} ${document.titre}`}
         onPress={() => void telecharger()}
         disabled={action !== null}
         style={[styles.bouton, { backgroundColor: colors.card }]}

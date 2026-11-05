@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { adminGet } from '@/admin/api';
 import { useOuvrir } from '@/hooks/useOuvrir';
+import { useEstRTL, useT } from '@/i18n';
 import { useAuthStore } from '@/store/auth';
 import { type Palette, spacing, useColors, useStyles } from '@/theme';
 import { formatDate, formatDateTime } from '@/utils/format';
@@ -40,6 +41,7 @@ export function useEvenementsAVenir() {
 
 /** Une ligne cliquable d'une liste de l'accueil : titre, détail, élément à droite et flèche. */
 function Ligne({ titre, detail, droite, onPress }: { titre: string; detail?: string; droite?: React.ReactNode; onPress: () => void }) {
+  const rtl = useEstRTL();
   const styles = useStyles(createStyles);
   const colors = useColors();
   return (
@@ -49,7 +51,7 @@ function Ligne({ titre, detail, droite, onPress }: { titre: string; detail?: str
         {!!detail && <Text style={styles.ligneDetail} numberOfLines={1}>{detail}</Text>}
       </View>
       {droite}
-      <FontAwesome5 name="angle-right" size={16} color={colors.textMuted} />
+      <FontAwesome5 name={rtl ? 'angle-left' : 'angle-right'} size={16} color={colors.textMuted} />
     </Pressable>
   );
 }
@@ -66,6 +68,7 @@ function SousTitre({ children }: { children: string }) {
 
 /** Événements : à venir / aujourd'hui / passés et prochains événements. */
 export function SectionEvenements() {
+  const t = useT();
   const ouvrir = useOuvrir();
   const colors = useColors();
   const acces = useAcces('evenements');
@@ -73,17 +76,17 @@ export function SectionEvenements() {
   if (!acces || !data) return null;
   const c = data.compteurs;
   return (
-    <SectionCarte icone="calendar-alt" couleur={colors.success} titre="Prochains événements" route="/gestion/evenements">
+    <SectionCarte icone="calendar-alt" couleur={colors.success} titre={t('Prochains événements')} route="/gestion/evenements">
       <Pastilles valeurs={[
-        { label: 'À venir', valeur: c.a_venir, icone: 'calendar-plus', couleur: colors.info, fond: colors.infoSoft },
-        { label: "Aujourd'hui", valeur: c.aujourdhui, icone: 'calendar-day', couleur: colors.success, fond: colors.successSoft },
-        { label: 'Passés', valeur: c.passes, icone: 'history', couleur: colors.textMuted, fond: colors.background },
+        { label: t('À venir'), valeur: c.a_venir, icone: 'calendar-plus', couleur: colors.info, fond: colors.infoSoft },
+        { label: t("Aujourd'hui"), valeur: c.aujourdhui, icone: 'calendar-day', couleur: colors.success, fond: colors.successSoft },
+        { label: t('Passés'), valeur: c.passes, icone: 'history', couleur: colors.textMuted, fond: colors.background },
       ]} />
-      {data.evenements.length === 0 && <Vide message="Aucun événement à venir." />}
+      {data.evenements.length === 0 && <Vide message={t('Aucun événement à venir.')} />}
       {data.evenements.slice(0, MAX).map((e: any) => (
         <Ligne key={e.id} titre={e.titre}
           detail={[formatDate(e.date), e.heure_debut, e.lieu].filter(Boolean).join(' · ')}
-          droite={<Badge label={e.type} fond={colors.primarySoft} texte={colors.primaryDark} />}
+          droite={<Badge label={t(e.type)} fond={colors.primarySoft} texte={colors.primaryDark} />}
           onPress={() => ouvrir(`/gestion/evenements/${e.id}`)} />
       ))}
     </SectionCarte>
@@ -92,6 +95,7 @@ export function SectionEvenements() {
 
 /** Notifications envoyées par l'incubateur (accessible à tous les types d'administrateur). */
 export function SectionNotifications() {
+  const t = useT();
   const ouvrir = useOuvrir();
   const colors = useColors();
   const acces = useAcces('notifications');
@@ -99,14 +103,14 @@ export function SectionNotifications() {
   if (!acces || !data) return null;
   const c = data.compteurs;
   return (
-    <SectionCarte icone="bell" couleur={colors.danger} titre="Notifications envoyées" route="/gestion/notifications">
+    <SectionCarte icone="bell" couleur={colors.danger} titre={t('Notifications envoyées')} route="/gestion/notifications">
       <Pastilles valeurs={[
-        { label: 'Diffusées', valeur: c.broadcast_total, icone: 'bullhorn', couleur: colors.primary, fond: colors.primarySoft },
-        { label: 'Individuelles', valeur: c.unicast_total, icone: 'user', couleur: colors.info, fond: colors.infoSoft },
-        { label: 'Cette semaine', valeur: c.broadcast_semaine + c.unicast_semaine, icone: 'calendar-week', couleur: colors.success, fond: colors.successSoft },
+        { label: t('Diffusées'), valeur: c.broadcast_total, icone: 'bullhorn', couleur: colors.primary, fond: colors.primarySoft },
+        { label: t('Individuelles'), valeur: c.unicast_total, icone: 'user', couleur: colors.info, fond: colors.infoSoft },
+        { label: t('Cette semaine'), valeur: c.broadcast_semaine + c.unicast_semaine, icone: 'calendar-week', couleur: colors.success, fond: colors.successSoft },
       ]} />
-      <SousTitre>Dernières diffusions</SousTitre>
-      {data.notifications.length === 0 && <Vide message="Aucune notification envoyée." />}
+      <SousTitre>{t('Dernières diffusions')}</SousTitre>
+      {data.notifications.length === 0 && <Vide message={t('Aucune notification envoyée.')} />}
       {data.notifications.slice(0, MAX).map((n: any) => (
         <Ligne key={n.id} titre={n.titre} detail={formatDateTime(n.created_at)} onPress={() => ouvrir(`/gestion/notifications/${n.id}`)} />
       ))}

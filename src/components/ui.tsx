@@ -13,6 +13,8 @@ import {
   ViewStyle,
 } from 'react-native';
 
+import { useEstRTL, useT } from '@/i18n';
+
 import { iconeLibelle } from './iconeLibelle';
 import { gradient, type Palette, radius, shadow, spacing, useColors, useStyles } from '@/theme';
 
@@ -32,7 +34,10 @@ interface ButtonProps {
   style?: StyleProp<ViewStyle>;
 }
 
-export function Button({ title, onPress, loading, disabled, variant = 'primary', icon, style }: ButtonProps) {
+export function Button({ title, onPress, loading, disabled, variant = 'primary', icon: iconeDemandee, style }: ButtonProps) {
+  const rtl = useEstRTL();
+  // En arabe (de droite à gauche), la flèche « suivant » pointe vers la gauche.
+  const icon = rtl && iconeDemandee === 'arrow-right' ? 'arrow-left' : iconeDemandee;
   const styles = useStyles(createStyles);
   const colors = useColors();
   const inactif = disabled || loading;
@@ -84,6 +89,7 @@ interface FieldProps extends TextInputProps {
 }
 
 export function Field({ label, error, icon, compact, secureTextEntry, style, ...props }: FieldProps) {
+  const t = useT();
   const styles = useStyles(createStyles);
   const colors = useColors();
   // Œil afficher/masquer, comme sur la page de connexion du site.
@@ -113,7 +119,7 @@ export function Field({ label, error, icon, compact, secureTextEntry, style, ...
           style={[styles.input, props.multiline && styles.inputMulti, style]}
         />
         {estMotDePasse && (
-          <Pressable onPress={() => setMasque((m) => !m)} hitSlop={10} accessibilityLabel="Afficher ou masquer le mot de passe">
+          <Pressable onPress={() => setMasque((m) => !m)} hitSlop={10} accessibilityLabel={t('Afficher ou masquer le mot de passe')}>
             <FontAwesome5 name={masque ? 'eye' : 'eye-slash'} size={15} color={colors.textMuted} />
           </Pressable>
         )}
@@ -187,11 +193,12 @@ export function Loading() {
 }
 
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  const t = useT();
   const styles = useStyles(createStyles);
   return (
     <View style={styles.center}>
       <Text style={styles.errorText}>{message}</Text>
-      {onRetry && <Button title="Réessayer" variant="secondary" onPress={onRetry} style={{ marginTop: spacing.lg }} />}
+      {onRetry && <Button title={t('Réessayer')} variant="secondary" onPress={onRetry} style={{ marginTop: spacing.lg }} />}
     </View>
   );
 }

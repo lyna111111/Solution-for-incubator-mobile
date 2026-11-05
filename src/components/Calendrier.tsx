@@ -1,13 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useLangue, useT } from '@/i18n';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
-
-const MOIS = [
-  'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
-];
-const JOURS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+import { JOURS_INITIALES, nomMois } from '@/utils/format';
 
 interface CalendrierProps {
   annee: number;
@@ -28,6 +24,8 @@ export function Calendrier({
   onChangerMois,
   onSelectionnerJour,
 }: CalendrierProps) {
+  const t = useT();
+  const lang = useLangue();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const nbJours = new Date(annee, mois + 1, 0).getDate();
@@ -50,19 +48,19 @@ export function Calendrier({
   return (
     <View style={styles.box}>
       <View style={styles.header}>
-        <Pressable onPress={() => onChangerMois(-1)} hitSlop={12} accessibilityLabel="Mois précédent">
+        <Pressable onPress={() => onChangerMois(-1)} hitSlop={12} accessibilityLabel={t('Mois précédent')}>
           <Ionicons name="chevron-back" size={22} color={colors.primary} />
         </Pressable>
         <Text style={styles.title}>
-          {MOIS[mois]} {annee}
+          {nomMois(mois, lang)} {annee}
         </Text>
-        <Pressable onPress={() => onChangerMois(1)} hitSlop={12} accessibilityLabel="Mois suivant">
+        <Pressable onPress={() => onChangerMois(1)} hitSlop={12} accessibilityLabel={t('Mois suivant')}>
           <Ionicons name="chevron-forward" size={22} color={colors.primary} />
         </Pressable>
       </View>
 
       <View style={styles.row}>
-        {JOURS.map((j, i) => (
+        {JOURS_INITIALES[lang].map((j, i) => (
           <Text key={i} style={styles.weekday}>
             {j}
           </Text>

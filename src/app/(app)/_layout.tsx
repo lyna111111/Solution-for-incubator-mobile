@@ -5,6 +5,7 @@ import { ColorValue, View } from 'react-native';
 import { MenuLateral } from '@/components/MenuLateral';
 import { useNonLues } from '@/hooks/useNotifications';
 import { useOuvrir } from '@/hooks/useOuvrir';
+import { useT } from '@/i18n';
 import { useAuthStore } from '@/store/auth';
 import { useColors } from '@/theme';
 
@@ -23,6 +24,7 @@ function icone(name: IconName) {
  * droite. Seul le contenu change selon le rôle (accueil et entrées du menu : voir `index.tsx` et `(menu)/menu.tsx`).
  */
 export default function AppTabs() {
+  const t = useT();
   const colors = useColors();
   const ouvrir = useOuvrir();
   // Pastille de l'onglet Notifications (utilisateur) : notifications non lues.
@@ -48,11 +50,11 @@ export default function AppTabs() {
         tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.border },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Accueil', tabBarIcon: icone('home') }} />
+      <Tabs.Screen name="index" options={{ title: t('Accueil'), tabBarIcon: icone('home') }} />
       <Tabs.Screen
         name="raccourci-requetes"
         options={{
-          title: 'Requêtes',
+          title: t('Requêtes'),
           tabBarIcon: icone('rocket'),
           ...(routeRequetes ? {} : { href: null }),
         }}
@@ -67,7 +69,7 @@ export default function AppTabs() {
       <Tabs.Screen
         name="raccourci-notifications"
         options={{
-          title: 'Notifications',
+          title: t('Notifications'),
           tabBarIcon: icone('bell'),
           tabBarBadge: nonLues > 0 ? nonLues : undefined,
           tabBarBadgeStyle: { backgroundColor: colors.unread, color: colors.text },
@@ -84,7 +86,7 @@ export default function AppTabs() {
       <Tabs.Screen
         name="(menu)"
         options={{
-          title: 'Menu',
+          title: t('Menu'),
           // Plus visible dans la barre du bas : le Menu est un tiroir à droite ouvert par le burger (voir `MenuLateral`).
           // L'onglet reste le conteneur des pages du Menu (pile) : `href: null` les rendrait inatteignables.
           tabBarItemStyle: { display: 'none' },
@@ -95,7 +97,7 @@ export default function AppTabs() {
           lazy: false,
         }}
       />
-      <Tabs.Screen name="profil" options={{ title: 'Profil', tabBarIcon: icone('user') }} />
+      <Tabs.Screen name="profil" options={{ title: t('Profil'), tabBarIcon: icone('user') }} />
     </Tabs>
     {/* Menu : tiroir à droite, par-dessus la page affichée et la barre du bas. */}
     <MenuLateral />

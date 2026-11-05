@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useOuvrir } from '@/hooks/useOuvrir';
+import { useT } from '@/i18n';
 import { adminGet } from '@/admin/api';
 import { getErrorMessage } from '@/api/client';
 import { useAuthStore } from '@/store/auth';
@@ -22,6 +23,7 @@ function jourMoisAnnee(iso: string): string {
 
 /** Tableau de bord du Super Admin : reprend `templates/superadmin/dashboard.html` du site. */
 export function AccueilSuperAdmin() {
+  const t = useT();
   const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   const colors = useColors();
@@ -35,41 +37,41 @@ export function AccueilSuperAdmin() {
   if (error || !data) return <ErrorState message={getErrorMessage(error)} onRetry={() => void refetch()} />;
 
   return (
-    <Screen withTopInset title="Tableau de bord" refreshing={isRefetching} onRefresh={() => void refetch()}>
-      <BandeauBienvenue titre="Super Administrateur" nom={`${user?.prenom ?? ''} ${user?.nom ?? ''}`.trim()} />
+    <Screen withTopInset title={t('Tableau de bord')} refreshing={isRefetching} onRefresh={() => void refetch()}>
+      <BandeauBienvenue titre={t('Super Administrateur')} nom={`${user?.prenom ?? ''} ${user?.nom ?? ''}`.trim()} />
 
       <View style={styles.grille}>
-        <Kpi icone="building" couleur={colors.primary} fond={colors.primarySoft} label="Total Incubateurs"
+        <Kpi icone="building" couleur={colors.primary} fond={colors.primarySoft} label={t('Total Incubateurs')}
           valeur={data.total_incubateurs} route="/incubateurs" />
-        <Kpi icone="check-circle" couleur={colors.success} fond={colors.successSoft} label="Incubateurs Actifs"
+        <Kpi icone="check-circle" couleur={colors.success} fond={colors.successSoft} label={t('Incubateurs Actifs')}
           valeur={data.incubateurs_actifs} route="/incubateurs?statut=actif" />
-        <Kpi icone="coins" couleur={colors.warning} fond={colors.warningSoft} label="Revenus Totaux"
-          valeur={espacer(data.revenus_total ?? 0)} unite="DA" route="/paiements?statut=completed" />
-        <Kpi icone="sync-alt" couleur={colors.secondary} fond={colors.primarySoft} label="Tous les Abonnements"
+        <Kpi icone="coins" couleur={colors.warning} fond={colors.warningSoft} label={t('Revenus Totaux')}
+          valeur={espacer(data.revenus_total ?? 0)} unite={t('DA')} route="/paiements?statut=completed" />
+        <Kpi icone="sync-alt" couleur={colors.secondary} fond={colors.primarySoft} label={t('Tous les Abonnements')}
           valeur={data.abonnements_total ?? 0} route="/abonnements" />
       </View>
 
-      <SectionCarte icone="chart-pie" couleur={colors.primary} titre="Répartition des Plans" indice="Cliquez sur un plan pour voir les abonnements correspondants" route="/abonnements">
+      <SectionCarte icone="chart-pie" couleur={colors.primary} titre={t('Répartition des Plans')} indice={t('Cliquez sur un plan pour voir les abonnements correspondants')} route="/abonnements">
         {data.plans.length === 0
-          ? <Text style={styles.vide}>Aucun abonnement.</Text>
+          ? <Text style={styles.vide}>{t('Aucun abonnement.')}</Text>
           : (
             <Anneau
               // `cle` = nom en minuscules (filtre « plan » du serveur) ; reconstruite si un ancien serveur ne l'envoie pas.
-              parts={data.plans.map((p: any) => ({ cle: p.cle ?? String(p.nom).trim().toLowerCase(), label: p.nom, valeur: p.n, couleur: p.couleur }))}
+              parts={data.plans.map((p: any) => ({ cle: p.cle ?? String(p.nom).trim().toLowerCase(), label: t(p.nom), valeur: p.n, couleur: p.couleur }))}
               onSelect={(p) => ouvrir({ pathname: '/abonnements', params: { plan: p.cle } })}
             />
           )}
       </SectionCarte>
 
-      <SectionCarte icone="chart-bar" couleur={colors.secondary} titre="Revenus Mensuels (6 derniers mois)" indice="Cliquez sur un mois pour voir les paiements correspondants" route="/paiements?statut=completed">
+      <SectionCarte icone="chart-bar" couleur={colors.secondary} titre={t('Revenus Mensuels (6 derniers mois)')} indice={t('Cliquez sur un mois pour voir les paiements correspondants')} route="/paiements?statut=completed">
         <Histogramme
           barres={data.revenus.map((r: any) => ({ cle: r.cle, label: r.libelle, valeur: r.total }))}
           onSelect={(b) => ouvrir({ pathname: '/paiements', params: { statut: 'completed', mois: b.cle } })}
         />
       </SectionCarte>
 
-      <SectionCarte icone="clock" couleur={colors.textMuted} titre="Derniers Incubateurs Créés" route="/incubateurs">
-        {data.derniers_incubateurs.length === 0 && <Text style={styles.vide}>Aucun incubateur enregistré</Text>}
+      <SectionCarte icone="clock" couleur={colors.textMuted} titre={t('Derniers Incubateurs Créés')} route="/incubateurs">
+        {data.derniers_incubateurs.length === 0 && <Text style={styles.vide}>{t('Aucun incubateur enregistré')}</Text>}
         {data.derniers_incubateurs.map((i: any) => (
           <Pressable key={i.id} onPress={() => ouvrir(`/incubateurs/${i.id}`)} style={styles.incubateur}>
             <View style={[styles.avatar, { backgroundColor: i.couleur }]}>
@@ -78,18 +80,18 @@ export function AccueilSuperAdmin() {
             <View style={{ flex: 1, gap: 2 }}>
               <Text style={styles.nom} numberOfLines={1}>{i.nom}</Text>
               {!!i.slug && <Text style={styles.slug} numberOfLines={1}>{i.slug}</Text>}
-              <Text style={styles.date}>Créé le {jourMoisAnnee(i.created_at)}</Text>
+              <Text style={styles.date}>{t('Créé le')} {jourMoisAnnee(i.created_at)}</Text>
             </View>
             <View style={{ alignItems: 'flex-end', gap: 6 }}>
-              <Badge label={i.plan_display} fond={colors.primarySoft} texte={colors.primaryDark} />
-              <Badge label={i.actif ? 'Actif' : 'Inactif'} fond={i.actif ? colors.successSoft : colors.dangerSoft}
+              <Badge label={t(i.plan_display)} fond={colors.primarySoft} texte={colors.primaryDark} />
+              <Badge label={i.actif ? t('Actif') : t('Inactif')} fond={i.actif ? colors.successSoft : colors.dangerSoft}
                 texte={i.actif ? colors.successText : colors.dangerText} />
             </View>
           </Pressable>
         ))}
       </SectionCarte>
 
-      <Text style={styles.pied}>© 2026 Solution for Incubator — Super Admin</Text>
+      <Text style={styles.pied}>{t('© 2026 Solution for Incubator — Super Admin')}</Text>
     </Screen>
   );
 }

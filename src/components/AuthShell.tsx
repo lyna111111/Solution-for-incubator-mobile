@@ -4,6 +4,7 @@ import { ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { SelecteurLangue } from '@/components/SelecteurLangue';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { type Palette, radius, shadow, spacing, useColors, useStyles } from '@/theme';
 
@@ -19,6 +20,7 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
     <LinearGradient colors={colors.authFond} style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }}>
         <ThemeToggle style={styles.theme} />
+        <View style={styles.langue}><SelecteurLangue /></View>
         {/* Android est en bord à bord : le système ne redimensionne plus la fenêtre, donc « padding » aussi. */}
         <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
           <ScrollView
@@ -43,6 +45,7 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
 
 const createStyles = (colors: Palette) => StyleSheet.create({
   theme: { position: 'absolute', top: 8, right: 12, zIndex: 10 },
+  langue: { position: 'absolute', top: 8, left: 12, zIndex: 10 },
   content: { flexGrow: 1, justifyContent: 'center', padding: spacing.lg },
   card: {
     backgroundColor: colors.card,

@@ -6,10 +6,12 @@ import { login } from '@/api/endpoints';
 import { AuthShell } from '@/components/AuthShell';
 import { Banner, Button, Field } from '@/components/ui';
 import { useOuvrir } from '@/hooks/useOuvrir';
+import { useT } from '@/i18n';
 import { useAuthStore } from '@/store/auth';
 import { type Palette, spacing, useStyles } from '@/theme';
 
 export default function Connexion() {
+  const t = useT();
   const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   const signIn = useAuthStore((s) => s.signIn);
@@ -20,7 +22,7 @@ export default function Connexion() {
 
   async function seConnecter() {
     if (!email.trim() || !mdp) {
-      setErreur('Saisissez votre email et votre mot de passe.');
+      setErreur(t('Saisissez votre email et votre mot de passe.'));
       return;
     }
     setErreur('');
@@ -36,11 +38,11 @@ export default function Connexion() {
   }
 
   return (
-    <AuthShell title="Connexion" subtitle="Heureux de vous revoir sur la plateforme">
+    <AuthShell title={t('Connexion')} subtitle={t('Heureux de vous revoir sur la plateforme')}>
       {!!erreur && <Banner message={erreur} />}
 
       <Field
-        label="Email"
+        label={t('Email')}
         icon="envelope"
         value={email}
         onChangeText={setEmail}
@@ -48,10 +50,10 @@ export default function Connexion() {
         autoCorrect={false}
         keyboardType="email-address"
         textContentType="emailAddress"
-        placeholder="votre@email.com"
+        placeholder={t('votre@email.com')}
       />
       <Field
-        label="Mot de passe"
+        label={t('Mot de passe')}
         icon="lock"
         value={mdp}
         onChangeText={setMdp}
@@ -62,16 +64,16 @@ export default function Connexion() {
         onSubmitEditing={() => void seConnecter()}
       />
 
-      <Button pill title="Se connecter" icon="arrow-right" onPress={() => void seConnecter()} loading={chargement} />
+      <Button pill title={t('Se connecter')} icon="arrow-right" onPress={() => void seConnecter()} loading={chargement} />
 
       <View style={styles.footer}>
         <Pressable onPress={() => ouvrir('/register')}>
           <Text style={styles.footerText}>
-            Pas encore de compte ? <Text style={styles.footerStrong}>S&apos;inscrire</Text>
+            {t('Pas encore de compte ?')} <Text style={styles.footerStrong}>{t("S'inscrire")}</Text>
           </Text>
         </Pressable>
         <Pressable onPress={() => ouvrir('/forgot-password')}>
-          <Text style={styles.link}>Mot de passe oublié ?</Text>
+          <Text style={styles.link}>{t('Mot de passe oublié ?')}</Text>
         </Pressable>
       </View>
     </AuthShell>

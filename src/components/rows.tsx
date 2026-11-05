@@ -2,6 +2,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useOuvrir } from '@/hooks/useOuvrir';
+import { useEstRTL, useT } from '@/i18n';
 import type { Evenement, Notification, RequeteResume } from '@/types';
 import { type Palette, spacing, useColors, useStyles } from '@/theme';
 import { couleurStatut, formatDate, formatDateTime, LIBELLE_STATUT } from '@/utils/format';
@@ -10,10 +11,12 @@ import { Badge, Card } from './ui';
 
 function Chevron() {
   const colors = useColors();
-  return <FontAwesome5 name="angle-right" size={18} color={colors.textMuted} />;
+  const rtl = useEstRTL();
+  return <FontAwesome5 name={rtl ? 'angle-left' : 'angle-right'} size={18} color={colors.textMuted} />;
 }
 
 export function EvenementRow({ evenement }: { evenement: Evenement }) {
+  const t = useT();
   const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   const colors = useColors();
@@ -29,10 +32,10 @@ export function EvenementRow({ evenement }: { evenement: Evenement }) {
           </Text>
           {!!evenement.lieu && <Text style={styles.meta}>{evenement.lieu}</Text>}
           <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: 4 }}>
-            <Badge label={evenement.type} fond={colors.primarySoft} texte={colors.primaryDark} />
+            <Badge label={t(evenement.type)} fond={colors.primarySoft} texte={colors.primaryDark} />
             {evenement.places_restantes !== null && (
               <Badge
-                label={evenement.places_restantes === 0 ? 'Complet' : `${evenement.places_restantes} places`}
+                label={evenement.places_restantes === 0 ? t('Complet') : t('{n} places', { n: evenement.places_restantes })}
                 fond={evenement.places_restantes === 0 ? colors.dangerSoft : colors.successSoft}
                 texte={evenement.places_restantes === 0 ? colors.danger : colors.success}
               />
@@ -46,11 +49,13 @@ export function EvenementRow({ evenement }: { evenement: Evenement }) {
 }
 
 export function StatutBadge({ statut }: { statut: RequeteResume['statut'] }) {
+  const t = useT();
   const { fond, texte } = couleurStatut(useColors())[statut];
-  return <Badge label={LIBELLE_STATUT[statut]} fond={fond} texte={texte} />;
+  return <Badge label={t(LIBELLE_STATUT[statut])} fond={fond} texte={texte} />;
 }
 
 export function RequeteRow({ requete }: { requete: RequeteResume }) {
+  const t = useT();
   const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   return (
@@ -61,7 +66,7 @@ export function RequeteRow({ requete }: { requete: RequeteResume }) {
             {requete.objet}
           </Text>
           <Text style={styles.meta}>
-            {requete.type_requete} · {formatDate(requete.dateSoumission)}
+            {t(requete.type_requete)} · {formatDate(requete.dateSoumission)}
           </Text>
           <View style={{ marginTop: 4 }}>
             <StatutBadge statut={requete.statut} />
@@ -74,6 +79,7 @@ export function RequeteRow({ requete }: { requete: RequeteResume }) {
 }
 
 export function NotificationRow({ notification }: { notification: Notification }) {
+  const t = useT();
   const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   const colors = useColors();
@@ -86,7 +92,7 @@ export function NotificationRow({ notification }: { notification: Notification }
             {notification.titre}
           </Text>
           <Text style={[styles.meta, !notification.read && { color: colors.text }]}>
-            {notification.type} · {formatDateTime(notification.created_at)}
+            {t(notification.type)} · {formatDateTime(notification.created_at)}
           </Text>
         </View>
         <Chevron />

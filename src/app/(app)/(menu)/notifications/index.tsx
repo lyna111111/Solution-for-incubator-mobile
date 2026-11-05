@@ -8,19 +8,21 @@ import { Chips } from '@/components/Chips';
 import { NotificationRow } from '@/components/rows';
 import { Screen } from '@/components/Screen';
 import { Banner, Button, ErrorState, Field, Loading } from '@/components/ui';
+import { _t, useT } from '@/i18n';
 import { type Palette, useStyles } from '@/theme';
 
 // Mêmes onglets que la page Notifications du site.
 const TYPES = [
-  { value: 'all', label: 'Toutes' },
-  { value: 'requete', label: 'Requêtes' },
-  { value: 'evenement', label: 'Événements' },
-  { value: 'incubateur', label: 'Incubateur' },
-  { value: 'article', label: 'Articles' },
-  { value: 'systeme', label: 'Système' },
+  { value: 'all', label: _t('Toutes') },
+  { value: 'requete', label: _t('Requêtes') },
+  { value: 'evenement', label: _t('Événements') },
+  { value: 'incubateur', label: _t('Incubateur') },
+  { value: 'article', label: _t('Articles') },
+  { value: 'systeme', label: _t('Système') },
 ];
 
 export default function Notifications() {
+  const t = useT();
   const styles = useStyles(createStyles);
   const queryClient = useQueryClient();
   const [type, setType] = useState('all');
@@ -51,19 +53,19 @@ export default function Notifications() {
       {toutLire.isError && <Banner message={getErrorMessage(toutLire.error)} />}
 
       <Field
-        label="Rechercher"
+        label={t('Rechercher')}
         icon="search"
         value={saisie}
         onChangeText={setSaisie}
         onSubmitEditing={() => setRecherche(saisie.trim())}
         returnKeyType="search"
-        placeholder="Titre ou message..."
+        placeholder={t('Titre ou message...')}
       />
-      <Chips options={TYPES} value={type} onChange={setType} />
+      <Chips options={TYPES.map((o) => ({ ...o, label: t(o.label) }))} value={type} onChange={setType} />
 
       {nonLues > 0 && (
         <Button
-          title={`Tout marquer comme lu (${nonLues})`}
+          title={t('Tout marquer comme lu ({n})', { n: nonLues })}
           variant="secondary"
           loading={toutLire.isPending}
           onPress={() => toutLire.mutate()}
@@ -71,7 +73,7 @@ export default function Notifications() {
       )}
 
       {data.length === 0 ? (
-        <Text style={styles.empty}>Aucune notification.</Text>
+        <Text style={styles.empty}>{t('Aucune notification.')}</Text>
       ) : (
         data.map((n) => <NotificationRow key={n.id} notification={n} />)
       )}

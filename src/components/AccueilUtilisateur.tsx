@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useOuvrir } from '@/hooks/useOuvrir';
+import { useT } from '@/i18n';
 import { getErrorMessage } from '@/api/client';
 import { fetchAccueil, fetchMonProjet } from '@/api/endpoints';
 import { useAuthStore } from '@/store/auth';
@@ -17,11 +18,16 @@ import { Screen } from './Screen';
 import { Button, Card, ErrorState, Loading } from './ui';
 
 /** « PorteurDeProjet » -> « Porteur de projet » (type de compte affiché dans le bandeau de bienvenue). */
-const libelleType = (type?: string) =>
-  (type ?? 'Utilisateur').replace(/([a-zéè])([A-ZÉ])/g, '$1 $2').replace(/ De /g, ' de ').replace(/ Du /g, ' du ');
+const libelleType = (type: string | undefined, t: (texte: string) => string) => {
+  const brut = type ?? 'Utilisateur';
+  const traduit = t(brut);
+  if (traduit !== brut) return traduit;
+  return brut.replace(/([a-zéè])([A-ZÉ])/g, '$1 $2').replace(/ De /g, ' de ').replace(/ Du /g, ' du ');
+};
 
 /** Tableau de bord de l'utilisateur : une seule requête serveur (/api/mobile/user/accueil/). */
 export function AccueilUtilisateur() {
+  const t = useT();
   const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   const colors = useColors();
@@ -49,20 +55,20 @@ export function AccueilUtilisateur() {
   }
 
   return (
-    <Screen withTopInset title="Tableau de Bord" refreshing={accueil.isRefetching} onRefresh={() => void actualiser()}>
-      <BandeauBienvenue titre={libelleType(a.utilisateur.type)} nom={`${a.utilisateur.prenom} ${a.utilisateur.nom}`.trim()}
+    <Screen withTopInset title={t('Tableau de Bord')} refreshing={accueil.isRefetching} onRefresh={() => void actualiser()}>
+      <BandeauBienvenue titre={libelleType(a.utilisateur.type, t)} nom={`${a.utilisateur.prenom} ${a.utilisateur.nom}`.trim()}
         detail={a.utilisateur.incubateur?.nom} />
 
-      <Button title="Nouvelle Requête" icon="paper-plane" onPress={() => ouvrir('/requetes/nouvelle')} />
+      <Button title={t('Nouvelle Requête')} icon="paper-plane" onPress={() => ouvrir('/requetes/nouvelle')} />
 
       <View style={styles.grid}>
-        <Kpi icone="calendar-check" couleur={colors.info} fond={colors.infoSoft} label="Événements à venir"
+        <Kpi icone="calendar-check" couleur={colors.info} fond={colors.infoSoft} label={t('Événements à venir')}
           valeur={a.evenements_a_venir_total} route="/evenements" />
-        <Kpi icone="paper-plane" couleur={colors.success} fond={colors.successSoft} label="Requêtes envoyées"
+        <Kpi icone="paper-plane" couleur={colors.success} fond={colors.successSoft} label={t('Requêtes envoyées')}
           valeur={a.requetes_total} route="/requetes" />
-        <Kpi icone="reply-all" couleur={colors.warning} fond={colors.warningSoft} label="Requêtes en attente"
+        <Kpi icone="reply-all" couleur={colors.warning} fond={colors.warningSoft} label={t('Requêtes en attente')}
           valeur={a.requetes_en_attente} route="/requetes" />
-        <Kpi icone="bell" couleur={colors.danger} fond={colors.dangerSoft} label="Notifications"
+        <Kpi icone="bell" couleur={colors.danger} fond={colors.dangerSoft} label={t('Notifications')}
           valeur={a.notifications_non_lues} route="/notifications" />
       </View>
 
@@ -71,11 +77,11 @@ export function AccueilUtilisateur() {
           <View style={styles.sectionHeader}>
             <View style={styles.sectionLeft}>
               <FontAwesome5 name="chart-line" size={15} color={colors.primary} />
-              <Text style={styles.sectionTitle}>Suivi de mon projet</Text>
+              <Text style={styles.sectionTitle}>{t('Suivi de mon projet')}</Text>
             </View>
             <Pressable onPress={() => setDetailsOuverts(true)} style={styles.detailsBtn}>
               <FontAwesome5 name="eye" size={12} color="#fff" />
-              <Text style={styles.detailsBtnText}>Détails</Text>
+              <Text style={styles.detailsBtnText}>{t('Détails')}</Text>
             </Pressable>
           </View>
           <View style={styles.projectRow}>
@@ -90,25 +96,25 @@ export function AccueilUtilisateur() {
                 </View>
                 <Text style={styles.progressLabel}>{progression}%</Text>
               </View>
-              <Text style={styles.projectNote}>Avancement mis à jour par l&apos;équipe de l&apos;incubateur</Text>
+              <Text style={styles.projectNote}>{t("Avancement mis à jour par l'équipe de l'incubateur")}</Text>
             </View>
           </View>
         </Card>
       )}
 
-      <TitreGraphique icone="calendar-alt" couleur={colors.info} titre="Événements à venir" route="/evenements" />
+      <TitreGraphique icone="calendar-alt" couleur={colors.info} titre={t('Événements à venir')} route="/evenements" />
       {a.evenements_a_venir.length === 0
-        ? <Text style={styles.vide}>Aucun événement à venir.</Text>
+        ? <Text style={styles.vide}>{t('Aucun événement à venir.')}</Text>
         : a.evenements_a_venir.map((e) => <EvenementRow key={e.id} evenement={e} />)}
 
-      <TitreGraphique icone="paper-plane" couleur={colors.success} titre="Mes dernières requêtes" route="/requetes" />
+      <TitreGraphique icone="paper-plane" couleur={colors.success} titre={t('Mes dernières requêtes')} route="/requetes" />
       {a.requetes_recentes.length === 0
-        ? <Text style={styles.vide}>Vous n&apos;avez envoyé aucune requête.</Text>
+        ? <Text style={styles.vide}>{t("Vous n'avez envoyé aucune requête.")}</Text>
         : a.requetes_recentes.map((r) => <RequeteRow key={r.id} requete={r} />)}
 
-      <TitreGraphique icone="bell" couleur={colors.danger} titre="Notifications récentes" route="/notifications" />
+      <TitreGraphique icone="bell" couleur={colors.danger} titre={t('Notifications récentes')} route="/notifications" />
       {a.notifications_recentes.length === 0
-        ? <Text style={styles.vide}>Aucune notification.</Text>
+        ? <Text style={styles.vide}>{t('Aucune notification.')}</Text>
         : a.notifications_recentes.map((n) => <NotificationRow key={n.id} notification={n} />)}
 
       <ProjetModal projet={projet.data} chargement={projet.isLoading} visible={detailsOuverts}

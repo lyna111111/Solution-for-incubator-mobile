@@ -6,25 +6,28 @@ import { useEffect, useState } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { SelecteurLangue } from '@/components/SelecteurLangue';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui';
 import { useOuvrir } from '@/hooks/useOuvrir';
+import { _t, useT } from '@/i18n';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
 type IconName = React.ComponentProps<typeof FontAwesome5>['name'];
 
 // Les six atouts présentés sur la page d'accueil du site.
 const ATOUTS: { icon: IconName; label: string }[] = [
-  { icon: 'lightbulb', label: 'Projets' },
-  { icon: 'users', label: 'Utilisateurs' },
-  { icon: 'calendar-alt', label: 'Événements' },
-  { icon: 'comments', label: 'Requêtes' },
-  { icon: 'file-alt', label: 'Documents' },
-  { icon: 'chart-line', label: 'Statistiques' },
+  { icon: 'lightbulb', label: _t('Projets') },
+  { icon: 'users', label: _t('Utilisateurs') },
+  { icon: 'calendar-alt', label: _t('Événements') },
+  { icon: 'comments', label: _t('Requêtes') },
+  { icon: 'file-alt', label: _t('Documents') },
+  { icon: 'chart-line', label: _t('Statistiques') },
 ];
 
 /** Page de bienvenue, avant la connexion : logo, présentation de la plateforme, puis accès à la connexion. */
 export default function Bienvenue() {
+  const t = useT();
   const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
   const colors = useColors();
@@ -57,6 +60,7 @@ export default function Bienvenue() {
     <LinearGradient colors={[colors.navy, '#2b1366', colors.primaryDark]} style={styles.root}>
       <StatusBar style="light" />
       <ThemeToggle couleur="#fff" style={[styles.theme, { top: insets.top + 8 }]} />
+      <View style={[styles.langue, { top: insets.top + 8 }]}><SelecteurLangue couleur="#fff" /></View>
       <View style={styles.content}>
         {/* Halos décoratifs aux couleurs de la marque */}
         <View pointerEvents="none" style={[styles.halo, styles.haloViolet]} />
@@ -68,12 +72,11 @@ export default function Bienvenue() {
           </Animated.View>
 
           <Text style={styles.headline}>
-            <Text style={styles.headlineAccent}>Incubateur</Text> 🚀
+            <Text style={styles.headlineAccent}>{t('Incubateur')}</Text> 🚀
           </Text>
           {!court && (
             <Text style={styles.lead}>
-              Suivez vos projets, participez aux événements et échangez avec votre équipe d&apos;accompagnement, où que
-              vous soyez.
+              {t("Suivez vos projets, participez aux événements et échangez avec votre équipe d'accompagnement, où que vous soyez.")}
             </Text>
           )}
 
@@ -83,7 +86,7 @@ export default function Bienvenue() {
                 <View style={styles.atoutIcon}>
                   <FontAwesome5 name={a.icon} size={17} color="#fff" />
                 </View>
-                <Text style={styles.atoutLabel}>{a.label}</Text>
+                <Text style={styles.atoutLabel}>{t(a.label)}</Text>
               </View>
             ))}
           </View>
@@ -91,13 +94,13 @@ export default function Bienvenue() {
 
         <Animated.View style={[styles.sheet, { paddingBottom: insets.bottom + spacing.lg }, monte]}>
           <View style={styles.grip} />
-          <Text style={styles.sheetTitle}>Bienvenue !</Text>
-          <Text style={styles.sheetSub}>Connectez-vous pour accéder à votre espace.</Text>
+          <Text style={styles.sheetTitle}>{t('Bienvenue !')}</Text>
+          <Text style={styles.sheetSub}>{t('Connectez-vous pour accéder à votre espace.')}</Text>
 
-          <Button pill title="Se connecter" icon="arrow-right" onPress={() => ouvrir('/login')} />
+          <Button pill title={t('Se connecter')} icon="arrow-right" onPress={() => ouvrir('/login')} />
           <Pressable onPress={() => ouvrir('/register')} style={styles.inscription}>
             <Text style={styles.inscriptionTexte}>
-              Pas encore de compte ? <Text style={styles.inscriptionAccent}>S&apos;inscrire</Text>
+              {t('Pas encore de compte ?')} <Text style={styles.inscriptionAccent}>{t("S'inscrire")}</Text>
             </Text>
           </Pressable>
         </Animated.View>
@@ -108,6 +111,7 @@ export default function Bienvenue() {
 
 const createStyles = (colors: Palette) => StyleSheet.create({
   theme: { position: 'absolute', right: 12, zIndex: 10 },
+  langue: { position: 'absolute', left: 12, zIndex: 10 },
   root: { flex: 1 },
   content: { flex: 1 },
 

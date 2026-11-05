@@ -1,8 +1,10 @@
 import { adminGet } from '@/admin/api';
 import { Compteurs, LigneListe, ListeAdmin } from '@/admin/ui';
 import { DocumentLink } from '@/components/DocumentLink';
+import { useT } from '@/i18n';
 
 export default function GestionDocuments() {
+  const t = useT();
   return (
     <ListeAdmin
       titre="Feedback des Documents"
@@ -26,7 +28,7 @@ export default function GestionDocuments() {
         <LigneListe
           key={d.id}
           titre={d.titre}
-          sousTitre={`${d.label} · ${d.type} · ${String(d.created_at).slice(0, 10)}`}
+          sousTitre={`${t(d.label)} · ${t(d.type)} · ${String(d.created_at).slice(0, 10)}`}
           pied={<DocumentLink document={d} />}
         />
       )}

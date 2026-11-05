@@ -8,6 +8,7 @@ import { AuthShell } from '@/components/AuthShell';
 import { Banner, Button, Field, Libelle } from '@/components/ui';
 import { useRemplacer } from '@/hooks/useOuvrir';
 import { useReculer } from '@/hooks/useReculer';
+import { _t, useT } from '@/i18n';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
 // Types de compte acceptés par le backend (Utilisateur.TYPE_CHOICES).
@@ -22,12 +23,13 @@ const TYPES = [
 
 // Le formulaire est découpé en 3 étapes courtes.
 const ETAPES = [
-  { titre: 'Qui êtes-vous ?', sousTitre: 'Vos informations personnelles' },
-  { titre: 'Votre profil', sousTitre: 'Incubateur et type de compte' },
-  { titre: 'Sécurité', sousTitre: 'Choisissez votre mot de passe' },
+  { titre: _t('Qui êtes-vous ?'), sousTitre: _t('Vos informations personnelles') },
+  { titre: _t('Votre profil'), sousTitre: _t('Incubateur et type de compte') },
+  { titre: _t('Sécurité'), sousTitre: _t('Choisissez votre mot de passe') },
 ];
 
 export default function Inscription() {
+  const t = useT();
   const [etape, setEtape] = useState(0);
   // Le retour (flèche, bouton Android) revient d'abord à l'étape précédente avant de quitter la page.
   const reculer = useReculer({
@@ -65,12 +67,12 @@ export default function Inscription() {
   /** Vérifie les champs de l'étape affichée ; renvoie le message d'erreur, ou '' si tout est bon. */
   function verifier(numero: number) {
     if (numero === 0 && (!form.nom.trim() || !form.prenom.trim() || !form.email.trim())) {
-      return 'Nom, prénom et email sont obligatoires.';
+      return t('Nom, prénom et email sont obligatoires.');
     }
-    if (numero === 1 && !incubateurId) return 'Choisissez votre incubateur.';
+    if (numero === 1 && !incubateurId) return t('Choisissez votre incubateur.');
     if (numero === 2) {
-      if (form.mdp.length < 8) return 'Le mot de passe doit contenir au moins 8 caractères.';
-      if (form.mdp !== form.mdp_confirmation) return 'Les mots de passe ne correspondent pas.';
+      if (form.mdp.length < 8) return t('Le mot de passe doit contenir au moins 8 caractères.');
+      if (form.mdp !== form.mdp_confirmation) return t('Les mots de passe ne correspondent pas.');
     }
     return '';
   }
@@ -112,17 +114,17 @@ export default function Inscription() {
 
   if (succes) {
     return (
-      <AuthShell title="Inscription envoyée">
+      <AuthShell title={t('Inscription envoyée')}>
         <Banner type="success" message={succes} />
         <Banner
           type="info"
           message={
-            "Étapes suivantes :\n1. Ouvrez l'email reçu et cliquez sur le lien de confirmation.\n" +
-            "2. Attendez que votre compte soit approuvé par un administrateur de l'incubateur.\n" +
-            '3. Connectez-vous ensuite avec votre email et votre mot de passe.'
+            t('Étapes suivantes :') + '\n1. ' + t("Ouvrez l'email reçu et cliquez sur le lien de confirmation.") +
+            '\n2. ' + t("Attendez que votre compte soit approuvé par un administrateur de l'incubateur.") +
+            '\n3. ' + t('Connectez-vous ensuite avec votre email et votre mot de passe.')
           }
         />
-        <Button title="Retour à la connexion" onPress={() => remplacer('/login')} />
+        <Button title={t('Retour à la connexion')} onPress={() => remplacer('/login')} />
       </AuthShell>
     );
   }
@@ -130,7 +132,7 @@ export default function Inscription() {
   const derniere = etape === ETAPES.length - 1;
 
   return (
-    <AuthShell title={ETAPES[etape].titre} subtitle={ETAPES[etape].sousTitre}>
+    <AuthShell title={t(ETAPES[etape].titre)} subtitle={t(ETAPES[etape].sousTitre)}>
       <View style={styles.progression}>
         <View style={styles.barres}>
           {ETAPES.map((e, i) => (
@@ -138,7 +140,7 @@ export default function Inscription() {
           ))}
         </View>
         <Text style={styles.progressionTexte}>
-          Étape {etape + 1} sur {ETAPES.length}
+          {t('Étape {n} sur {total}', { n: etape + 1, total: ETAPES.length })}
         </Text>
       </View>
 
@@ -147,23 +149,23 @@ export default function Inscription() {
       {etape === 0 && (
         <>
           <Field
-            label="Nom *"
+            label={t('Nom *')}
             icon="user"
             value={form.nom}
             onChangeText={maj('nom')}
             autoCapitalize="words"
-            placeholder="Votre nom"
+            placeholder={t('Votre nom')}
           />
           <Field
-            label="Prénom *"
+            label={t('Prénom *')}
             icon="user"
             value={form.prenom}
             onChangeText={maj('prenom')}
             autoCapitalize="words"
-            placeholder="Votre prénom"
+            placeholder={t('Votre prénom')}
           />
           <Field
-            label="Email *"
+            label={t('Email *')}
             icon="envelope"
             value={form.email}
             onChangeText={maj('email')}
@@ -171,22 +173,22 @@ export default function Inscription() {
             autoCorrect={false}
             keyboardType="email-address"
             textContentType="emailAddress"
-            placeholder="votre@email.com"
+            placeholder={t('votre@email.com')}
           />
         </>
       )}
 
       {etape === 1 && (
         <>
-          <Libelle>Incubateur *</Libelle>
+          <Libelle>{t('Incubateur *')}</Libelle>
           <Text style={[styles.aide, { marginBottom: spacing.sm }]}>
-            L&apos;administrateur de l&apos;incubateur choisi validera votre inscription.
+            {t("L'administrateur de l'incubateur choisi validera votre inscription.")}
           </Text>
           <View style={styles.chips}>
-            {incubateurs.isLoading && <Text style={styles.aide}>Chargement des incubateurs...</Text>}
+            {incubateurs.isLoading && <Text style={styles.aide}>{t('Chargement des incubateurs...')}</Text>}
             {!!incubateurs.error && (
               <Pressable onPress={() => void incubateurs.refetch()}>
-                <Text style={styles.aide}>{getErrorMessage(incubateurs.error)} Appuyez pour réessayer.</Text>
+                <Text style={styles.aide}>{getErrorMessage(incubateurs.error)} {t('Appuyez pour réessayer.')}</Text>
               </Pressable>
             )}
             {(incubateurs.data ?? []).map((inc) => (
@@ -200,41 +202,41 @@ export default function Inscription() {
             ))}
           </View>
 
-          <Libelle>Type de compte *</Libelle>
+          <Libelle>{t('Type de compte *')}</Libelle>
           <View style={styles.chips}>
-            {TYPES.map((t) => (
+            {TYPES.map((type) => (
               <Pressable
-                key={t}
-                onPress={() => maj('type')(t)}
-                style={[styles.chip, form.type === t && styles.chipActive]}
+                key={type}
+                onPress={() => maj('type')(type)}
+                style={[styles.chip, form.type === type && styles.chipActive]}
               >
-                <Text style={[styles.chipText, form.type === t && styles.chipTextActive]}>{t}</Text>
+                <Text style={[styles.chipText, form.type === type && styles.chipTextActive]}>{t(type)}</Text>
               </Pressable>
             ))}
           </View>
 
           <Field
-            label="Matricule"
+            label={t('Matricule')}
             icon="id-card"
             value={form.matricule}
             onChangeText={maj('matricule')}
             autoCapitalize="characters"
-            placeholder="Ex : 20231234"
+            placeholder={t('Ex : 20231234')}
           />
           <Field
-            label="Département"
+            label={t('Département')}
             value={form.departement}
             onChangeText={maj('departement')}
-            placeholder="Ex : Informatique"
+            placeholder={t('Ex : Informatique')}
           />
-          <Field label="Faculté" value={form.faculte} onChangeText={maj('faculte')} placeholder="Ex : Sciences et technologies" />
+          <Field label={t('Faculté')} value={form.faculte} onChangeText={maj('faculte')} placeholder={t('Ex : Sciences et technologies')} />
         </>
       )}
 
       {etape === 2 && (
         <>
           <Field
-            label="Mot de passe * (8 caractères minimum)"
+            label={t('Mot de passe * (8 caractères minimum)')}
             icon="lock"
             value={form.mdp}
             onChangeText={maj('mdp')}
@@ -243,13 +245,13 @@ export default function Inscription() {
             placeholder="••••••••"
           />
           <Field
-            label="Confirmer le mot de passe *"
+            label={t('Confirmer le mot de passe *')}
             icon="lock"
             value={form.mdp_confirmation}
             onChangeText={maj('mdp_confirmation')}
             secureTextEntry
             autoCapitalize="none"
-            placeholder="Retapez le mot de passe"
+            placeholder={t('Retapez le mot de passe')}
             onSubmitEditing={() => void sInscrire()}
           />
         </>
@@ -258,18 +260,18 @@ export default function Inscription() {
       <Button
         pill
         icon={derniere ? 'check' : 'arrow-right'}
-        title={derniere ? "S'inscrire" : 'Suivant'}
+        title={derniere ? t("S'inscrire") : t('Suivant')}
         onPress={derniere ? () => void sInscrire() : suivant}
         loading={chargement}
       />
       {etape > 0 && (
         <Pressable onPress={reculer} style={{ alignItems: 'center', paddingTop: spacing.lg }}>
-          <Text style={{ color: colors.textMuted, fontWeight: '600', fontSize: 15 }}>Retour</Text>
+          <Text style={{ color: colors.textMuted, fontWeight: '600', fontSize: 15 }}>{t('Retour')}</Text>
         </Pressable>
       )}
       {etape === 0 && (
         <Pressable onPress={reculer} style={{ alignItems: 'center', paddingVertical: spacing.lg }}>
-          <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 15 }}>Déjà un compte ? Se connecter</Text>
+          <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 15 }}>{t('Déjà un compte ? Se connecter')}</Text>
         </Pressable>
       )}
     </AuthShell>

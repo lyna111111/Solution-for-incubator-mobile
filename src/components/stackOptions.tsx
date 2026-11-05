@@ -3,15 +3,17 @@ import { Pressable } from 'react-native';
 
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useRetourAndroid } from '@/hooks/useReculer';
+import { useT } from '@/i18n';
 import { type Navigation, reculer, type Route } from '@/navigation/retour';
 import { useColors } from '@/theme';
 
 /** Flèche de retour de l'en-tête : la fonction de retour de l'application, branchée aussi sur le bouton Android. */
 function BoutonRetour({ navigation, route }: { navigation: Navigation; route: Route }) {
+  const t = useT();
   const colors = useColors();
   useRetourAndroid(navigation, route, '/menu');
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel="Retour" hitSlop={12} onPress={() => reculer(navigation, route)}
+    <Pressable accessibilityRole="button" accessibilityLabel={t('Retour')} hitSlop={12} onPress={() => reculer(navigation, route)}
       style={{ paddingHorizontal: 8, paddingVertical: 6 }}>
       <FontAwesome5 name="chevron-left" size={18} color={colors.primary} />
     </Pressable>

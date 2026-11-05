@@ -8,6 +8,7 @@ import type { ChampDef } from '@/admin/types';
 import { ChoixPuces, FormulaireAdmin } from '@/admin/ui';
 import { Screen } from '@/components/Screen';
 import { useReculer } from '@/hooks/useReculer';
+import { useT } from '@/i18n';
 import { useColors } from '@/theme';
 
 const MODES = ['Diffusion à tous', 'À un utilisateur', 'À plusieurs utilisateurs'];
@@ -24,6 +25,7 @@ function champs(mode: string): ChampDef[] {
 }
 
 export default function NouvelleNotification() {
+  const t = useT();
   const reculer = useReculer();
   const colors = useColors();
   const [mode, setMode] = useState(MODES[0]);
@@ -38,8 +40,8 @@ export default function NouvelleNotification() {
 
   return (
     <Screen>
-      <Stack.Screen options={{ title: 'Nouvelle notification' }} />
-      <Text style={{ fontWeight: '600', color: colors.text }}>Destinataires</Text>
+      <Stack.Screen options={{ title: t('Nouvelle notification') }} />
+      <Text style={{ fontWeight: '600', color: colors.text }}>{t('Destinataires')}</Text>
       <ChoixPuces options={MODES} valeur={mode} onChoisir={setMode} />
       <FormulaireAdmin key={mode} champs={champs(mode)} mode="creation" libelle="Envoyer" onSubmit={envoyer} />
     </Screen>

@@ -7,9 +7,11 @@ import { getErrorMessage } from '@/api/client';
 import { fetchNotification, markNotificationRead } from '@/api/endpoints';
 import { Screen } from '@/components/Screen';
 import { Badge, Card, ErrorState, Loading } from '@/components/ui';
+import { useT } from '@/i18n';
 import { type Palette, useColors, useStyles } from '@/theme';
 
 export default function DetailNotification() {
+  const t = useT();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -42,10 +44,10 @@ export default function DetailNotification() {
   return (
     <Screen refreshing={isRefetching} onRefresh={() => void refetch()}>
       <Text style={styles.title}>{data.titre}</Text>
-      <Badge label={data.type} fond={colors.primarySoft} texte={colors.primaryDark} />
+      <Badge label={t(data.type)} fond={colors.primarySoft} texte={colors.primaryDark} />
       <Text style={styles.meta}>{data.created_at}</Text>
       <Card>
-        <Text style={styles.body}>{data.message || 'Aucun détail.'}</Text>
+        <Text style={styles.body}>{data.message || t('Aucun détail.')}</Text>
       </Card>
     </Screen>
   );

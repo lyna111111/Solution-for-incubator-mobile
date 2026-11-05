@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useAllerOnglet, useOuvrir } from '@/hooks/useOuvrir';
+import { useEstRTL, useT } from '@/i18n';
 import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
 import { Card } from './ui';
@@ -39,20 +40,22 @@ export function Kpi({ icone, couleur, fond, label, valeur, unite, route, compact
 
 /** Bandeau de bienvenue des tableaux de bord : rôle du compte connecté et son nom. Toucher le bandeau ouvre le Profil. */
 export function BandeauBienvenue({ titre, nom, detail }: { titre: string; nom: string; detail?: string | null }) {
+  const t = useT();
+  const rtl = useEstRTL();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const allerOnglet = useAllerOnglet();
   return (
     // Le Profil est un onglet : on y passe directement, sans l'empiler sur l'Accueil.
-    <Pressable accessibilityRole="button" accessibilityLabel="Ouvrir mon profil" onPress={() => allerOnglet('/profil')}>
+    <Pressable accessibilityRole="button" accessibilityLabel={t('Ouvrir mon profil')} onPress={() => allerOnglet('/profil')}>
       <Card style={styles.hero}>
         <View style={styles.heroIcone}><FontAwesome5 name="rocket" size={20} color={colors.primary} /></View>
         <View style={{ flex: 1, gap: 2 }}>
-          <Text style={styles.heroPetit}>Bienvenue</Text>
+          <Text style={styles.heroPetit}>{t('Bienvenue')}</Text>
           <Text style={styles.heroTitre} numberOfLines={2}>{titre}</Text>
           <Text style={styles.heroSous} numberOfLines={2}>{detail ? `${nom} · ${detail}` : nom}</Text>
         </View>
-        <FontAwesome5 name="angle-right" size={18} color={colors.textMuted} />
+        <FontAwesome5 name={rtl ? 'angle-left' : 'angle-right'} size={18} color={colors.textMuted} />
       </Card>
     </Pressable>
   );
@@ -60,12 +63,14 @@ export function BandeauBienvenue({ titre, nom, detail }: { titre: string; nom: s
 
 /** Bouton « Voir plus » commun à tous les accueils (administrateurs, Super Admin, utilisateurs). */
 export function VoirPlus({ onPress }: { onPress: () => void }) {
+  const t = useT();
+  const rtl = useEstRTL();
   const styles = useStyles(createStyles);
   const colors = useColors();
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={styles.voirPlus} hitSlop={8}>
-      <Text style={styles.voirPlusTexte}>Voir plus</Text>
-      <FontAwesome5 name="arrow-right" size={11} color={colors.text} />
+      <Text style={styles.voirPlusTexte}>{t('Voir plus')}</Text>
+      <FontAwesome5 name={rtl ? 'arrow-left' : 'arrow-right'} size={11} color={colors.text} />
     </Pressable>
   );
 }
