@@ -9,6 +9,7 @@ import { BackHandler, Pressable, Text, View } from 'react-native';
 import { useOuvrir, useRemplacer } from '@/hooks/useOuvrir';
 import { useReculer } from '@/hooks/useReculer';
 import { BoutonMenu } from '@/components/BoutonMenu';
+import { SelecteurLangue } from '@/components/SelecteurLangue';
 import { pageParente } from '@/navigation/retour';
 import { useMenuStore } from '@/store/menu';
 import { useLangStore } from '@/i18n';
@@ -35,6 +36,7 @@ const onglet = (nom: string) =>
       <View>
         <Text>{nom}</Text>
         <BoutonMenu />
+        <SelecteurLangue />
         <Pressable onPress={() => ouvrir('/requetes')}><Text>{nom}-vers-requetes</Text></Pressable>
         <Pressable onPress={() => ouvrir('/evenements')}><Text>{nom}-vers-evenements</Text></Pressable>
         <Pressable onPress={() => ouvrir('/requetes/7')}><Text>{nom}-vers-detail</Text></Pressable>
@@ -234,18 +236,22 @@ describe('Menu latéral (tiroir à droite)', () => {
   test('le choix de la langue traduit le tiroir et la barre du bas', async () => {
     await monter('/');
     expect(screen.getAllByText('Profil').length).toBeGreaterThan(0);
-    await ouvrirMenu();
-    await act(async () => { fireEvent.press(screen.getByLabelText('Langue')); }); // l'icône globe ouvre le choix de la langue
+    // L'icône globe de la barre du haut (Accueil) ouvre le choix de la langue.
+    await act(async () => { fireEvent.press(screen.getByLabelText('Langue')); });
     await laisserPasserAnimations();
     await act(async () => { fireEvent.press(screen.getByLabelText('English')); });
     await laisserPasserAnimations();
+    await ouvrirMenu();
     expect(screen.getByText('Events')).toBeTruthy();
     expect(screen.queryByText('Événements')).toBeNull();
     expect(screen.getAllByText('Profile').length).toBeGreaterThan(0);
+    await act(async () => { fireEvent.press(screen.getAllByLabelText('Close the menu')[0]); });
+    await laisserPasserAnimations();
     await act(async () => { fireEvent.press(screen.getByLabelText('Language')); });
     await laisserPasserAnimations();
     await act(async () => { fireEvent.press(screen.getByLabelText('عربية')); });
     await laisserPasserAnimations();
+    await ouvrirMenu();
     expect(screen.getByText('الفعاليات')).toBeTruthy();
     expect(screen.getAllByText('الملف الشخصي').length).toBeGreaterThan(0);
   });

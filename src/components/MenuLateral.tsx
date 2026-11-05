@@ -7,7 +7,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { SelecteurLangue } from '@/components/SelecteurLangue';
 import { useOuvrir } from '@/hooks/useOuvrir';
 import { useRetourMenuLateral } from '@/hooks/useReculer';
 import { _t, useEstRTL, useLangStore, useT } from '@/i18n';
@@ -159,7 +158,7 @@ export function MenuLateral() {
 
   /**
    * Chaque rangée apparaît l'une après l'autre : elle glisse depuis le bord, grossit un peu et sort de la transparence,
-   * avec un léger retard sur la précédente (cascade). `rang` 0 = le globe de langue, puis les entrées.
+   * avec un léger retard sur la précédente (cascade). `rang` = position de l'entrée.
    */
   const apparition = (rang: number) => {
     const debut = Math.min(0.16 + rang * 0.06, 0.62);
@@ -221,11 +220,10 @@ export function MenuLateral() {
         </LinearGradient>
 
         <ScrollView contentContainerStyle={[styles.liste, { paddingBottom: insets.bottom + spacing.lg }]} showsVerticalScrollIndicator={false}>
-          <Animated.View style={[styles.langue, apparition(0)]}><SelecteurLangue /></Animated.View>
           {entrees.map((m, i) => {
             const actif = chemin === m.route || chemin.startsWith(`${m.route}/`);
             return (
-              <Animated.View key={m.route} style={apparition(i + 1)}>
+              <Animated.View key={m.route} style={apparition(i)}>
                 <Rangee
                   entree={m}
                   actif={actif}
@@ -274,7 +272,6 @@ const createStyles = (colors: Palette) => StyleSheet.create({
     width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.2)',
   },
-  langue: { paddingBottom: spacing.xs },
   liste: { padding: spacing.md, gap: spacing.sm },
   ligne: {
     flexDirection: 'row',

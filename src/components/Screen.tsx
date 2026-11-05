@@ -1,11 +1,12 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from 'expo-router';
-import { ReactNode, useCallback, useEffect, useRef } from 'react';
+import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BoutonMenu } from '@/components/BoutonMenu';
+import { SelecteurLangue } from '@/components/SelecteurLangue';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { rechargerCodeSiNouveau } from '@/utils/rechargerCode';
 
@@ -31,6 +32,8 @@ interface ScreenProps {
 export function Screen({ children, refreshing = false, onRefresh, withTopInset = false, title, fab }: ScreenProps) {
   const styles = useStyles(createStyles);
   const colors = useColors();
+  // Quand les langues glissent hors de l'icône, le titre et le bouton clair / sombre s'effacent pour leur laisser la place.
+  const [langueOuverte, setLangueOuverte] = useState(false);
   const actualiserRef = useRef(onRefresh);
   useEffect(() => {
     actualiserRef.current = onRefresh;
@@ -51,9 +54,12 @@ export function Screen({ children, refreshing = false, onRefresh, withTopInset =
     <SafeAreaView style={styles.safe} edges={withTopInset ? ['top'] : []}>
       {!!title && (
         <View style={styles.topbar}>
-          <Text style={styles.topbarTitle}>{title}</Text>
+          <View style={styles.gauche}>
+            {withTopInset ? <SelecteurLangue onOuvrirChange={setLangueOuverte} /> : null}
+            {!langueOuverte && <Text style={styles.topbarTitle} numberOfLines={1}>{title}</Text>}
+          </View>
           <View style={styles.actions}>
-            <ThemeToggle />
+            {!langueOuverte && <ThemeToggle />}
             {withTopInset ? <BoutonMenu /> : null}
           </View>
         </View>
@@ -100,6 +106,7 @@ const createStyles = (colors: Palette) => StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: 2,
   },
+  gauche: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   topbarTitle: { fontSize: 15, fontWeight: '600', color: colors.textMuted },
   fab: {

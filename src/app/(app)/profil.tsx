@@ -6,7 +6,6 @@ import { getErrorMessage } from '@/api/client';
 import { changePassword, logout, updateMe } from '@/api/endpoints';
 import { Dialogue } from '@/components/Dialogue';
 import { Screen } from '@/components/Screen';
-import { SelecteurLangue } from '@/components/SelecteurLangue';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { iconeLibelle } from '@/components/iconeLibelle';
 import { Banner, Button, Card, Field, SectionTitle } from '@/components/ui';
@@ -210,9 +209,6 @@ export default function Profil() {
           {edition && <Button title={t('Enregistrer')} onPress={enregistrer} loading={enregistrement.isPending} />}
         </>
       )}
-
-      <SectionTitle icon="globe">{t('Langue')}</SectionTitle>
-      <SelecteurLangue avecLibelle />
 
       <SectionTitle icon="lock">{t('Changer le mot de passe')}</SectionTitle>
       {messageMdp && <Banner type={messageMdp.type} message={messageMdp.texte} />}

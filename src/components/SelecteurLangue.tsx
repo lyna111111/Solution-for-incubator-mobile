@@ -10,15 +10,21 @@ import { type Palette, radius, useColors, useStyles } from '@/theme';
  * langues (Français / English / عربية). Appuyer sur une langue la choisit et referme le tout. Pas de fenêtre modale.
  * Avec `avecLibelle`, la langue courante est écrite à côté de l'icône tant que le choix est fermé (page Profil).
  */
-export function SelecteurLangue({ couleur, avecLibelle = false, style }: {
+export function SelecteurLangue({ couleur, avecLibelle = false, style, onOuvrirChange }: {
   couleur?: string; avecLibelle?: boolean; style?: StyleProp<ViewStyle>;
+  /** Prévenu à l'ouverture et à la fermeture : la barre du haut libère alors la place dont les langues ont besoin. */
+  onOuvrirChange?: (ouvert: boolean) => void;
 }) {
   const t = useT();
   const styles = useStyles(createStyles);
   const colors = useColors();
   const lang = useLangStore((s) => s.lang);
   const choisir = useLangStore((s) => s.choisir);
-  const [ouvert, setOuvert] = useState(false);
+  const [ouvert, setOuvertEtat] = useState(false);
+  const setOuvert = (valeur: boolean) => {
+    setOuvertEtat(valeur);
+    onOuvrirChange?.(valeur);
+  };
   // `monte` : les langues restent affichées pendant leur animation de fermeture.
   const [monte, setMonte] = useState(false);
   if (ouvert && !monte) setMonte(true);
@@ -41,7 +47,7 @@ export function SelecteurLangue({ couleur, avecLibelle = false, style }: {
         accessibilityLabel={t('Langue')}
         accessibilityState={{ expanded: ouvert }}
         hitSlop={10}
-        onPress={() => setOuvert((o) => !o)}
+        onPress={() => setOuvert(!ouvert)}
         style={[styles.bouton, avecLibelle && !monte && styles.boutonLibelle, monte && { backgroundColor: colors.primarySoft }]}
       >
         <FontAwesome5 name="globe" size={18} color={couleur ?? colors.primary} />
