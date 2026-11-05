@@ -69,7 +69,7 @@ export default function Menu() {
         : MENU_UTILISATEUR;
 
   return (
-    <Screen withTopInset title="Menu" refreshing={refreshing} onRefresh={() => void actualiser()}>
+    <Screen withTopInset title="Menu" menu="fermer" refreshing={refreshing} onRefresh={() => void actualiser()}>
       <Stack.Screen options={{ headerShown: false }} />
       {entrees.map((m) => (
         <Pressable key={m.route} onPress={() => ouvrir(m.route as never)}>
