@@ -81,7 +81,7 @@ export default function DetailEvenement() {
 }
 
 const createStyles = (colors: Palette) => StyleSheet.create({
-  title: { fontSize: 24, fontWeight: '800', color: colors.text },
+  title: { fontSize: 22, fontWeight: '800', color: colors.text },
   line: { gap: 2 },
   lineEntete: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   lineLabel: { fontSize: 13, color: colors.textMuted, fontWeight: '600' },

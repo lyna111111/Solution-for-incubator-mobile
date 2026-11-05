@@ -134,7 +134,7 @@ export default function AbonnementFiche() {
 
 const createStyles = (colors: Palette) => StyleSheet.create({
   entete: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
-  titre: { flex: 1, fontSize: 18, fontWeight: '800', color: colors.text },
+  titre: { flex: 1, fontSize: 22, fontWeight: '800', color: colors.text },
   ligne: { fontSize: 14, color: colors.textMuted },
   label: { fontSize: 14, fontWeight: '600', color: colors.text },
   actions: { flexDirection: 'row', gap: spacing.sm },

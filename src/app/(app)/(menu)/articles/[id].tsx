@@ -36,7 +36,7 @@ export default function DetailArticle() {
 }
 
 const createStyles = (colors: Palette) => StyleSheet.create({
-  title: { fontSize: 24, fontWeight: '800', color: colors.text },
+  title: { fontSize: 22, fontWeight: '800', color: colors.text },
   meta: { fontSize: 13, color: colors.textMuted },
   body: { fontSize: 16, color: colors.text, lineHeight: 24 },
 });

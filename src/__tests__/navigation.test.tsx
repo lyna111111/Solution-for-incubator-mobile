@@ -21,6 +21,11 @@ let mockRole = 'utilisateur';
 jest.mock('@/store/auth', () => ({
   useAuthStore: (sel: (s: unknown) => unknown) => sel({ user: { role: mockRole, modules: ['requetes', 'projets'] } }),
 }));
+// Le tiroir du Menu a la déconnexion (vide le cache des requêtes) : pas de fournisseur de requêtes dans ces scénarios.
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
+  useQueryClient: () => ({ clear: () => {} }),
+}));
 jest.mock('@expo/vector-icons', () => ({ FontAwesome5: () => null }));
 jest.mock('@/components/ThemeToggle', () => ({ ThemeToggle: () => null }));
 
@@ -254,6 +259,12 @@ describe('Menu latéral (tiroir à droite)', () => {
     await ouvrirMenu();
     expect(screen.getByText('الفعاليات')).toBeTruthy();
     expect(screen.getAllByText('الملف الشخصي').length).toBeGreaterThan(0);
+  });
+
+  test('le tiroir a un bouton de déconnexion', async () => {
+    await monter('/');
+    await ouvrirMenu();
+    expect(screen.getByText('Se déconnecter')).toBeTruthy();
   });
 
   test('un appui sur le fond du tiroir le ferme', async () => {

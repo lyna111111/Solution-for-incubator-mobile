@@ -1,5 +1,6 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useQueryClient } from '@tanstack/react-query';
 import { usePathname } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
@@ -7,12 +8,14 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { logout } from '@/api/endpoints';
+import { Dialogue } from '@/components/Dialogue';
 import { useOuvrir } from '@/hooks/useOuvrir';
 import { useRetourMenuLateral } from '@/hooks/useReculer';
 import { _t, useEstRTL, useLangStore, useT } from '@/i18n';
 import { useAuthStore } from '@/store/auth';
 import { useMenuStore } from '@/store/menu';
-import { gradient, type Palette, radius, spacing, useColors, useStyles } from '@/theme';
+import { type Palette, radius, spacing, useColors, useStyles } from '@/theme';
 
 type IconName = React.ComponentProps<typeof FontAwesome5>['name'];
 
@@ -99,12 +102,16 @@ export function MenuLateral() {
   const rtl = useEstRTL();
   const ouvrir = useOuvrir();
   const styles = useStyles(createStyles);
+  const colors = useColors();
   const insets = useSafeAreaInsets();
   const chemin = usePathname();
   const { width } = useWindowDimensions();
   const ouvert = useMenuStore((s) => s.ouvert);
   const fermer = useMenuStore((s) => s.fermer);
   const user = useAuthStore((s) => s.user);
+  const refreshToken = useAuthStore((s) => s.refreshToken);
+  const signOut = useAuthStore((s) => s.signOut);
+  const queryClient = useQueryClient();
   const role = user?.role;
   // Le sélecteur ne doit pas fabriquer de nouveau tableau (`?? []`) : il relancerait le rendu à l'infini.
   const modulesBruts = useAuthStore((s) => s.user?.modules);
@@ -147,6 +154,27 @@ export function MenuLateral() {
       onPanResponderTerminate: revenir,
     });
   });
+
+  // Déconnexion avec confirmation, comme depuis le Profil : le jeton est invalidé côté serveur (même s'il est injoignable).
+  function confirmerDeconnexion() {
+    Dialogue.alert(t('Déconnexion'), t('Voulez-vous vraiment vous déconnecter ?'), [
+      { text: t('Annuler'), style: 'cancel' },
+      {
+        text: t('Se déconnecter'),
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await logout(refreshToken);
+          } catch {
+            // ignoré volontairement
+          }
+          fermer();
+          queryClient.clear();
+          await signOut();
+        },
+      },
+    ], { ton: 'danger', icone: 'sign-out-alt' });
+  }
 
   if (!monte) return null;
 
@@ -196,9 +224,8 @@ export function MenuLateral() {
         ]}
       >
         <LinearGradient
-          colors={gradient.button}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
+          // Mêmes couleurs que la page de bienvenue (celle des boutons « Se connecter » / « S'inscrire ») : bleu nuit vers violet.
+          colors={[colors.navy, '#2b1366', colors.primaryDark]}
           style={[styles.entete, { paddingTop: insets.top + spacing.lg }]}
         >
           {/* Cercles décoratifs de l'en-tête, aux couleurs de la marque */}
@@ -237,6 +264,14 @@ export function MenuLateral() {
             );
           })}
         </ScrollView>
+
+        {/* Pied du menu : la déconnexion reste toujours visible, en bas, en rouge. */}
+        <Animated.View style={[styles.pied, { paddingBottom: insets.bottom + spacing.md }, apparition(entrees.length)]}>
+          <Pressable accessibilityRole="button" onPress={confirmerDeconnexion} style={({ pressed }) => [styles.deconnexion, pressed && { opacity: 0.75 }]}>
+            <View style={styles.deconnexionIcone}><FontAwesome5 name="sign-out-alt" size={15} color="#fff" /></View>
+            <Text style={styles.deconnexionTexte}>{t('Se déconnecter')}</Text>
+          </Pressable>
+        </Animated.View>
       </Animated.View>
     </View>
   );
@@ -257,8 +292,8 @@ const createStyles = (colors: Palette) => StyleSheet.create({
     elevation: 20,
   },
   entete: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl, overflow: 'hidden' },
-  halo1: { position: 'absolute', width: 170, height: 170, borderRadius: 85, top: -60, right: -40, backgroundColor: 'rgba(255,255,255,0.14)' },
-  halo2: { position: 'absolute', width: 110, height: 110, borderRadius: 55, bottom: -50, left: -20, backgroundColor: 'rgba(255,255,255,0.10)' },
+  halo1: { position: 'absolute', width: 170, height: 170, borderRadius: 85, top: -60, right: -40, backgroundColor: 'rgba(138,63,252,0.35)' },
+  halo2: { position: 'absolute', width: 110, height: 110, borderRadius: 55, bottom: -50, left: -20, backgroundColor: 'rgba(0,194,255,0.18)' },
   enteteLigne: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   avatar: {
     width: 54, height: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center',
@@ -285,6 +320,13 @@ const createStyles = (colors: Palette) => StyleSheet.create({
     overflow: 'hidden',
   },
   ligneActive: { backgroundColor: colors.primarySoft, borderColor: colors.primary },
+  pied: { paddingHorizontal: spacing.md, paddingTop: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+  deconnexion: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: radius.lg,
+    backgroundColor: colors.dangerSoft,
+  },
+  deconnexionIcone: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.danger, alignItems: 'center', justifyContent: 'center' },
+  deconnexionTexte: { flex: 1, fontSize: 15, fontWeight: '700', color: colors.dangerText },
   repere: { position: 'absolute', top: 10, bottom: 10, start: 0, width: 4, borderRadius: 2, backgroundColor: colors.primary },
   icone: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },
   titre: { flex: 1, fontSize: 15, fontWeight: '600', color: colors.text },

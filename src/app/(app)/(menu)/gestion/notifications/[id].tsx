@@ -87,6 +87,6 @@ export default function DetailNotificationAdmin() {
 
 const createStyles = (colors: Palette) => StyleSheet.create({
   meta: { fontSize: 13, color: colors.textMuted },
-  titre: { fontSize: 18, fontWeight: '700', color: colors.text, marginBottom: 6 },
+  titre: { fontSize: 22, fontWeight: '800', color: colors.text, marginBottom: 6 },
   corps: { fontSize: 16, color: colors.text, lineHeight: 24 },
 });

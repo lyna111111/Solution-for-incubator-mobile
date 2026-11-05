@@ -163,7 +163,7 @@ export default function DetailRequeteAdmin() {
 }
 
 const createStyles = (colors: Palette) => StyleSheet.create({
-  titre: { fontSize: 20, fontWeight: '800', color: colors.text },
+  titre: { fontSize: 22, fontWeight: '800', color: colors.text },
   ligne: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
   date: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   meta: { fontSize: 13, color: colors.textMuted },
