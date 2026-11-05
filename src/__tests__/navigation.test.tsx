@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 /**
  * Scénarios de navigation joués sur le vrai routeur (layouts de l'application, pages remplacées par des
- * maquettes). Vérifie surtout le bouton Retour : dans le Menu, il ramène toujours à la page parente de la page affichée.
+ * maquettes). Vérifie surtout le bouton Retour : dans le Menu, il ramène à l'onglet d'origine ou à la page parente de la page affichée.
  */
 import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 import { BackHandler, Pressable, Text, View } from 'react-native';
@@ -10,6 +10,7 @@ import { useOuvrir, useRemplacer } from '@/hooks/useOuvrir';
 import { useReculer } from '@/hooks/useReculer';
 import { BoutonMenu } from '@/components/BoutonMenu';
 import { pageParente } from '@/navigation/retour';
+import { useMenuStore } from '@/store/menu';
 
 let mockNonLues = 0;
 jest.mock('@/hooks/useNotifications', () => ({ useNonLues: () => mockNonLues }));
@@ -216,48 +217,79 @@ describe('depuis les onglets : le retour ramène à l\'onglet d\'où la page a �
   });
 });
 
-describe('depuis la liste du Menu', () => {
-  test('Accueil -> Menu -> page -> Retour -> liste du Menu', async () => {
+// Le tiroir est un état global : chaque scénario repart avec le Menu fermé.
+beforeEach(() => { useMenuStore.setState({ ouvert: false }); });
+
+describe('Menu latéral (tiroir à droite)', () => {
+  test("le burger ouvre le tiroir par-dessus la page, sans changer de page", async () => {
+    const r = await monter('/');
+    expect(screen.queryByText('Articles')).toBeNull();
+    await ouvrirMenu();
+    expect(screen.getByText('Articles')).toBeTruthy();
+    expect(screen.getByText('ACCUEIL')).toBeTruthy(); // la page reste affichée en dessous
+    expect(r.getPathname()).toBe('/');
+  });
+
+  test('un appui sur le fond du tiroir le ferme', async () => {
     const r = await monter('/');
     await ouvrirMenu();
-    expect(r.getPathname()).toBe('/menu');
+    await act(async () => { fireEvent.press(screen.getAllByLabelText('Fermer le menu')[0]); });
+    await laisserPasserAnimations();
+    expect(screen.queryByText('Articles')).toBeNull();
+    expect(r.getPathname()).toBe('/');
+  });
+
+  test('choisir une entrée ferme le tiroir et ouvre la page', async () => {
+    const r = await monter('/');
+    await ouvrirMenu();
+    await appuyer('Articles');
+    expect(r.getPathname()).toBe('/articles');
+    expect(screen.queryByText('Événements')).toBeNull();
+  });
+});
+
+describe('depuis le Menu latéral', () => {
+  test('Accueil -> Menu -> page -> Retour -> Accueil', async () => {
+    const r = await monter('/');
+    await ouvrirMenu();
+    expect(r.getPathname()).toBe('/');
     await appuyer('Événements');
     expect(r.getPathname()).toBe('/evenements');
     await retour();
-    expect(r.getPathname()).toBe('/menu');
+    expect(r.getPathname()).toBe('/');
   });
 
-  test('Profil -> Menu -> page -> Retour -> liste du Menu', async () => {
+  test('Profil -> Menu -> page -> Retour -> Profil', async () => {
     const r = await monter('/');
     await ongletBarre('Profil');
     await ouvrirMenu();
     await appuyer('Événements');
     await retour();
-    expect(r.getPathname()).toBe('/menu');
+    expect(r.getPathname()).toBe('/profil');
   });
 
-  test('Accueil -> carte -> Retour -> Accueil, puis Menu -> même page -> Retour -> liste du Menu', async () => {
+  test('Accueil -> carte -> Retour -> Accueil, puis Menu -> même page -> Retour -> Accueil', async () => {
     const r = await monter('/');
     await appuyer('ACCUEIL-vers-requetes');
     await retour();
     expect(r.getPathname()).toBe('/');
     await ouvrirMenu();
-    expect(r.getPathname()).toBe('/menu'); // la liste, et non la page précédemment ouverte
+    expect(r.getPathname()).toBe('/'); // le tiroir ne change pas de page
     await appuyer('Événements');
     await retour();
-    expect(r.getPathname()).toBe('/menu'); // ouverte depuis le Menu : on y revient, pas à l'Accueil
+    expect(r.getPathname()).toBe('/'); // ouverte depuis le Menu sur l'Accueil : on y revient
   });
 
-  test('Menu quitté sans Retour : l\'onglet Menu rouvre toujours la liste', async () => {
+  test('Menu quitté sans Retour : le burger rouvre toujours le tiroir', async () => {
     const r = await monter('/');
     await ouvrirMenu();
     await appuyer('Articles');
     await ongletBarre('Profil');
     await ouvrirMenu();
-    expect(r.getPathname()).toBe('/menu');
+    expect(r.getPathname()).toBe('/profil');
     await appuyer('Événements');
     await retour();
-    expect(r.getPathname()).toBe('/menu');
+    expect(r.getPathname()).toBe('/profil');
   });
 
 });
@@ -273,16 +305,16 @@ describe('navigation successive dans le Menu', () => {
     await retour();
     expect(r.getPathname()).toBe('/evenements'); // la liste (parent de « nouvelle »), pas le détail d'où l'on vient
     await retour();
-    expect(r.getPathname()).toBe('/menu');
+    expect(r.getPathname()).toBe('/');
   });
 
-  test('page A -> page B (autre module) -> Retour -> liste du Menu', async () => {
+  test('page A -> page B (autre module) -> Retour -> Accueil', async () => {
     const r = await monter('/');
     await appuyer('ACCUEIL-vers-requetes');
     await appuyer('REQUETES-vers-evenements');
     expect(r.getPathname()).toBe('/evenements');
     await retour();
-    expect(r.getPathname()).toBe('/menu');
+    expect(r.getPathname()).toBe('/');
   });
 
   test('retour programmatique (enregistrer / supprimer) = même destination que la flèche', async () => {
@@ -297,7 +329,7 @@ describe('navigation successive dans le Menu', () => {
     await appuyer('EVENEMENT-enregistrer');
     expect(r.getPathname()).toBe('/evenements');
     await appuyer('EVENEMENTS-enregistrer');
-    expect(r.getPathname()).toBe('/menu');
+    expect(r.getPathname()).toBe('/');
   });
 
   test('double appui sur un lien : une seule page ouverte', async () => {
@@ -313,19 +345,19 @@ describe('navigation successive dans le Menu', () => {
 });
 
 describe('accès direct et actualisation', () => {
-  test('lien direct vers une page : Retour mène à la liste du Menu', async () => {
+  test("lien direct vers une page : Retour mène à l'Accueil", async () => {
     const r = await monter('/requetes');
     expect(r.getPathname()).toBe('/requetes');
     await retour();
-    expect(r.getPathname()).toBe('/menu');
+    expect(r.getPathname()).toBe('/');
   });
 
-  test('lien direct vers un détail : Retour mène à sa liste, puis à la liste du Menu', async () => {
+  test("lien direct vers un détail : Retour mène à sa liste, puis à l'Accueil", async () => {
     const r = await monter('/requetes/7');
     await retour();
     expect(r.getPathname()).toBe('/requetes');
     await retour();
-    expect(r.getPathname()).toBe('/menu');
+    expect(r.getPathname()).toBe('/');
   });
 
   test('après un accès direct, la navigation normale reprend (Accueil -> page -> Retour)', async () => {
@@ -339,7 +371,7 @@ describe('accès direct et actualisation', () => {
 });
 
 describe('remplacement de page (création -> fiche)', () => {
-  test('liste -> formulaire remplacé par la fiche -> Retour -> liste -> Retour -> liste du Menu', async () => {
+  test('liste -> formulaire remplacé par la fiche -> Retour -> liste -> Retour -> Accueil', async () => {
     const r = await monter('/');
     await ouvrirMenu();
     await appuyer('Événements');
@@ -349,7 +381,7 @@ describe('remplacement de page (création -> fiche)', () => {
     await retour();
     expect(r.getPathname()).toBe('/evenements');
     await retour();
-    expect(r.getPathname()).toBe('/menu');
+    expect(r.getPathname()).toBe('/');
   });
 });
 
@@ -392,10 +424,12 @@ describe("bouton retour d'Android", () => {
     expect(r.getPathname()).toBe('/profil');
   });
 
-  test("depuis la liste du Menu : revient à l'onglet précédent (historique des onglets)", async () => {
+  test('Menu ouvert : le bouton retour le ferme sans quitter la page', async () => {
     const r = await monter('/');
     await ouvrirMenu();
+    expect(screen.getByText('Articles')).toBeTruthy();
     await materiel();
+    expect(screen.queryByText('Articles')).toBeNull();
     expect(r.getPathname()).toBe('/');
   });
 });
@@ -409,23 +443,23 @@ describe.each([
   beforeEach(() => { mockRole = role; });
   afterAll(() => { mockRole = 'utilisateur'; });
 
-  test('Accueil -> Menu -> entrée -> autre module -> Retour -> liste du Menu', async () => {
+  test('Accueil -> Menu -> entrée -> autre module -> Retour -> Accueil', async () => {
     const r = await monter('/');
     await ouvrirMenu();
     await appuyer(entree);
     expect(r.getPathname()).toBe(chemin);
     await appuyer(`${maquette}-vers-evenements`);
     await retour();
-    expect(r.getPathname()).toBe('/menu');
+    expect(r.getPathname()).toBe('/');
   });
 
-  test('Profil -> Menu -> entrée -> Retour -> liste du Menu', async () => {
+  test('Profil -> Menu -> entrée -> Retour -> Profil', async () => {
     const r = await monter('/');
     await ongletBarre('Profil');
     await ouvrirMenu();
     await appuyer(entree);
     await retour();
-    expect(r.getPathname()).toBe('/menu');
+    expect(r.getPathname()).toBe('/profil');
   });
 });
 

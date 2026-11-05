@@ -1,7 +1,8 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
-import { ColorValue } from 'react-native';
+import { ColorValue, View } from 'react-native';
 
+import { MenuLateral } from '@/components/MenuLateral';
 import { useNonLues } from '@/hooks/useNotifications';
 import { useOuvrir } from '@/hooks/useOuvrir';
 import { useAuthStore } from '@/store/auth';
@@ -36,6 +37,7 @@ export default function AppTabs() {
         : null;
 
   return (
+    <View style={{ flex: 1 }}>
     <Tabs
       backBehavior="history"
       screenOptions={{
@@ -83,8 +85,8 @@ export default function AppTabs() {
         name="(menu)"
         options={{
           title: 'Menu',
-          // Plus visible dans la barre du bas : le Menu s'ouvre avec le burger en haut à droite (voir `BoutonMenu`).
-          // Il reste un onglet du navigateur (historique, pile des pages du Menu) : `href: null` le rendrait inatteignable.
+          // Plus visible dans la barre du bas : le Menu est un tiroir à droite ouvert par le burger (voir `MenuLateral`).
+          // L'onglet reste le conteneur des pages du Menu (pile) : `href: null` les rendrait inatteignables.
           tabBarItemStyle: { display: 'none' },
           // Le burger affiche toujours la liste du Menu : la pile est remise à zéro en quittant l'onglet.
           popToTopOnBlur: true,
@@ -95,5 +97,8 @@ export default function AppTabs() {
       />
       <Tabs.Screen name="profil" options={{ title: 'Profil', tabBarIcon: icone('user') }} />
     </Tabs>
+    {/* Menu : tiroir à droite, par-dessus la page affichée et la barre du bas. */}
+    <MenuLateral />
+    </View>
   );
 }

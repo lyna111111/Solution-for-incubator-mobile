@@ -33,6 +33,21 @@ export function useRetourAndroid(
 }
 
 /**
+ * Bouton retour d'Android quand le Menu latéral est ouvert : il le ferme au lieu de quitter la page. L'écouteur n'existe
+ * que tant que le tiroir est ouvert, il est donc appelé avant celui de la page.
+ */
+export function useRetourMenuLateral(ouvert: boolean, fermer: () => void) {
+  useEffect(() => {
+    if (!ouvert) return;
+    const abonnement = BackHandler.addEventListener('hardwareBackPress', () => {
+      fermer();
+      return true;
+    });
+    return () => abonnement.remove();
+  }, [ouvert, fermer]);
+}
+
+/**
  * Le retour en arrière de toute page, quel que soit l'espace : flèche, retour programmatique (après un
  * enregistrement, une suppression), lien « retour ». À utiliser à la place de `router.back()`.
  *

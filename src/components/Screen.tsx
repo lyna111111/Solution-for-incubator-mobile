@@ -5,7 +5,7 @@ import { ReactNode, useCallback, useEffect, useRef } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BoutonFermerMenu, BoutonMenu } from '@/components/BoutonMenu';
+import { BoutonMenu } from '@/components/BoutonMenu';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { rechargerCodeSiNouveau } from '@/utils/rechargerCode';
 
@@ -21,8 +21,6 @@ interface ScreenProps {
   title?: string;
   /** Bouton flottant « + » en bas à droite (création d'un élément), comme une application mobile. */
   fab?: { titre: string; onPress: () => void };
-  /** Bouton de la barre du haut : burger qui ouvre le Menu (par défaut sur les pages d'onglet), ou croix sur le Menu lui-même. */
-  menu?: 'fermer';
 }
 
 /**
@@ -30,7 +28,7 @@ interface ScreenProps {
  * d'une autre page ou d'un autre onglet), et en développement tirer-pour-actualiser recharge aussi le code de
  * l'app s'il a changé (voir `utils/rechargerCode.ts`).
  */
-export function Screen({ children, refreshing = false, onRefresh, withTopInset = false, title, fab, menu }: ScreenProps) {
+export function Screen({ children, refreshing = false, onRefresh, withTopInset = false, title, fab }: ScreenProps) {
   const styles = useStyles(createStyles);
   const colors = useColors();
   const actualiserRef = useRef(onRefresh);
@@ -56,7 +54,7 @@ export function Screen({ children, refreshing = false, onRefresh, withTopInset =
           <Text style={styles.topbarTitle}>{title}</Text>
           <View style={styles.actions}>
             <ThemeToggle />
-            {menu === 'fermer' ? <BoutonFermerMenu /> : withTopInset ? <BoutonMenu /> : null}
+            {withTopInset ? <BoutonMenu /> : null}
           </View>
         </View>
       )}
