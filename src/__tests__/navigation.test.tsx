@@ -11,8 +11,8 @@ import { useReculer } from '@/hooks/useReculer';
 import { BoutonMenu } from '@/components/BoutonMenu';
 import { pageParente } from '@/navigation/retour';
 
-let mockBadge = 0;
-jest.mock('@/hooks/useNotifications', () => ({ useNonLues: () => 0, useBadgeRequetes: () => mockBadge }));
+let mockNonLues = 0;
+jest.mock('@/hooks/useNotifications', () => ({ useNonLues: () => mockNonLues }));
 jest.mock('@/hooks/useActualiserCompte', () => ({ useActualiserCompte: () => ({ refreshing: false, actualiser: async () => {} }) }));
 let mockRole = 'utilisateur';
 jest.mock('@/store/auth', () => ({
@@ -42,8 +42,11 @@ const onglet = (nom: string) =>
     );
   };
 
-/** Page du Menu : liens vers d'autres pages et bouton d'enregistrement (retour programmatique). */
-const pageMenu = (nom: string) =>
+/**
+ * Page du Menu : liens vers d'autres pages et bouton d'enregistrement (retour programmatique). `base` : module dont
+ * elle fait partie (détail et formulaire de création), `autre` : page d'un autre module.
+ */
+const pageMenu = (nom: string, base = 'requetes', autre = '/evenements') =>
   function PageMenu() {
     const ouvrir = useOuvrir();
     const reculer = useReculer();
@@ -51,11 +54,11 @@ const pageMenu = (nom: string) =>
     return (
       <View>
         <Text>{nom}</Text>
-        <Pressable onPress={() => ouvrir('/requetes/7')}><Text>{nom}-vers-detail</Text></Pressable>
-        <Pressable onPress={() => ouvrir('/requetes/nouvelle')}><Text>{nom}-vers-nouvelle</Text></Pressable>
-        <Pressable onPress={() => ouvrir('/evenements')}><Text>{nom}-vers-evenements</Text></Pressable>
+        <Pressable onPress={() => ouvrir(`/${base}/7` as never)}><Text>{nom}-vers-detail</Text></Pressable>
+        <Pressable onPress={() => ouvrir(`/${base}/nouvelle` as never)}><Text>{nom}-vers-nouvelle</Text></Pressable>
+        <Pressable onPress={() => ouvrir(autre as never)}><Text>{nom}-vers-evenements</Text></Pressable>
         <Pressable onPress={reculer}><Text>{nom}-enregistrer</Text></Pressable>
-        <Pressable onPress={() => remplacer('/requetes/7')}><Text>{nom}-remplacer</Text></Pressable>
+        <Pressable onPress={() => remplacer(`/${base}/7` as never)}><Text>{nom}-remplacer</Text></Pressable>
       </View>
     );
   };
@@ -67,13 +70,15 @@ function monter(initialUrl = '/') {
       '(app)/index': onglet('ACCUEIL'),
       '(app)/profil': onglet('PROFIL'),
       '(app)/raccourci-requetes': () => null,
+      '(app)/raccourci-notifications': () => null,
       '(app)/(menu)/_layout': MenuLayout,
       '(app)/(menu)/menu': Menu,
       '(app)/(menu)/requetes/index': pageMenu('REQUETES'),
       '(app)/(menu)/requetes/nouvelle': pageMenu('NOUVELLE'),
       '(app)/(menu)/requetes/[id]': pageMenu('DETAIL'),
-      '(app)/(menu)/evenements/index': pageMenu('EVENEMENTS'),
-      '(app)/(menu)/evenements/[id]': pageMenu('EVENEMENT'),
+      '(app)/(menu)/evenements/index': pageMenu('EVENEMENTS', 'evenements', '/articles'),
+      '(app)/(menu)/evenements/nouvelle': pageMenu('EVENEMENT-NOUVEAU', 'evenements', '/articles'),
+      '(app)/(menu)/evenements/[id]': pageMenu('EVENEMENT', 'evenements', '/articles'),
       '(app)/(menu)/notifications/index': pageMenu('NOTIFS'),
       '(app)/(menu)/notifications/[id]': pageMenu('NOTIF'),
       '(app)/(menu)/articles/index': pageMenu('ARTICLES'),
@@ -111,18 +116,54 @@ const ouvrirMenu = async () => {
   await laisserPasserAnimations();
 };
 
-describe("pastille de l'onglet Requêtes", () => {
-  afterEach(() => { mockBadge = 0; });
+describe('onglet Notifications de la barre du bas', () => {
+  afterEach(() => { mockNonLues = 0; mockRole = 'utilisateur'; });
 
-  test('affiche le nombre de requêtes quand il est positif', async () => {
-    mockBadge = 3;
+  test("affiche le nombre de notifications non lues, une seule fois : ni sur l'onglet Requêtes ni sur le burger", async () => {
+    mockNonLues = 4;
     await monter('/');
-    expect(screen.getByText('3')).toBeTruthy();
+    expect(screen.getAllByText('4')).toHaveLength(1);
   });
 
-  test("aucune pastille quand il n'y en a pas", async () => {
+  test("aucune pastille quand il n'y a rien de non lu", async () => {
     await monter('/');
     expect(screen.queryByText('0')).toBeNull();
+  });
+
+  test("ouvre la page des notifications ; Retour ramène à l'onglet d'origine", async () => {
+    const r = await monter('/');
+    await ongletBarre('Notifications');
+    expect(r.getPathname()).toBe('/notifications');
+    await retour();
+    expect(r.getPathname()).toBe('/');
+  });
+
+  test("l'onglet Requêtes ouvre la page des requêtes", async () => {
+    const r = await monter('/');
+    await ongletBarre('Requêtes');
+    expect(r.getPathname()).toBe('/requetes');
+  });
+
+  test("pas d'onglet Notifications pour un administrateur", async () => {
+    mockRole = 'admin';
+    await monter('/');
+    expect(screen.queryByRole('button', { name: /Notifications/ })).toBeNull();
+  });
+
+  test('le Menu ne propose plus ni les notifications ni les requêtes', async () => {
+    await monter('/');
+    await ouvrirMenu();
+    expect(screen.getAllByText('Notifications')).toHaveLength(1); // seulement le libellé de l'onglet de la barre
+    expect(screen.queryByText('Mes Requêtes')).toBeNull();
+    expect(screen.getByText('Événements')).toBeTruthy();
+  });
+
+  test("le Menu de l'administrateur ne propose plus la gestion des requêtes", async () => {
+    mockRole = 'admin';
+    await monter('/');
+    await ouvrirMenu();
+    expect(screen.queryByText('Gestion des Requêtes')).toBeNull();
+    expect(screen.getByText('Gestion des Projets')).toBeTruthy();
   });
 });
 
@@ -180,8 +221,8 @@ describe('depuis la liste du Menu', () => {
     const r = await monter('/');
     await ouvrirMenu();
     expect(r.getPathname()).toBe('/menu');
-    await appuyer('Mes Requêtes');
-    expect(r.getPathname()).toBe('/requetes');
+    await appuyer('Événements');
+    expect(r.getPathname()).toBe('/evenements');
     await retour();
     expect(r.getPathname()).toBe('/menu');
   });
@@ -190,7 +231,7 @@ describe('depuis la liste du Menu', () => {
     const r = await monter('/');
     await ongletBarre('Profil');
     await ouvrirMenu();
-    await appuyer('Mes Requêtes');
+    await appuyer('Événements');
     await retour();
     expect(r.getPathname()).toBe('/menu');
   });
@@ -202,7 +243,7 @@ describe('depuis la liste du Menu', () => {
     expect(r.getPathname()).toBe('/');
     await ouvrirMenu();
     expect(r.getPathname()).toBe('/menu'); // la liste, et non la page précédemment ouverte
-    await appuyer('Mes Requêtes');
+    await appuyer('Événements');
     await retour();
     expect(r.getPathname()).toBe('/menu'); // ouverte depuis le Menu : on y revient, pas à l'Accueil
   });
@@ -210,7 +251,7 @@ describe('depuis la liste du Menu', () => {
   test('Menu quitté sans Retour : l\'onglet Menu rouvre toujours la liste', async () => {
     const r = await monter('/');
     await ouvrirMenu();
-    await appuyer('Mes Requêtes');
+    await appuyer('Articles');
     await ongletBarre('Profil');
     await ouvrirMenu();
     expect(r.getPathname()).toBe('/menu');
@@ -225,12 +266,12 @@ describe('navigation successive dans le Menu', () => {
   test('liste -> détail -> nouvelle : chaque page revient à sa page parente', async () => {
     const r = await monter('/');
     await ouvrirMenu();
-    await appuyer('Mes Requêtes');
-    await appuyer('REQUETES-vers-detail');
-    await appuyer('DETAIL-vers-nouvelle');
-    expect(r.getPathname()).toBe('/requetes/nouvelle');
+    await appuyer('Événements');
+    await appuyer('EVENEMENTS-vers-detail');
+    await appuyer('EVENEMENT-vers-nouvelle');
+    expect(r.getPathname()).toBe('/evenements/nouvelle');
     await retour();
-    expect(r.getPathname()).toBe('/requetes'); // la liste (parent de « nouvelle »), pas le détail d'où l'on vient
+    expect(r.getPathname()).toBe('/evenements'); // la liste (parent de « nouvelle »), pas le détail d'où l'on vient
     await retour();
     expect(r.getPathname()).toBe('/menu');
   });
@@ -251,11 +292,11 @@ describe('navigation successive dans le Menu', () => {
     expect(r.getPathname()).toBe('/');
 
     await ouvrirMenu();
-    await appuyer('Mes Requêtes');
-    await appuyer('REQUETES-vers-detail');
-    await appuyer('DETAIL-enregistrer');
-    expect(r.getPathname()).toBe('/requetes');
-    await appuyer('REQUETES-enregistrer');
+    await appuyer('Événements');
+    await appuyer('EVENEMENTS-vers-detail');
+    await appuyer('EVENEMENT-enregistrer');
+    expect(r.getPathname()).toBe('/evenements');
+    await appuyer('EVENEMENTS-enregistrer');
     expect(r.getPathname()).toBe('/menu');
   });
 
@@ -301,12 +342,12 @@ describe('remplacement de page (création -> fiche)', () => {
   test('liste -> formulaire remplacé par la fiche -> Retour -> liste -> Retour -> liste du Menu', async () => {
     const r = await monter('/');
     await ouvrirMenu();
-    await appuyer('Mes Requêtes');
-    await appuyer('REQUETES-vers-nouvelle');
-    await appuyer('NOUVELLE-remplacer');
-    expect(r.getPathname()).toBe('/requetes/7');
+    await appuyer('Événements');
+    await appuyer('EVENEMENTS-vers-nouvelle');
+    await appuyer('EVENEMENT-NOUVEAU-remplacer');
+    expect(r.getPathname()).toBe('/evenements/7');
     await retour();
-    expect(r.getPathname()).toBe('/requetes');
+    expect(r.getPathname()).toBe('/evenements');
     await retour();
     expect(r.getPathname()).toBe('/menu');
   });
@@ -360,8 +401,7 @@ describe("bouton retour d'Android", () => {
 });
 
 describe.each([
-  ['utilisateur', 'Mes Requêtes', '/requetes', 'REQUETES'],
-  ['admin', 'Gestion des Requêtes', '/gestion/requetes', 'GEST-REQUETES'],
+  ['utilisateur', 'Articles', '/articles', 'ARTICLES'],
   ['admin', 'Gestion des Projets', '/gestion/projets', 'GEST-PROJETS'],
   ['superadmin', 'Incubateurs', '/incubateurs', 'INCUBATEURS'],
   ['superadmin', 'Paiements', '/paiements', 'PAIEMENTS'],

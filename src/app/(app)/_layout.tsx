@@ -2,7 +2,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { ColorValue } from 'react-native';
 
-import { useBadgeRequetes } from '@/hooks/useNotifications';
+import { useNonLues } from '@/hooks/useNotifications';
 import { useOuvrir } from '@/hooks/useOuvrir';
 import { useAuthStore } from '@/store/auth';
 import { useColors } from '@/theme';
@@ -18,14 +18,14 @@ function icone(name: IconName) {
 }
 
 /**
- * Même barre pour tous les rôles : Accueil, Requêtes (selon le rôle), Profil. Le Menu s'ouvre avec le burger en haut à
+ * Même barre pour tous les rôles : Accueil, Requêtes et Notifications (selon le rôle), Profil. Le Menu s'ouvre avec le burger en haut à
  * droite. Seul le contenu change selon le rôle (accueil et entrées du menu : voir `index.tsx` et `(menu)/menu.tsx`).
  */
 export default function AppTabs() {
   const colors = useColors();
   const ouvrir = useOuvrir();
-  // Pastille de l'onglet Requêtes : requêtes reçues en attente (administrateur) ou ses requêtes en attente (utilisateur).
-  const badgeRequetes = useBadgeRequetes();
+  // Pastille de l'onglet Notifications (utilisateur) : notifications non lues.
+  const nonLues = useNonLues();
   const role = useAuthStore((s) => s.user?.role);
   // Le sélecteur ne doit pas fabriquer de nouveau tableau (`?? []`) : il relancerait le rendu à l'infini.
   const modules = useAuthStore((s) => s.user?.modules);
@@ -52,8 +52,6 @@ export default function AppTabs() {
         options={{
           title: 'Requêtes',
           tabBarIcon: icone('rocket'),
-          tabBarBadge: badgeRequetes > 0 ? badgeRequetes : undefined,
-          tabBarBadgeStyle: { backgroundColor: colors.unread, color: colors.text },
           ...(routeRequetes ? {} : { href: null }),
         }}
         listeners={{
@@ -61,6 +59,23 @@ export default function AppTabs() {
           tabPress: (e) => {
             e.preventDefault();
             if (routeRequetes) ouvrir(routeRequetes as never);
+          },
+        }}
+      />
+      <Tabs.Screen
+        name="raccourci-notifications"
+        options={{
+          title: 'Notifications',
+          tabBarIcon: icone('bell'),
+          tabBarBadge: nonLues > 0 ? nonLues : undefined,
+          tabBarBadgeStyle: { backgroundColor: colors.unread, color: colors.text },
+          // Seul l'utilisateur reçoit des notifications (l'administrateur les gère depuis le Menu).
+          ...(role === 'utilisateur' ? {} : { href: null }),
+        }}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            if (role === 'utilisateur') ouvrir('/notifications');
           },
         }}
       />
