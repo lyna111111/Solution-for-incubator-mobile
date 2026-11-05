@@ -133,17 +133,19 @@ export function MenuLateral() {
 }
 
 const createStyles = (colors: Palette) => StyleSheet.create({
-  fond: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.45)' },
+  fond: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.35)' },
   tiroir: {
     position: 'absolute',
     top: 0,
     bottom: 0,
-    backgroundColor: colors.background,
+    // Légèrement transparent : la page affichée derrière reste devinée à travers le menu.
+    backgroundColor: `${colors.background}E0`,
+    borderColor: colors.border,
+    borderStartWidth: StyleSheet.hairlineWidth,
     shadowColor: '#000',
     shadowOpacity: 0.3,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 0 },
-    elevation: 16,
   },
   contenu: { flex: 1 },
   entete: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
@@ -157,7 +159,7 @@ const createStyles = (colors: Palette) => StyleSheet.create({
     gap: spacing.md,
     padding: spacing.md,
     borderRadius: radius.lg,
-    backgroundColor: colors.card,
+    backgroundColor: `${colors.card}B3`,
     borderWidth: 1,
     borderColor: colors.border,
   },
